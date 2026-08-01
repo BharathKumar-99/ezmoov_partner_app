@@ -1,0 +1,102 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
+import 'core/services/notification_service.dart';
+import 'core/services/background_service_manager.dart';
+import 'viewmodels/auth_viewmodel.dart';
+
+import 'viewmodels/vehicle_viewmodel.dart';
+import 'viewmodels/document_viewmodel.dart';
+import 'viewmodels/bank_details_viewmodel.dart';
+import 'viewmodels/home_viewmodel.dart';
+import 'views/home/widgets/overlay_bubble_widget.dart';
+import 'viewmodels/profile_viewmodel.dart';
+
+import 'viewmodels/ride_request_viewmodel.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('Could not load .env file: $e');
+  }
+
+  final supabaseUrl =
+      dotenv.env['SUPABASE_URL'] ?? 'https://your-supabase-project.supabase.co';
+  final supabasePublishableKey =
+      dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ??
+      dotenv.env['SUPABASE_ANON_KEY'] ??
+      'your-supabase-publishable-key-here';
+
+  try {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      // ignore: deprecated_member_use
+      anonKey: supabasePublishableKey,
+    );
+  } catch (e) {
+    debugPrint('Supabase initialization notice: $e');
+  }
+
+  // Initialize Notification and Background Services
+  await NotificationService.instance.initialize();
+  await BackgroundServiceManager.instance.initialize();
+
+  final profileViewModel = ProfileViewModel();
+
+  runApp(EzMoovPartnerApp(profileViewModel: profileViewModel));
+
+}
+
+class EzMoovPartnerApp extends StatelessWidget {
+  final ProfileViewModel profileViewModel;
+
+  const EzMoovPartnerApp({super.key, required this.profileViewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: profileViewModel),
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => VehicleViewModel()),
+        ChangeNotifierProvider(create: (_) => DocumentViewModel()),
+        ChangeNotifierProvider(create: (_) => BankDetailsViewModel()),
+        ChangeNotifierProvider(create: (_) => HomeViewModel()),
+        ChangeNotifierProvider(create: (_) => RideRequestViewModel()),
+      ],
+      child: MaterialApp.router(
+        title: 'EZMoov Partner',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        routerConfig: AppRouter.createRouter(profileViewModel),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en', 'US'), Locale('hi', 'IN')],
+      ),
+    );
+  }
+}
+
+// Overlay Window Entrypoint for Floating Home Screen Bubble Mode
+@pragma('vm:entry-point')
+void overlayMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: OverlayBubbleWidget(),
+    ),
+  );
+}
+

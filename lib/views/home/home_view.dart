@@ -1,0 +1,168 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
+import '../../viewmodels/home_viewmodel.dart';
+import '../../viewmodels/profile_viewmodel.dart';
+import '../../viewmodels/ride_request_viewmodel.dart';
+import 'tabs/home_tab.dart';
+import 'tabs/earnings_tab.dart';
+import 'tabs/alerts_tab.dart';
+import 'tabs/profile_tab.dart';
+import 'widgets/active_trip_floating_card.dart';
+
+class HomeView extends StatelessWidget {
+  final String driverId;
+
+  const HomeView({
+    super.key,
+    required this.driverId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileVm = context.read<ProfileViewModel>();
+      final rideVm = context.read<RideRequestViewModel>();
+
+      final effectiveDriverId = driverId.isNotEmpty
+          ? driverId
+          : (profileVm.driver?.id ?? '');
+
+      if (effectiveDriverId.isNotEmpty) {
+        rideVm.restoreActiveTripOnLaunch(effectiveDriverId, context);
+      }
+
+
+      if (driverId.isNotEmpty && (profileVm.driver == null || profileVm.driver!.id != driverId)) {
+        profileVm.fetchProfile(driverId, context);
+      } else if (profileVm.driver != null && profileVm.isOnline) {
+        rideVm.startBroadcastListening(
+          driverId: profileVm.driver!.id!,
+          driverLat: profileVm.latitude,
+          driverLng: profileVm.longitude,
+          context: context,
+        );
+      }
+    });
+
+    return Consumer2<HomeViewModel, RideRequestViewModel>(
+      builder: (context, homeVm, rideVm, child) {
+        const List<Widget> tabs = [
+          HomeTab(),
+          EarningsTab(),
+          AlertsTab(),
+          ProfileTab(),
+        ];
+
+        const List<String> tabTitles = [
+          'EZMoov Partner',
+          'Earnings & Payouts',
+          'Alerts & Notices',
+          'Partner Profile',
+        ];
+
+        final activeTrip = rideVm.activeDriverTrip;
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.local_shipping_rounded, color: AppColors.primary, size: 24),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  tabTitles[homeVm.currentTabIndex],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout_rounded, color: AppColors.error),
+                onPressed: () => context.read<ProfileViewModel>().clearProfileAndLogout(context),
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: Stack(
+              children: [
+                IndexedStack(
+                  index: homeVm.currentTabIndex,
+                  children: tabs,
+                ),
+                if (activeTrip != null)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: ActiveTripFloatingCard(
+                      booking: activeTrip,
+                      onTap: () {
+                        context.go('/driver/pickup/${activeTrip.id}');
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            child: BottomNavigationBar(
+              currentIndex: homeVm.currentTabIndex,
+              onTap: (index) => homeVm.setTabIndex(index),
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: AppColors.surface,
+              selectedItemColor: AppColors.primary,
+              unselectedItemColor: AppColors.textMuted,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+              elevation: 0,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_rounded),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.account_balance_wallet_rounded),
+                  label: 'Earnings',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.notifications_rounded),
+                  label: 'Alerts',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_rounded),
+                  label: 'Profile',
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
