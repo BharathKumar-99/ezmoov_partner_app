@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../core/services/supabase_service.dart';
 import '../core/services/location_service.dart';
 import '../core/services/background_service_manager.dart';
 import '../core/services/overlay_bubble_service.dart';
 import '../models/driver_model.dart';
+import 'profile_viewmodel.dart';
 
 
 import '../models/vehicle_model.dart';
@@ -59,12 +60,6 @@ class HomeViewModel extends ChangeNotifier {
   bool _isProcessingPayout = false;
   bool get isProcessingPayout => _isProcessingPayout;
 
-  // Partner Notifications State
-  List<Map<String, dynamic>> _notifications = [];
-  List<Map<String, dynamic>> get notifications => _notifications;
-  bool _isFetchingNotifications = false;
-  bool get isFetchingNotifications => _isFetchingNotifications;
-
   void setTabIndex(int index) {
     _currentTabIndex = index;
     notifyListeners();
@@ -93,28 +88,10 @@ class HomeViewModel extends ChangeNotifier {
         _bankDetails = await _supabaseService.getBankDetailsByDriverId(driverId);
       }
       await fetchEarnings(driverId);
-      await fetchNotifications(driverId);
       setLoading(false);
     } catch (e) {
       setLoading(false);
       _errorMessage = e.toString();
-      notifyListeners();
-    }
-  }
-
-  Future<void> fetchNotifications(String driverId) async {
-    if (driverId.isEmpty) return;
-    _isFetchingNotifications = true;
-    notifyListeners();
-
-    try {
-      final notifs = await _supabaseService.getDriverNotifications(driverId);
-      _notifications = notifs;
-      _isFetchingNotifications = false;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Notice fetching notifications: $e');
-      _isFetchingNotifications = false;
       notifyListeners();
     }
   }
@@ -261,10 +238,10 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  void logout(BuildContext context) {
+  Future<void> logout(BuildContext context) async {
     _locationService.stopLocationTracking();
-    BackgroundServiceManager.instance.stopBackgroundService();
-    OverlayBubbleService.instance.closeFloatingBubble();
+    await BackgroundServiceManager.instance.stopBackgroundService();
+    await OverlayBubbleService.instance.closeFloatingBubble();
     _driver = null;
     _vehicle = null;
     _documents = null;
@@ -273,7 +250,9 @@ class HomeViewModel extends ChangeNotifier {
     _totalWithdrawnAmount = 0.0;
     _isOnline = false;
     _currentTabIndex = 0;
-    context.go('/login');
+    if (context.mounted) {
+      await Provider.of<ProfileViewModel>(context, listen: false).clearProfileAndLogout(context);
+    }
   }
 
 

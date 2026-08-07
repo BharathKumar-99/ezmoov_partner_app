@@ -21,23 +21,27 @@ class AppRouter {
       redirect: (context, state) async {
         final location = state.uri.path;
         final authUser = SupabaseService.instance.client.auth.currentUser;
+        var driver = profileViewModel.driver;
+
+        if (driver == null) {
+          final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
+          if (savedSession != null && savedSession.isNotEmpty) {
+            driver = await profileViewModel.fetchProfile(savedSession);
+          } else if (authUser != null) {
+            final userPhone = authUser.phone;
+            if (userPhone != null && userPhone.isNotEmpty) {
+              driver = await profileViewModel.fetchProfile(userPhone);
+            }
+            driver ??= await profileViewModel.fetchProfile(authUser.id);
+          }
+        }
 
         // 1. Not Logged In Guard
-        if (authUser == null) {
+        if (authUser == null && driver == null) {
           if (location == '/login' || location == '/signup' || location == '/otp') {
             return null;
           }
           return '/login';
-        }
-
-        // 2. Fetch or load driver profile via ProfileViewModel on app load/redirect
-        var driver = profileViewModel.driver;
-        if (driver == null) {
-          final userPhone = authUser.phone;
-          if (userPhone != null && userPhone.isNotEmpty) {
-            driver = await profileViewModel.fetchProfile(userPhone);
-          }
-          driver ??= await profileViewModel.fetchProfile(authUser.id);
         }
 
         // If driver record missing in DB
@@ -48,7 +52,7 @@ class AppRouter {
           return '/signup';
         }
 
-        final driverId = driver.id ?? authUser.id;
+        final driverId = driver.id ?? authUser?.id ?? '';
 
         // 3. Vehicle Details Guard
         if (!driver.isVehicleAdded) {

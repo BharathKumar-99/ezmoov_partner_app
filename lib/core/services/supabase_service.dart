@@ -101,11 +101,8 @@ class SupabaseService {
         data['phone'] = rawPhone.startsWith('+') ? rawPhone : '+$cleanDigits';
       }
 
-      final response = await client
-          .from('drivers')
-          .insert(data)
-          .select()
-          .single();
+      final response =
+          await client.from('drivers').insert(data).select().single();
 
       return DriverModel.fromJson(response);
     } catch (e) {
@@ -117,13 +114,10 @@ class SupabaseService {
   /// Update Online status of driver
   Future<void> updateOnlineStatus(String driverId, bool isOnline) async {
     try {
-      await client
-          .from('drivers')
-          .update({
-            'is_online': isOnline,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', driverId);
+      await client.from('drivers').update({
+        'is_online': isOnline,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', driverId);
     } catch (e) {
       debugPrint('Error updating online status: $e');
       rethrow;
@@ -143,13 +137,10 @@ class SupabaseService {
         'lat': lat,
         'lng': lng,
       };
-      await client
-          .from('drivers')
-          .update({
-            'current_location': locationJson,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', driverId);
+      await client.from('drivers').update({
+        'current_location': locationJson,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', driverId);
     } catch (e) {
       debugPrint('Error updating driver location: $e');
       rethrow;
@@ -164,19 +155,13 @@ class SupabaseService {
         vehicleData.remove('id');
       }
 
-      final response = await client
-          .from('vehicles')
-          .insert(vehicleData)
-          .select()
-          .single();
+      final response =
+          await client.from('vehicles').insert(vehicleData).select().single();
 
-      await client
-          .from('drivers')
-          .update({
-            'is_vehicle_added': true,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', vehicle.driverId);
+      await client.from('drivers').update({
+        'is_vehicle_added': true,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', vehicle.driverId);
 
       return VehicleModel.fromJson(response);
     } catch (e) {
@@ -210,19 +195,13 @@ class SupabaseService {
         docData.remove('id');
       }
 
-      final response = await client
-          .from('documents')
-          .insert(docData)
-          .select()
-          .single();
+      final response =
+          await client.from('documents').insert(docData).select().single();
 
-      await client
-          .from('drivers')
-          .update({
-            'is_documents_uploaded': true,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', document.driverId);
+      await client.from('drivers').update({
+        'is_documents_uploaded': true,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', document.driverId);
 
       return DocumentModel.fromJson(response);
     } catch (e) {
@@ -256,19 +235,13 @@ class SupabaseService {
         bankData.remove('id');
       }
 
-      final response = await client
-          .from('bank_details')
-          .insert(bankData)
-          .select()
-          .single();
+      final response =
+          await client.from('bank_details').insert(bankData).select().single();
 
-      await client
-          .from('drivers')
-          .update({
-            'is_bank_details_added': true,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', bankDetails.driverId);
+      await client.from('drivers').update({
+        'is_bank_details_added': true,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', bankDetails.driverId);
 
       return BankDetailsModel.fromJson(response);
     } catch (e) {
@@ -389,13 +362,10 @@ class SupabaseService {
   /// Update booking status in Supabase (e.g., 'arrived', 'in_transit', 'completed', 'cancelled')
   Future<void> updateBookingStatus(String bookingId, String status) async {
     try {
-      await client
-          .from('bookings')
-          .update({
-            'status': status,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', bookingId);
+      await client.from('bookings').update({
+        'status': status,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', bookingId);
     } catch (e) {
       debugPrint('Error updating booking status: $e');
       rethrow;
@@ -441,12 +411,9 @@ class SupabaseService {
 
   /// Realtime Stream subscription to public.bookings table
   Stream<List<BookingModel>> subscribeToBookingsStream() {
-    return client
-        .from('bookings')
-        .stream(primaryKey: ['id'])
-        .map(
-          (data) => data.map((json) => BookingModel.fromJson(json)).toList(),
-        );
+    return client.from('bookings').stream(primaryKey: ['id']).map(
+      (data) => data.map((json) => BookingModel.fromJson(json)).toList(),
+    );
   }
 
   /// Upload file to specified storage bucket and return public URL
@@ -459,9 +426,7 @@ class SupabaseService {
       final file = File(filePath);
       final storagePath = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
 
-      await client.storage
-          .from(bucket)
-          .upload(
+      await client.storage.from(bucket).upload(
             storagePath,
             file,
             fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
@@ -517,14 +482,11 @@ class SupabaseService {
     required String reason,
   }) async {
     try {
-      await client
-          .from('bookings')
-          .update({
-            'status': 'cancelled',
-            'cancellation_reason': reason,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', bookingId);
+      await client.from('bookings').update({
+        'status': 'cancelled',
+        'cancellation_reason': reason,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', bookingId);
     } catch (e) {
       debugPrint('Error cancelling booking with reason: $e');
       rethrow;
@@ -541,25 +503,19 @@ class SupabaseService {
           'pickup_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storagePath = 'pickup/$fileName';
 
-      await client.storage
-          .from('documents')
-          .upload(
+      await client.storage.from('documents').upload(
             storagePath,
             file,
             fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
           );
 
-      final publicUrl = client.storage
-          .from('documents')
-          .getPublicUrl(storagePath);
+      final publicUrl =
+          client.storage.from('documents').getPublicUrl(storagePath);
 
-      await client
-          .from('bookings')
-          .update({
-            'pickup_url': publicUrl,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', bookingId);
+      await client.from('bookings').update({
+        'pickup_url': publicUrl,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', bookingId);
 
       return publicUrl;
     } catch (e) {
@@ -578,25 +534,19 @@ class SupabaseService {
           'pod_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storagePath = 'pod/$fileName';
 
-      await client.storage
-          .from('documents')
-          .upload(
+      await client.storage.from('documents').upload(
             storagePath,
             file,
             fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
           );
 
-      final publicUrl = client.storage
-          .from('documents')
-          .getPublicUrl(storagePath);
+      final publicUrl =
+          client.storage.from('documents').getPublicUrl(storagePath);
 
-      await client
-          .from('bookings')
-          .update({
-            'pod_url': publicUrl,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', bookingId);
+      await client.from('bookings').update({
+        'pod_url': publicUrl,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', bookingId);
 
       return publicUrl;
     } catch (e) {
@@ -627,18 +577,29 @@ class SupabaseService {
     }
   }
 
-  /// Get partner notifications from driver_notifications table
-  Future<List<Map<String, dynamic>>> getDriverNotifications(String driverId) async {
+  /// Save or update FCM token in public.user_fcm_tokens
+  Future<void> saveUserFcmToken({
+    required String userId,
+    required String fcmToken,
+    required String type,
+    String? device,
+  }) async {
     try {
-      final response = await client
-          .from('driver_notifications')
-          .select()
-          .eq('driver_id', driverId)
-          .order('created_at', ascending: false);
-      return List<Map<String, dynamic>>.from(response);
+      final nowStr = DateTime.now().toIso8601String();
+      await client.from('user_fcm_tokens').upsert(
+        {
+          'driver_id': userId,
+          'fcm_token': fcmToken,
+          'type': type,
+          'device': device,
+          'last_used': nowStr,
+          'updated_at': nowStr,
+        },
+        onConflict: 'fcm_token',
+      );
+      debugPrint('Successfully saved FCM token to Supabase for user $userId');
     } catch (e) {
-      debugPrint('Notice fetching driver notifications: $e');
-      return [];
+      debugPrint('Error saving FCM token to Supabase: $e');
     }
   }
 }

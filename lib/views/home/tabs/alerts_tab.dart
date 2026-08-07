@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../viewmodels/home_viewmodel.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
 
 class AlertsTab extends StatefulWidget {
@@ -14,21 +13,10 @@ class AlertsTab extends StatefulWidget {
 
 class _AlertsTabState extends State<AlertsTab> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final driverId = context.read<ProfileViewModel>().driver?.id;
-      if (driverId != null && driverId.isNotEmpty) {
-        context.read<HomeViewModel>().fetchNotifications(driverId);
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Consumer2<HomeViewModel, ProfileViewModel>(
-      builder: (context, homeVm, profileVm, child) {
-        final rawNotifications = homeVm.notifications;
+    return Consumer<ProfileViewModel>(
+      builder: (context, profileVm, child) {
+        final List<Map<String, dynamic>> rawNotifications = [];
         final driver = profileVm.driver;
 
         // Auto-generate dynamic account alerts based on real driver state

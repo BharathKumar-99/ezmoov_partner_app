@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/services/supabase_service.dart';
+import '../core/services/fcm_service.dart';
 import '../models/driver_model.dart';
 import 'profile_viewmodel.dart';
 
@@ -189,15 +191,23 @@ class AuthViewModel extends ChangeNotifier {
     setLoading(true);
     setError(null);
 
+    // 1. Verify Phone OTP via Supabase Auth
     try {
-      try {
-        await _supabaseService.verifyPhoneOtp(phone, _otpCode);
-      } catch (e) {
-        debugPrint('Supabase SMS verification notice: $e');
+      await _supabaseService.verifyPhoneOtp(phone, _otpCode);
+    } catch (e) {
+      debugPrint('Supabase SMS verification error: $e');
+      setLoading(false);
+      final msg = e is AuthException ? e.message : e.toString();
+      setError(msg);
+      if (context.mounted) {
+        _showSnackBar(context, 'Verification failed: $msg');
       }
+      return; // Do NOT move forward if OTP verification fails!
+    }
 
-      if (!context.mounted) return;
+    if (!context.mounted) return;
 
+    try {
       if (_isLoginFlow) {
         var driver = _currentDriver ?? await _supabaseService.getDriverByPhone(phone);
         if (driver == null) {
@@ -207,6 +217,10 @@ class AuthViewModel extends ChangeNotifier {
         }
         _currentDriver = driver;
         setLoading(false);
+
+        if (driver.id != null) {
+          FcmService.instance.saveUserFcmToken(driver.id!);
+        }
 
         if (!context.mounted) return;
 
@@ -229,6 +243,9 @@ class AuthViewModel extends ChangeNotifier {
           final createdDriver = await _supabaseService.createDriver(_signupDraftDriver!);
           _currentDriver = createdDriver;
           setLoading(false);
+          if (createdDriver.id != null) {
+            FcmService.instance.saveUserFcmToken(createdDriver.id!);
+          }
           if (context.mounted) {
             Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(createdDriver.id!);
             context.go('/vehicle-details', extra: {'driverId': createdDriver.id});
@@ -244,7 +261,7 @@ class AuthViewModel extends ChangeNotifier {
     } catch (e) {
       setLoading(false);
       setError(e.toString());
-      if (context.mounted) _showSnackBar(context, 'OTP Verification failed: $e');
+      if (context.mounted) _showSnackBar(context, 'Error loading profile: $e');
     }
   }
 

@@ -6,7 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
 
-class OtpView extends StatelessWidget {
+class OtpView extends StatefulWidget {
   final String phone;
 
   const OtpView({
@@ -15,13 +15,23 @@ class OtpView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Send OTP on view frame load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final vm = Provider.of<AuthViewModel>(context, listen: false);
-      vm.sendOtpToPhone(phone);
-    });
+  State<OtpView> createState() => _OtpViewState();
+}
 
+class _OtpViewState extends State<OtpView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final vm = Provider.of<AuthViewModel>(context, listen: false);
+        vm.sendOtpToPhone(widget.phone);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final defaultPinTheme = PinTheme(
       width: 50,
       height: 56,
@@ -79,7 +89,7 @@ class OtpView extends StatelessWidget {
                       ),
                       children: [
                         TextSpan(
-                          text: phone,
+                          text: widget.phone,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -99,7 +109,9 @@ class OtpView extends StatelessWidget {
                       onChanged: (value) => vm.otpCode = value,
                       onCompleted: (value) {
                         vm.otpCode = value;
-                        vm.verifyOtp(context, phone);
+                        if (!vm.isLoading) {
+                          vm.verifyOtp(context, widget.phone);
+                        }
                       },
                     ),
                   ),
@@ -110,7 +122,11 @@ class OtpView extends StatelessWidget {
                     text: 'Verify & Continue',
                     isLoading: vm.isLoading,
                     icon: Icons.check_circle_outline_rounded,
-                    onPressed: () => vm.verifyOtp(context, phone),
+                    onPressed: () {
+                      if (!vm.isLoading) {
+                        vm.verifyOtp(context, widget.phone);
+                      }
+                    },
                   ),
 
                   const SizedBox(height: 24),
@@ -125,7 +141,11 @@ class OtpView extends StatelessWidget {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => vm.sendOtpToPhone(phone),
+                        onTap: () {
+                          if (!vm.isLoading) {
+                            vm.sendOtpToPhone(widget.phone);
+                          }
+                        },
                         child: const Text(
                           'Resend OTP',
                           style: TextStyle(

@@ -223,7 +223,13 @@ class SignupView extends StatelessWidget {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => context.pop(),
+                        onTap: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/login');
+                          }
+                        },
                         child: const Text(
                           'Login',
                           style: TextStyle(

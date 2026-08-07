@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "488641972831",
+    "project_id": "ezmoov-c8c20",
+    "storage_bucket": "ezmoov-c8c20.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:488641972831:android:507ffe5db4f19696bca9ea",
+        "android_client_info": {
+          "package_name": "com.ezmoov.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHpcNcz8_Ml2IE478qHSuK32KtU3REdCw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:488641972831:android:45c348515e5673fcbca9ea",
+        "android_client_info": {
+          "package_name": "com.ezmoov.partner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHpcNcz8_Ml2IE478qHSuK32KtU3REdCw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

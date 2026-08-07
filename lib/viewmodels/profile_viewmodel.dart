@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/services/supabase_service.dart';
+import '../core/services/fcm_service.dart';
 import '../models/driver_model.dart';
 import '../models/vehicle_model.dart';
 import '../models/document_model.dart';
@@ -116,6 +118,10 @@ class ProfileViewModel extends ChangeNotifier {
       if (loadedDriver != null) {
         _driver = loadedDriver;
         _isOnline = loadedDriver.isOnline;
+        if (loadedDriver.id != null) {
+          saveSessionPhoneOrId(loadedDriver.id!);
+          FcmService.instance.saveUserFcmToken(loadedDriver.id!);
+        }
         if (loadedDriver.latitude != null && loadedDriver.longitude != null) {
           _latitude = loadedDriver.latitude!;
           _longitude = loadedDriver.longitude!;
@@ -413,13 +419,15 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Clear profile data and cancel location timer on logout
-  void clearProfileAndLogout(BuildContext context) {
+  /// Clear profile data, remove stored session, sign out Supabase auth & cancel location timer on logout
+  Future<void> clearProfileAndLogout(BuildContext context) async {
     _stopLocationTimer();
-    Provider.of<RideRequestViewModel>(
-      context,
-      listen: false,
-    ).stopBroadcastListening();
+    if (context.mounted) {
+      Provider.of<RideRequestViewModel>(
+        context,
+        listen: false,
+      ).stopBroadcastListening();
+    }
     _driver = null;
     _vehicle = null;
     _documents = null;
@@ -427,8 +435,49 @@ class ProfileViewModel extends ChangeNotifier {
     _ratings = [];
     _trips = [];
     _isOnline = false;
+
+    // Clear persisted SharedPreferences session
+    await clearSession();
+
+    // Sign out from Supabase Auth
+    try {
+      await _supabaseService.client.auth.signOut();
+    } catch (e) {
+      debugPrint('Notice signing out Supabase auth: $e');
+    }
+
     notifyListeners();
-    context.go('/login');
+
+    if (context.mounted) {
+      context.go('/login');
+    }
+  }
+
+  Future<void> saveSessionPhoneOrId(String val) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('saved_driver_session', val);
+    } catch (e) {
+      debugPrint('Notice saving driver session: $e');
+    }
+  }
+
+  Future<String?> getSavedSessionPhoneOrId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('saved_driver_session');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> clearSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('saved_driver_session');
+    } catch (e) {
+      debugPrint('Notice clearing session: $e');
+    }
   }
 
   void _showSnackBar(BuildContext context, String message) {

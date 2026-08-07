@@ -64,6 +64,50 @@ class NotificationService {
 
 
 
+  /// Trigger heads-up notification for FCM message
+  Future<void> showNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await initialize();
+
+    const androidDetails = AndroidNotificationDetails(
+      'incoming_ride_channel',
+      'Incoming Ride Requests',
+      channelDescription: 'High-priority notifications for incoming driver ride requests',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    try {
+      final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      await _notificationsPlugin.show(
+        id,
+        title,
+        body,
+        details,
+        payload: payload,
+      );
+      debugPrint('🔔 System Heads-Up Notification triggered: $title');
+    } catch (e) {
+      debugPrint('Notice showing FCM notification: $e');
+    }
+  }
+
   /// Trigger high-priority heads-up notification for an incoming ride request
   Future<void> showIncomingRideNotification({
     required String bookingId,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/supabase_service.dart';
 import '../../models/driver_model.dart';
+import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
 
 class VerificationPendingView extends StatefulWidget {
@@ -104,7 +106,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-            onPressed: () => context.go('/login'),
+            onPressed: () => Provider.of<ProfileViewModel>(context, listen: false).clearProfileAndLogout(context),
           ),
         ],
       ),
@@ -216,7 +218,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
               const SizedBox(height: 16),
 
               TextButton.icon(
-                onPressed: () => context.go('/login'),
+                onPressed: () => Provider.of<ProfileViewModel>(context, listen: false).clearProfileAndLogout(context),
                 icon: const Icon(Icons.logout_rounded, size: 18, color: AppColors.textSecondary),
                 label: const Text(
                   'Log Out & Exit',

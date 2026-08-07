@@ -4,10 +4,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/background_service_manager.dart';
+import 'core/services/fcm_service.dart';
 import 'viewmodels/auth_viewmodel.dart';
 
 import 'viewmodels/vehicle_viewmodel.dart';
@@ -46,6 +49,16 @@ Future<void> main() async {
     }
   } else {
     debugPrint('⚠️ Warning: SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is not defined in .env');
+  }
+
+  // Initialize Firebase & FCM
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await FcmService.instance.initialize();
+  } catch (e) {
+    debugPrint('Firebase initialization notice: $e');
   }
 
   // Initialize Notification and Background Services

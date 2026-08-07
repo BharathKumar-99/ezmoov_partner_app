@@ -53,11 +53,17 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     }
   }
 
+  ProfileViewModel? _profileViewModel;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+  }
+
   @override
   void dispose() {
-    try {
-      context.read<ProfileViewModel>().setTripActive(false);
-    } catch (_) {}
+    _profileViewModel?.setTripActive(false);
     super.dispose();
   }
 
