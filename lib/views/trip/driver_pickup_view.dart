@@ -48,12 +48,33 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         _booking = booking;
         _isLoading = false;
       });
+      // Enable active trip location tracking (5-second interval + SnackBar)
+      context.read<ProfileViewModel>().setTripActive(true, context);
     }
+  }
+
+  @override
+  void dispose() {
+    try {
+      context.read<ProfileViewModel>().setTripActive(false);
+    } catch (_) {}
+    super.dispose();
   }
 
   Future<void> _makePhoneCall(String phone) async {
     final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
-    final Uri url = Uri.parse('tel:${cleanPhone.isNotEmpty ? cleanPhone : "+919876543210"}');
+    if (cleanPhone.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Customer phone number not available'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return;
+    }
+    final Uri url = Uri.parse('tel:$cleanPhone');
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url);
@@ -74,7 +95,18 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
   Future<void> _sendSms(String phone) async {
     final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
-    final Uri url = Uri.parse('sms:${cleanPhone.isNotEmpty ? cleanPhone : "+919876543210"}');
+    if (cleanPhone.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Customer phone number not available'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return;
+    }
+    final Uri url = Uri.parse('sms:$cleanPhone');
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url);
@@ -158,6 +190,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         );
 
         if (newStatus == 'completed') {
+          context.read<ProfileViewModel>().setTripActive(false);
           context.read<RideRequestViewModel>().clearActiveDriverTrip();
           final driverId = _booking?.driverId;
           if (driverId != null && driverId.isNotEmpty) {
@@ -195,7 +228,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       builder: (modalContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final expectedOtp = _booking?.otp ?? '4825';
+            final expectedOtp = _booking?.otp;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -395,30 +428,31 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           return;
                         }
 
-                        if (inputOtp == expectedOtp || inputOtp == '4825') {
-                          setModalState(() {
-                            _isUploadingPickup = true;
-                          });
-                          try {
-                            await SupabaseService.instance.uploadPickupImage(
-                              bookingId: widget.bookingId,
-                              file: _pickupImageFile!,
-                            );
-                          } catch (e) {
-                            debugPrint('Notice uploading pickup photo: $e');
-                          }
-
-                          if (context.mounted) {
-                            Navigator.of(modalContext).pop();
-                            _updateStatus(
-                              'in_transit',
-                              '🎉 OTP Verified & Pickup Photo Saved! Trip started.',
-                            );
-                          }
-                        } else {
+                        if (expectedOtp != null && expectedOtp.isNotEmpty && inputOtp != expectedOtp) {
                           setModalState(() {
                             otpError = 'Incorrect OTP. Ask customer for start PIN.';
                           });
+                          return;
+                        }
+
+                        setModalState(() {
+                          _isUploadingPickup = true;
+                        });
+                        try {
+                          await SupabaseService.instance.uploadPickupImage(
+                            bookingId: widget.bookingId,
+                            file: _pickupImageFile!,
+                          );
+                        } catch (e) {
+                          debugPrint('Notice uploading pickup photo: $e');
+                        }
+
+                        if (context.mounted) {
+                          Navigator.of(modalContext).pop();
+                          _updateStatus(
+                            'in_transit',
+                            '🎉 OTP Verified & Pickup Photo Saved! Trip started.',
+                          );
                         }
                       },
                     ),
@@ -929,7 +963,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         : (_booking?.pickupAddress ?? '');
     final navTargetLabel = isTransit ? 'Dropoff Location' : 'Customer Pickup Location';
 
-    final customerPhone = _booking?.customerPhone ?? '+919876543210';
+    final customerPhone = _booking?.customerPhone ?? '';
     final customerName = _booking?.customerName ?? 'Customer';
 
     return Scaffold(

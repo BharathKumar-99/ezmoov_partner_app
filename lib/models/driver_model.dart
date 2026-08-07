@@ -40,6 +40,28 @@ class DriverModel {
   bool get isFullyVerified =>
       isVerified || (isVehicleVerified && isDocumentsVerified && isBankDetailsVerified);
 
+  /// Extract latitude numeric value from currentLocation JSON map or object
+  double? get latitude {
+    if (currentLocation is Map) {
+      final map = currentLocation as Map;
+      final val = map['latitude'] ?? map['lat'];
+      if (val is num) return val.toDouble();
+      if (val is String) return double.tryParse(val);
+    }
+    return null;
+  }
+
+  /// Extract longitude numeric value from currentLocation JSON map or object
+  double? get longitude {
+    if (currentLocation is Map) {
+      final map = currentLocation as Map;
+      final val = map['longitude'] ?? map['lng'];
+      if (val is num) return val.toDouble();
+      if (val is String) return double.tryParse(val);
+    }
+    return null;
+  }
+
   factory DriverModel.fromJson(Map<String, dynamic> json) {
     return DriverModel(
       id: json['id'] as String?,

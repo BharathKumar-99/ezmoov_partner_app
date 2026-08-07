@@ -59,6 +59,12 @@ class HomeViewModel extends ChangeNotifier {
   bool _isProcessingPayout = false;
   bool get isProcessingPayout => _isProcessingPayout;
 
+  // Partner Notifications State
+  List<Map<String, dynamic>> _notifications = [];
+  List<Map<String, dynamic>> get notifications => _notifications;
+  bool _isFetchingNotifications = false;
+  bool get isFetchingNotifications => _isFetchingNotifications;
+
   void setTabIndex(int index) {
     _currentTabIndex = index;
     notifyListeners();
@@ -87,10 +93,28 @@ class HomeViewModel extends ChangeNotifier {
         _bankDetails = await _supabaseService.getBankDetailsByDriverId(driverId);
       }
       await fetchEarnings(driverId);
+      await fetchNotifications(driverId);
       setLoading(false);
     } catch (e) {
       setLoading(false);
       _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchNotifications(String driverId) async {
+    if (driverId.isEmpty) return;
+    _isFetchingNotifications = true;
+    notifyListeners();
+
+    try {
+      final notifs = await _supabaseService.getDriverNotifications(driverId);
+      _notifications = notifs;
+      _isFetchingNotifications = false;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Notice fetching notifications: $e');
+      _isFetchingNotifications = false;
       notifyListeners();
     }
   }

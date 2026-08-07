@@ -28,21 +28,24 @@ Future<void> main() async {
     debugPrint('Could not load .env file: $e');
   }
 
-  final supabaseUrl =
-      dotenv.env['SUPABASE_URL'] ?? 'https://your-supabase-project.supabase.co';
+  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
   final supabasePublishableKey =
       dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ??
       dotenv.env['SUPABASE_ANON_KEY'] ??
-      'your-supabase-publishable-key-here';
+      '';
 
-  try {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      // ignore: deprecated_member_use
-      anonKey: supabasePublishableKey,
-    );
-  } catch (e) {
-    debugPrint('Supabase initialization notice: $e');
+  if (supabaseUrl.isNotEmpty && supabasePublishableKey.isNotEmpty) {
+    try {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        // ignore: deprecated_member_use
+        anonKey: supabasePublishableKey,
+      );
+    } catch (e) {
+      debugPrint('Supabase initialization notice: $e');
+    }
+  } else {
+    debugPrint('⚠️ Warning: SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is not defined in .env');
   }
 
   // Initialize Notification and Background Services

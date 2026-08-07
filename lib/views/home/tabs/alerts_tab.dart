@@ -1,84 +1,167 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../viewmodels/home_viewmodel.dart';
+import '../../../viewmodels/profile_viewmodel.dart';
 
-class AlertsTab extends StatelessWidget {
+class AlertsTab extends StatefulWidget {
   const AlertsTab({super.key});
 
   @override
+  State<AlertsTab> createState() => _AlertsTabState();
+}
+
+class _AlertsTabState extends State<AlertsTab> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final driverId = context.read<ProfileViewModel>().driver?.id;
+      if (driverId != null && driverId.isNotEmpty) {
+        context.read<HomeViewModel>().fetchNotifications(driverId);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Consumer2<HomeViewModel, ProfileViewModel>(
+      builder: (context, homeVm, profileVm, child) {
+        final rawNotifications = homeVm.notifications;
+        final driver = profileVm.driver;
+
+        // Auto-generate dynamic account alerts based on real driver state
+        final List<Map<String, dynamic>> dynamicAlerts = [];
+
+        if (driver != null) {
+          if (driver.isFullyVerified) {
+            dynamicAlerts.add({
+              'title': '✅ Account Fully Verified',
+              'message': 'Your driver profile, vehicle documents, and bank details are active.',
+              'created_at': driver.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+              'icon': Icons.verified_user_rounded,
+              'icon_color': const Color(0xFF166534),
+              'badge_color': const Color(0xFFDCFCE7),
+            });
+          } else {
+            dynamicAlerts.add({
+              'title': '⏳ Verification In Progress',
+              'message': 'Your driver documentation is under admin review.',
+              'created_at': DateTime.now().toIso8601String(),
+              'icon': Icons.hourglass_top_rounded,
+              'icon_color': const Color(0xFFD97706),
+              'badge_color': const Color(0xFFFEF3C7),
+            });
+          }
+        }
+
+        // Combine DB notifications with dynamic account status alerts
+        final allNotifs = [...rawNotifications, ...dynamicAlerts];
+
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Partner Notifications',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  '4 New Alerts',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Partner Notifications',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${allNotifs.length} ${allNotifs.length == 1 ? 'Alert' : 'Alerts'}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 16),
+
+              if (allNotifs.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: const Column(
+                    children: [
+                      Icon(
+                        Icons.notifications_none_rounded,
+                        size: 48,
+                        color: AppColors.textMuted,
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'No New Notifications',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'You are all caught up! High demand alerts and account updates will appear here.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ...allNotifs.map((item) {
+                  final title = item['title'] as String? ?? 'Notification';
+                  final message = item['message'] as String? ?? item['body'] as String? ?? '';
+                  final dateRaw = item['created_at'] as String?;
+                  String timeStr = 'Recently';
+                  if (dateRaw != null) {
+                    try {
+                      final dt = DateTime.parse(dateRaw);
+                      timeStr = DateFormat('dd MMM, hh:mm a').format(dt);
+                    } catch (_) {}
+                  }
+
+                  final icon = item['icon'] as IconData? ?? Icons.notifications_active_rounded;
+                  final iconColor = item['icon_color'] as Color? ?? AppColors.primary;
+                  final badgeColor = item['badge_color'] as Color? ?? const Color(0xFFDCFCE7);
+
+                  return _AlertCard(
+                    title: title,
+                    message: message,
+                    time: timeStr,
+                    icon: icon,
+                    iconColor: iconColor,
+                    badgeColor: badgeColor,
+                  );
+                }),
             ],
           ),
-          const SizedBox(height: 16),
-
-          const _AlertCard(
-            title: '⚡ High Demand Surge Alert!',
-            message: 'Surge pricing active in Electronic City & Silk Board. Earn up to ₹50 extra per trip.',
-            time: '10 mins ago',
-            icon: Icons.bolt_rounded,
-            iconColor: Color(0xFFEAB308),
-            badgeColor: Color(0xFFFEF9C3),
-          ),
-
-          const _AlertCard(
-            title: '🎁 Weekend Incentive Bonus',
-            message: 'Complete 12 trips between Friday & Sunday to unlock an instant ₹600 cash bonus.',
-            time: '2 hours ago',
-            icon: Icons.card_giftcard_rounded,
-            iconColor: AppColors.primary,
-            badgeColor: Color(0xFFDCFCE7),
-          ),
-
-          const _AlertCard(
-            title: '💳 Payout Successfully Processed',
-            message: 'Your weekly payout of ₹4,850.00 has been transferred to your registered bank account.',
-            time: '1 day ago',
-            icon: Icons.account_balance_wallet_rounded,
-            iconColor: Color(0xFF0284C7),
-            badgeColor: Color(0xFFE0F2FE),
-          ),
-
-          const _AlertCard(
-            title: '📄 Vehicle Fitness Reminder',
-            message: 'Your Vehicle Fitness Certificate is verified and valid up to Dec 31, 2026.',
-            time: '2 days ago',
-            icon: Icons.verified_user_rounded,
-            iconColor: Color(0xFF166534),
-            badgeColor: Color(0xFFDCFCE7),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

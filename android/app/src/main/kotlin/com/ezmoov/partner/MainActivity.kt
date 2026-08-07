@@ -1,4 +1,4 @@
-package com.example.ezmoov_partner_app
+package com.ezmoov.partner
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

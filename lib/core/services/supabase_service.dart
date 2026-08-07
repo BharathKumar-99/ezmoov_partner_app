@@ -130,18 +130,23 @@ class SupabaseService {
     }
   }
 
-  /// Update Driver Location (Geography point)
+  /// Update Driver Location (JSON map containing lat/lng)
   Future<void> updateDriverLocation(
     String driverId,
     double lat,
     double lng,
   ) async {
     try {
-      final pointWkt = 'POINT($lng $lat)';
+      final locationJson = {
+        'latitude': lat,
+        'longitude': lng,
+        'lat': lat,
+        'lng': lng,
+      };
       await client
           .from('drivers')
           .update({
-            'current_location': pointWkt,
+            'current_location': locationJson,
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', driverId);
@@ -405,10 +410,7 @@ class SupabaseService {
     try {
       final response = await client.rpc(
         'accept_booking_request',
-        params: {
-          'p_booking_id': bookingId,
-          'p_driver_id': driverId,
-        },
+        params: {'p_booking_id': bookingId, 'p_driver_id': driverId},
       );
       if (response is Map) {
         return Map<String, dynamic>.from(response);
@@ -442,7 +444,9 @@ class SupabaseService {
     return client
         .from('bookings')
         .stream(primaryKey: ['id'])
-        .map((data) => data.map((json) => BookingModel.fromJson(json)).toList());
+        .map(
+          (data) => data.map((json) => BookingModel.fromJson(json)).toList(),
+        );
   }
 
   /// Upload file to specified storage bucket and return public URL
@@ -533,7 +537,8 @@ class SupabaseService {
     required File file,
   }) async {
     try {
-      final fileName = 'pickup_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName =
+          'pickup_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storagePath = 'pickup/$fileName';
 
       await client.storage
@@ -544,7 +549,9 @@ class SupabaseService {
             fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
           );
 
-      final publicUrl = client.storage.from('documents').getPublicUrl(storagePath);
+      final publicUrl = client.storage
+          .from('documents')
+          .getPublicUrl(storagePath);
 
       await client
           .from('bookings')
@@ -563,12 +570,12 @@ class SupabaseService {
 
   /// Upload Proof of Delivery (POD) photo and update booking record
   Future<String> uploadPodImage({
-
     required String bookingId,
     required File file,
   }) async {
     try {
-      final fileName = 'pod_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName =
+          'pod_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storagePath = 'pod/$fileName';
 
       await client.storage
@@ -579,7 +586,9 @@ class SupabaseService {
             fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
           );
 
-      final publicUrl = client.storage.from('documents').getPublicUrl(storagePath);
+      final publicUrl = client.storage
+          .from('documents')
+          .getPublicUrl(storagePath);
 
       await client
           .from('bookings')
@@ -617,5 +626,19 @@ class SupabaseService {
       debugPrint('Notice submitting customer rating: $e');
     }
   }
-}
 
+  /// Get partner notifications from driver_notifications table
+  Future<List<Map<String, dynamic>>> getDriverNotifications(String driverId) async {
+    try {
+      final response = await client
+          .from('driver_notifications')
+          .select()
+          .eq('driver_id', driverId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('Notice fetching driver notifications: $e');
+      return [];
+    }
+  }
+}

@@ -49,8 +49,8 @@ class BookingModel {
     return BookingModel(
       id: json['id'] as String? ?? '',
       customerId: json['customer_id'] as String? ?? '',
-      customerName: json['customer_name'] as String? ?? 'Customer',
-      customerPhone: json['customer_phone'] as String? ?? '+919876543210',
+      customerName: json['customer_name'] as String?,
+      customerPhone: json['customer_phone'] as String?,
       pickupAddress: json['pickup_address'] as String? ?? '',
       dropAddress: json['drop_address'] as String? ?? '',
       pickupLat: (json['pickup_lat'] as num?)?.toDouble() ?? 0.0,
