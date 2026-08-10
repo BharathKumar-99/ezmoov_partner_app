@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
-
 import '../../../viewmodels/home_viewmodel.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -25,9 +25,9 @@ class _HomeTabState extends State<HomeTab> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
 
     return Consumer<ProfileViewModel>(
       builder: (context, vm, child) {
@@ -74,27 +74,34 @@ class _HomeTabState extends State<HomeTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back, 👋',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary.withValues(alpha: 0.8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${l10n.welcomeBack} 👋',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary.withValues(alpha: 0.8),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        driver?.name.isNotEmpty == true ? driver!.name : 'Partner Driver',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                        const SizedBox(height: 4),
+                        Text(
+                          driver?.name.isNotEmpty == true ? driver!.name : l10n.partnerDriver,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 12),
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.1),
@@ -110,7 +117,7 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 24),
 
-              // 2. GO ONLINE / OFFLINE SWITCH WIDGET
+              // 2. GO ONLINE / OFFLINE SWITCH WIDGET (FULLY RESPONSIVE FOR TELUGU & ALL LANGUAGES)
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -132,49 +139,59 @@ class _HomeTabState extends State<HomeTab> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: vm.isOnline
-                                    ? AppColors.primary
-                                    : AppColors.textMuted.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                vm.isOnline ? Icons.power_settings_new : Icons.power_off_rounded,
-                                color: vm.isOnline ? Colors.white : AppColors.textMuted,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  vm.isOnline ? 'YOU ARE ONLINE' : 'YOU ARE OFFLINE',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: vm.isOnline ? AppColors.primaryDark : AppColors.textPrimary,
-                                  ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: vm.isOnline
+                                      ? AppColors.primary
+                                      : AppColors.textMuted.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  vm.isOnline
-                                      ? 'Ready to receive ride requests'
-                                      : 'Switch online to start earning',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary,
-                                  ),
+                                child: Icon(
+                                  vm.isOnline ? Icons.power_settings_new : Icons.power_off_rounded,
+                                  color: vm.isOnline ? Colors.white : AppColors.textMuted,
+                                  size: 24,
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      vm.isOnline ? l10n.youAreOnlineCaps : l10n.youAreOfflineCaps,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: vm.isOnline ? AppColors.primaryDark : AppColors.textPrimary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      vm.isOnline
+                                          ? l10n.readyToReceiveRideRequests
+                                          : l10n.switchOnlineToStartEarning,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         Switch.adaptive(
                           value: vm.isOnline,
                           activeTrackColor: AppColors.primary,
@@ -188,16 +205,20 @@ class _HomeTabState extends State<HomeTab> {
                       const SizedBox(height: 14),
                       const Divider(height: 1),
                       const SizedBox(height: 10),
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: AppColors.primary),
-                          SizedBox(width: 6),
-                          Text(
-                            'GPS Tracking Active • Updating every 30s',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryDark,
+                          const Icon(Icons.location_on, size: 14, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              l10n.gpsTrackingActive,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryDark,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -213,21 +234,21 @@ class _HomeTabState extends State<HomeTab> {
               Row(
                 children: [
                   _HomeStatCard(
-                    title: 'Today Trips',
-                    value: '$todayTripsCount Trips',
+                    title: l10n.todayTrips,
+                    value: l10n.tripsCount(todayTripsCount),
                     icon: Icons.local_shipping_rounded,
                     iconColor: AppColors.primary,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   _HomeStatCard(
-                    title: 'Total Earnings',
+                    title: l10n.totalEarnings,
                     value: '₹ ${totalEarningsSum.toStringAsFixed(0)}',
                     icon: Icons.account_balance_wallet_rounded,
                     iconColor: const Color(0xFF0284C7),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   _HomeStatCard(
-                    title: 'Rating',
+                    title: l10n.rating,
                     value: '${ratingValue.toStringAsFixed(1)} ★',
                     icon: Icons.star_rounded,
                     iconColor: const Color(0xFFEAB308),
@@ -241,14 +262,19 @@ class _HomeTabState extends State<HomeTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    todayCompletedTrips.isNotEmpty ? 'Today\'s Recent Trips' : 'Recent Completed Trips',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                  Expanded(
+                    child: Text(
+                      todayCompletedTrips.isNotEmpty ? l10n.todaysRecentTrips : l10n.recentCompletedTrips,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
@@ -256,9 +282,9 @@ class _HomeTabState extends State<HomeTab> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '${displayTrips.length} Completed',
+                      l10n.completedCount(displayTrips.length),
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
                       ),
@@ -286,18 +312,18 @@ class _HomeTabState extends State<HomeTab> {
                         color: AppColors.textMuted.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'No completed trips yet',
-                        style: TextStyle(
+                      Text(
+                        l10n.noCompletedTripsYet,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'Switch online to start accepting rides!',
-                        style: TextStyle(
+                      Text(
+                        l10n.switchOnlineToAcceptRides,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textMuted,
                         ),
@@ -307,18 +333,19 @@ class _HomeTabState extends State<HomeTab> {
                 )
               else
                 ...displayTrips.map((booking) {
-                  final formattedId = 'TRIP #${booking.id.length > 8 ? booking.id.substring(0, 8).toUpperCase() : booking.id.toUpperCase()}';
+                  final shortId = booking.id.length > 8 ? booking.id.substring(0, 8).toUpperCase() : booking.id.toUpperCase();
+                  final formattedId = l10n.tripNumber(shortId);
                   final formattedTime = booking.createdAt != null
                       ? DateFormat('hh:mm a').format(booking.createdAt!)
-                      : 'Completed';
+                      : l10n.completed;
 
                   return _TodayTripCard(
                     tripId: formattedId,
-                    pickup: booking.pickupAddress.isNotEmpty ? booking.pickupAddress : 'Pickup Point',
-                    drop: booking.dropAddress.isNotEmpty ? booking.dropAddress : 'Dropoff Point',
+                    pickup: booking.pickupAddress.isNotEmpty ? booking.pickupAddress : l10n.pickupLocation,
+                    drop: booking.dropAddress.isNotEmpty ? booking.dropAddress : l10n.dropoffLocation,
                     fare: '₹ ${booking.fare.toStringAsFixed(2)}',
                     time: formattedTime,
-                    paymentType: 'Completed',
+                    paymentType: l10n.completed,
                   );
                 }),
             ],
@@ -346,7 +373,7 @@ class _HomeStatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -363,31 +390,35 @@ class _HomeStatCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
-              radius: 16,
+              radius: 14,
               backgroundColor: iconColor.withValues(alpha: 0.1),
-              child: Icon(icon, color: iconColor, size: 18),
+              child: Icon(icon, color: iconColor, size: 16),
             ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
+            const SizedBox(height: 8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -429,14 +460,19 @@ class _TodayTripCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                tripId,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+              Expanded(
+                child: Text(
+                  tripId,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 fare,
                 style: const TextStyle(

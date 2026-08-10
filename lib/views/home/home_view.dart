@@ -11,6 +11,8 @@ import 'tabs/alerts_tab.dart';
 import 'tabs/profile_tab.dart';
 import 'widgets/active_trip_floating_card.dart';
 
+import '../../l10n/generated/app_localizations.dart';
+
 class HomeView extends StatelessWidget {
   final String driverId;
 
@@ -21,6 +23,8 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileVm = context.read<ProfileViewModel>();
       final rideVm = context.read<RideRequestViewModel>();
@@ -55,11 +59,11 @@ class HomeView extends StatelessWidget {
           ProfileTab(),
         ];
 
-        const List<String> tabTitles = [
-          'EZMoov Partner',
-          'Earnings & Payouts',
-          'Alerts & Notices',
-          'Partner Profile',
+        final List<String> tabTitles = [
+          l10n.appTitle,
+          l10n.earnings,
+          l10n.alerts,
+          l10n.profile,
         ];
 
         final activeTrip = rideVm.activeDriverTrip;
@@ -80,12 +84,16 @@ class HomeView extends StatelessWidget {
                   child: const Icon(Icons.local_shipping_rounded, color: AppColors.primary, size: 24),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  tabTitles[homeVm.currentTabIndex],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: AppColors.textPrimary,
+                Expanded(
+                  child: Text(
+                    tabTitles[homeVm.currentTabIndex],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -141,22 +149,22 @@ class HomeView extends StatelessWidget {
               selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
               elevation: 0,
-              items: const [
+              items: [
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.home_rounded),
-                  label: 'Home',
+                  icon: const Icon(Icons.home_rounded),
+                  label: l10n.home,
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.account_balance_wallet_rounded),
-                  label: 'Earnings',
+                  icon: const Icon(Icons.account_balance_wallet_rounded),
+                  label: l10n.earnings,
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.notifications_rounded),
-                  label: 'Alerts',
+                  icon: const Icon(Icons.notifications_rounded),
+                  label: l10n.alerts,
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.person_rounded),
-                  label: 'Profile',
+                  icon: const Icon(Icons.person_rounded),
+                  label: l10n.profile,
                 ),
               ],
             ),

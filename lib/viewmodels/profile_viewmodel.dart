@@ -311,14 +311,10 @@ class ProfileViewModel extends ChangeNotifier {
 
   bool _isTripActive = false;
   bool get isTripActive => _isTripActive;
-  BuildContext? _activeContext;
 
   /// Set whether driver is in an active trip flow and update location timer interval
   void setTripActive(bool active, [BuildContext? context]) {
     _isTripActive = active;
-    if (context != null) {
-      _activeContext = context;
-    }
     _stopLocationTimer();
     if (_isOnline) {
       startLocationTimer(context: context);
@@ -328,9 +324,6 @@ class ProfileViewModel extends ChangeNotifier {
   /// Start Periodic Location Timer when Driver is Online
   /// Uses 5-second interval during active booking flow, and 30-second interval when idle.
   void startLocationTimer({BuildContext? context}) async {
-    if (context != null) {
-      _activeContext = context;
-    }
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -350,7 +343,8 @@ class ProfileViewModel extends ChangeNotifier {
       '⚡ Starting $intervalSec-second periodic GPS location updates for driver (Trip Active: $_isTripActive)...',
     );
 
-    _locationTimer = Timer.periodic(Duration(seconds: intervalSec), (timer) async {
+    _locationTimer =
+        Timer.periodic(Duration(seconds: intervalSec), (timer) async {
       if (_driver != null && _driver!.id != null && _isOnline) {
         try {
           final position = await Geolocator.getCurrentPosition(
@@ -369,32 +363,6 @@ class ProfileViewModel extends ChangeNotifier {
           debugPrint(
             '📍 Updated driver GPS location to: ($_latitude, $_longitude) [$intervalSec s]',
           );
-
-          // Show floating SnackBar when location is updated
-          final targetContext = context ?? _activeContext;
-          if (targetContext != null && targetContext.mounted) {
-            ScaffoldMessenger.of(targetContext).clearSnackBars();
-            ScaffoldMessenger.of(targetContext).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    const Icon(Icons.location_on, color: Colors.white, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '📍 Location updated: (${_latitude.toStringAsFixed(4)}, ${_longitude.toStringAsFixed(4)}) [$intervalSec s interval]',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: _isTripActive ? const Color(0xFF09A234) : Colors.black87,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            );
-          }
 
           notifyListeners();
         } catch (e) {

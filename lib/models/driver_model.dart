@@ -4,6 +4,8 @@ class DriverModel {
   final String email;
   final String phone;
   final String? profilePicUrl;
+  final String? vehicleType;
+  final String? vehicleNumber;
   final bool isOnline;
   final dynamic currentLocation;
   final bool isVerified;
@@ -23,6 +25,8 @@ class DriverModel {
     required this.email,
     required this.phone,
     this.profilePicUrl,
+    this.vehicleType,
+    this.vehicleNumber,
     this.isOnline = false,
     this.currentLocation,
     this.isVerified = false,
@@ -69,6 +73,8 @@ class DriverModel {
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
       profilePicUrl: json['profile_pic_url'] as String?,
+      vehicleType: json['vehicle_type'] as String?,
+      vehicleNumber: json['vehicle_number'] as String?,
       isOnline: json['is_online'] as bool? ?? false,
       currentLocation: json['current_location'],
       isVerified: json['is_verified'] as bool? ?? false,
@@ -91,6 +97,8 @@ class DriverModel {
       'email': email,
       'phone': phone,
       'profile_pic_url': profilePicUrl,
+      if (vehicleType != null) 'vehicle_type': vehicleType,
+      if (vehicleNumber != null) 'vehicle_number': vehicleNumber,
       'is_online': isOnline,
       'current_location': currentLocation,
       'is_verified': isVerified,
@@ -110,6 +118,8 @@ class DriverModel {
     String? email,
     String? phone,
     String? profilePicUrl,
+    String? vehicleType,
+    String? vehicleNumber,
     bool? isOnline,
     dynamic currentLocation,
     bool? isVerified,
@@ -129,6 +139,8 @@ class DriverModel {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       profilePicUrl: profilePicUrl ?? this.profilePicUrl,
+      vehicleType: vehicleType ?? this.vehicleType,
+      vehicleNumber: vehicleNumber ?? this.vehicleNumber,
       isOnline: isOnline ?? this.isOnline,
       currentLocation: currentLocation ?? this.currentLocation,
       isVerified: isVerified ?? this.isVerified,

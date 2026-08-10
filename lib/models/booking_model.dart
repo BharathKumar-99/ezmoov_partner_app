@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class BookingModel {
   final String id;
   final String customerId;
@@ -11,6 +13,8 @@ class BookingModel {
   final double dropLng;
   final String status;
   final double fare;
+  final Map<String, dynamic>? amount;
+  final String? vehicleTypeId;
   final String? driverId;
   final String? driverName;
   final String? driverPhone;
@@ -34,6 +38,8 @@ class BookingModel {
     required this.dropLng,
     required this.status,
     required this.fare,
+    this.amount,
+    this.vehicleTypeId,
     this.driverId,
     this.driverName,
     this.driverPhone,
@@ -45,7 +51,39 @@ class BookingModel {
     this.createdAt,
   });
 
+  static Map<String, dynamic>? _parseAmount(dynamic rawAmount) {
+    if (rawAmount == null) return null;
+    if (rawAmount is Map) {
+      return Map<String, dynamic>.from(rawAmount);
+    }
+    if (rawAmount is String) {
+      try {
+        final decoded = jsonDecode(rawAmount);
+        if (decoded is Map) {
+          return Map<String, dynamic>.from(decoded);
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
   factory BookingModel.fromJson(Map<String, dynamic> json) {
+    final parsedAmount = _parseAmount(json['amount']);
+    
+    double extractedFare = 0.0;
+    if (parsedAmount != null) {
+      final total = (parsedAmount['totalfare'] as num?)?.toDouble() ??
+          (parsedAmount['total_fare'] as num?)?.toDouble() ??
+          (parsedAmount['trip fare'] as num?)?.toDouble() ??
+          (parsedAmount['fare'] as num?)?.toDouble();
+      if (total != null) {
+        extractedFare = total;
+      }
+    }
+    if (extractedFare == 0.0 && json['fare'] != null) {
+      extractedFare = (json['fare'] as num?)?.toDouble() ?? 0.0;
+    }
+
     return BookingModel(
       id: json['id'] as String? ?? '',
       customerId: json['customer_id'] as String? ?? '',
@@ -58,7 +96,9 @@ class BookingModel {
       dropLat: (json['drop_lat'] as num?)?.toDouble() ?? 0.0,
       dropLng: (json['drop_lng'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] as String? ?? 'searching',
-      fare: (json['fare'] as num?)?.toDouble() ?? 0.0,
+      fare: extractedFare,
+      amount: parsedAmount,
+      vehicleTypeId: json['vehicle_type_id'] as String?,
       driverId: json['driver_id'] as String?,
       driverName: json['driver_name'] as String?,
       driverPhone: json['driver_phone'] as String?,
@@ -85,6 +125,8 @@ class BookingModel {
       'drop_lng': dropLng,
       'status': status,
       'fare': fare,
+      if (amount != null) 'amount': amount,
+      if (vehicleTypeId != null) 'vehicle_type_id': vehicleTypeId,
       if (driverId != null) 'driver_id': driverId,
       if (driverName != null) 'driver_name': driverName,
       if (driverPhone != null) 'driver_phone': driverPhone,
@@ -109,6 +151,8 @@ class BookingModel {
     double? dropLng,
     String? status,
     double? fare,
+    Map<String, dynamic>? amount,
+    String? vehicleTypeId,
     String? driverId,
     String? driverName,
     String? driverPhone,
@@ -132,6 +176,8 @@ class BookingModel {
       dropLng: dropLng ?? this.dropLng,
       status: status ?? this.status,
       fare: fare ?? this.fare,
+      amount: amount ?? this.amount,
+      vehicleTypeId: vehicleTypeId ?? this.vehicleTypeId,
       driverId: driverId ?? this.driverId,
       driverName: driverName ?? this.driverName,
       driverPhone: driverPhone ?? this.driverPhone,
@@ -144,3 +190,4 @@ class BookingModel {
     );
   }
 }
+

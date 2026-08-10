@@ -1,15 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
-
+import '../../../viewmodels/locale_viewmodel.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
 
+  void _showLanguageSelectionModal(BuildContext context, LocaleViewModel localeVM) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentCode = localeVM.locale.languageCode;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.translate_rounded, color: AppColors.primary, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Text(
+                    l10n.selectLanguage,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Divider(color: AppColors.divider),
+              const SizedBox(height: 8),
+
+              // English Option
+              _LanguageOptionTile(
+                title: 'English',
+                subtitle: 'English',
+                code: 'en',
+                isSelected: currentCode == 'en',
+                onTap: () {
+                  localeVM.changeLocale('en');
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Hindi Option
+              _LanguageOptionTile(
+                title: 'हिन्दी',
+                subtitle: 'Hindi',
+                code: 'hi',
+                isSelected: currentCode == 'hi',
+                onTap: () {
+                  localeVM.changeLocale('hi');
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Telugu Option
+              _LanguageOptionTile(
+                title: 'తెలుగు',
+                subtitle: 'Telugu',
+                code: 'te',
+                isSelected: currentCode == 'te',
+                onTap: () {
+                  localeVM.changeLocale('te');
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeVM = Provider.of<LocaleViewModel>(context);
+
     return Consumer<ProfileViewModel>(
       builder: (context, vm, child) {
         final driver = vm.driver;
@@ -92,9 +195,9 @@ class ProfileTab extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
-                'Vehicle & Equipment',
-                style: TextStyle(
+              Text(
+                l10n.vehicleAndEquipment,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -105,26 +208,26 @@ class ProfileTab extends StatelessWidget {
               _ProfileTile(
                 icon: Icons.directions_car_rounded,
                 iconColor: AppColors.primary,
-                title: 'Vehicle Registration',
+                title: l10n.vehicleRegistration,
                 subtitle: vehicle != null
                     ? '${vehicle.vehicleNumber} (RC: ${vehicle.rcNumber})'
-                    : 'Vehicle Details Verified',
+                    : l10n.vehicleDetailsVerified,
               ),
 
               const SizedBox(height: 12),
 
-              const _ProfileTile(
+              _ProfileTile(
                 icon: Icons.verified_user_rounded,
-                iconColor: Color(0xFF0284C7),
-                title: 'Driver Certificates',
-                subtitle: 'PUC, Permit, Fitness, Police Clearance (Verified)',
+                iconColor: const Color(0xFF0284C7),
+                title: l10n.driverCertificates,
+                subtitle: l10n.certificatesSubtitle,
               ),
 
               const SizedBox(height: 24),
 
-              const Text(
-                'Payouts & Banking',
-                style: TextStyle(
+              Text(
+                l10n.payoutsAndBanking,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -135,17 +238,17 @@ class ProfileTab extends StatelessWidget {
               _ProfileTile(
                 icon: Icons.account_balance_rounded,
                 iconColor: const Color(0xFFD97706),
-                title: bank?.bankName ?? 'Bank Account',
+                title: bank?.bankName ?? l10n.bankAccount,
                 subtitle: bank != null
                     ? 'A/C: **** ${bank.accountNumber.length > 4 ? bank.accountNumber.substring(bank.accountNumber.length - 4) : bank.accountNumber} | IFSC: ${bank.ifscCode}'
-                    : 'Bank Details Verified',
+                    : l10n.bankDetailsVerified,
               ),
 
               const SizedBox(height: 24),
 
-              const Text(
-                'Support & Preferences',
-                style: TextStyle(
+              Text(
+                l10n.supportAndPreferences,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -153,34 +256,26 @@ class ProfileTab extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              const _ProfileTile(
+              _ProfileTile(
                 icon: Icons.translate_rounded,
                 iconColor: AppColors.primary,
-                title: 'App Language',
-                subtitle: 'English / हिन्दी',
+                title: l10n.appLanguage,
+                subtitle: localeVM.currentLanguageName,
+                onTap: () => _showLanguageSelectionModal(context, localeVM),
               ),
               const SizedBox(height: 12),
 
               _ProfileTile(
                 icon: Icons.headset_mic_rounded,
                 iconColor: const Color(0xFF8B5CF6),
-                title: 'Partner Support Desk',
-                subtitle: '24/7 Priority Driver Support Hotline • Tap to Call',
-                onTap: () async {
-                  final Uri url = Uri.parse('tel:+9118001234567');
-                  try {
-                    final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
-                    if (!launched) {
-                      await launchUrl(url);
-                    }
-                  } catch (e) {
-                    debugPrint('Notice launching phone call: $e');
-                  }
+                title: l10n.helpAndSupportDesk,
+                subtitle: l10n.supportDeskSubtitle,
+                onTap: () {
+                  context.push('/support');
                 },
               ),
 
               const SizedBox(height: 28),
-
 
               SizedBox(
                 width: double.infinity,
@@ -194,9 +289,9 @@ class ProfileTab extends StatelessWidget {
                     ),
                   ),
                   icon: const Icon(Icons.logout_rounded, color: AppColors.error, size: 20),
-                  label: const Text(
-                    'Log Out of Account',
-                    style: TextStyle(
+                  label: Text(
+                    l10n.logOutOfAccount,
+                    style: const TextStyle(
                       color: AppColors.error,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -208,6 +303,69 @@ class ProfileTab extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _LanguageOptionTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String code;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LanguageOptionTile({
+    required this.title,
+    required this.subtitle,
+    required this.code,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : AppColors.background,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.border,
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '($subtitle)',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const Spacer(),
+              if (isSelected)
+                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 22)
+              else
+                const Icon(Icons.circle_outlined, color: AppColors.textMuted, size: 22),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -275,6 +433,8 @@ class _ProfileTile extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onTap != null)
+                const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted, size: 20),
             ],
           ),
         ),

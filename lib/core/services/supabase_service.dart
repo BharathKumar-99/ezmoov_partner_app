@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/driver_model.dart';
 import '../../models/vehicle_model.dart';
+import '../../models/vehicle_type_model.dart';
 import '../../models/document_model.dart';
 import '../../models/bank_details_model.dart';
 import '../../models/rating_model.dart';
@@ -147,6 +148,23 @@ class SupabaseService {
     }
   }
 
+  /// Fetch list of vehicle types from database (with fallback defaults)
+  Future<List<VehicleTypeModel>> fetchVehicleTypes() async {
+    try {
+      final response = await client.from('vehicle_types').select();
+      if ((response as List).isNotEmpty) {
+        final list = (response as List)
+            .map((item) => VehicleTypeModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+        list.sort((a, b) => a.capacityKg.compareTo(b.capacityKg));
+        return list;
+      }
+    } catch (e) {
+      debugPrint('Error fetching vehicle types from DB, using default list: $e');
+    }
+    return VehicleTypeModel.defaultVehicleTypes;
+  }
+
   /// Save Vehicle details & update driver vehicle status
   Future<VehicleModel> saveVehicle(VehicleModel vehicle) async {
     try {
@@ -160,6 +178,8 @@ class SupabaseService {
 
       await client.from('drivers').update({
         'is_vehicle_added': true,
+        if (vehicle.vehicleType != null) 'vehicle_type': vehicle.vehicleType,
+        'vehicle_number': vehicle.vehicleNumber,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', vehicle.driverId);
 
@@ -322,14 +342,14 @@ class SupabaseService {
     }
   }
 
-  /// Get currently active booking for driver ('accepted', 'arrived', or 'in_transit')
+  /// Get currently active booking for driver ('accepted', 'arrived', 'in_transit', 'drop_complete', or 'amount_paid')
   Future<BookingModel?> getActiveDriverBooking(String driverId) async {
     try {
       final response = await client
           .from('bookings')
           .select()
           .eq('driver_id', driverId)
-          .inFilter('status', ['accepted', 'arrived', 'in_transit'])
+          .inFilter('status', ['accepted', 'arrived', 'in_transit', 'drop_complete', 'amount_paid'])
           .order('created_at', ascending: false)
           .limit(1)
           .maybeSingle();

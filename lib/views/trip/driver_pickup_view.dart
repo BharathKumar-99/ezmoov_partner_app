@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -33,17 +34,66 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   bool _isUploadingPickup = false;
   File? _podImageFile;
   bool _isUploadingPod = false;
+  Timer? _statusCheckTimer;
 
 
   @override
   void initState() {
     super.initState();
     _loadBookingDetails();
+    _startStatusCheckTimer();
+  }
+
+  void _startStatusCheckTimer() {
+    _statusCheckTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (!mounted) return;
+      final updatedBooking = await SupabaseService.instance.getBookingById(widget.bookingId);
+      if (!mounted) return;
+      if (updatedBooking != null) {
+        if (updatedBooking.status == 'cancelled') {
+          timer.cancel();
+          _statusCheckTimer = null;
+          if (mounted) {
+            context.read<RideRequestViewModel>().clearActiveDriverTrip();
+            context.read<ProfileViewModel>().setTripActive(false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('⚠️ Ride was cancelled by customer'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 4),
+              ),
+            );
+            context.go('/home');
+          }
+          return;
+        }
+        if (_booking?.status != updatedBooking.status) {
+          setState(() {
+            _booking = updatedBooking;
+          });
+        }
+      }
+    });
   }
 
   Future<void> _loadBookingDetails() async {
     final booking = await SupabaseService.instance.getBookingById(widget.bookingId);
     if (mounted) {
+      if (booking?.status == 'cancelled') {
+        context.read<RideRequestViewModel>().clearActiveDriverTrip();
+        context.read<ProfileViewModel>().setTripActive(false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Ride was cancelled by customer'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        context.go('/home');
+        return;
+      }
       setState(() {
         _booking = booking;
         _isLoading = false;
@@ -63,6 +113,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
   @override
   void dispose() {
+    _statusCheckTimer?.cancel();
+    _statusCheckTimer = null;
     _profileViewModel?.setTripActive(false);
     super.dispose();
   }
@@ -801,7 +853,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   const SizedBox(height: 20),
 
                   GradientButton(
-                    text: 'CONFIRM & COMPLETE DELIVERY',
+                    text: 'SUBMIT POD & UNLOAD CARGO',
                     icon: Icons.task_alt_rounded,
                     isLoading: _isUploadingPod,
                     onPressed: () async {
@@ -830,7 +882,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                       if (!modalContext.mounted) return;
                       Navigator.of(modalContext).pop();
-                      _updateStatus('completed', '🎉 Delivery Completed Successfully!');
+                      _updateStatus('drop_complete', '📦 Cargo unloaded & POD submitted! Awaiting payment.');
                     },
                   ),
                 ],
@@ -956,7 +1008,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   @override
   Widget build(BuildContext context) {
     final currentStatus = _booking?.status ?? 'accepted';
-    final isTransit = currentStatus == 'in_transit';
+    final isTransit = currentStatus == 'in_transit' ||
+        currentStatus == 'drop_complete' ||
+        currentStatus == 'amount_paid';
 
     final navLat = isTransit
         ? (_booking?.dropLat ?? 0.0)
@@ -975,9 +1029,13 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          currentStatus == 'in_transit'
-              ? 'Trip in Transit'
-              : (currentStatus == 'arrived' ? 'Arrived at Pickup' : 'Pickup Navigation'),
+          currentStatus == 'amount_paid'
+              ? 'Payment Confirmed'
+              : (currentStatus == 'drop_complete'
+                  ? 'Awaiting Payment'
+                  : (currentStatus == 'in_transit'
+                      ? 'Trip in Transit'
+                      : (currentStatus == 'arrived' ? 'Arrived at Pickup' : 'Pickup Navigation'))),
         ),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -1005,33 +1063,49 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: currentStatus == 'arrived'
-                          ? const Color(0xFFFEF3C7)
-                          : (currentStatus == 'in_transit'
-                              ? const Color(0xFFE0F2FE)
-                              : const Color(0xFFDCFCE7)),
+                      color: currentStatus == 'amount_paid'
+                          ? const Color(0xFFDCFCE7)
+                          : (currentStatus == 'drop_complete'
+                              ? const Color(0xFFFEF3C7)
+                              : (currentStatus == 'arrived'
+                                  ? const Color(0xFFFEF3C7)
+                                  : (currentStatus == 'in_transit'
+                                      ? const Color(0xFFE0F2FE)
+                                      : const Color(0xFFDCFCE7)))),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: currentStatus == 'arrived'
-                            ? const Color(0xFFF59E0B)
-                            : (currentStatus == 'in_transit'
-                                ? const Color(0xFF0284C7)
-                                : AppColors.primary),
+                        color: currentStatus == 'amount_paid'
+                            ? const Color(0xFF10B981)
+                            : (currentStatus == 'drop_complete'
+                                ? const Color(0xFFF59E0B)
+                                : (currentStatus == 'arrived'
+                                    ? const Color(0xFFF59E0B)
+                                    : (currentStatus == 'in_transit'
+                                        ? const Color(0xFF0284C7)
+                                        : AppColors.primary))),
                       ),
                     ),
                     child: Row(
                       children: [
                         Icon(
-                          currentStatus == 'arrived'
-                              ? Icons.location_city_rounded
-                              : (currentStatus == 'in_transit'
-                                  ? Icons.local_shipping_rounded
-                                  : Icons.navigation_rounded),
-                          color: currentStatus == 'arrived'
-                              ? const Color(0xFFD97706)
-                              : (currentStatus == 'in_transit'
-                                  ? const Color(0xFF0284C7)
-                                  : AppColors.primary),
+                          currentStatus == 'amount_paid'
+                              ? Icons.check_circle_rounded
+                              : (currentStatus == 'drop_complete'
+                                  ? Icons.payments_rounded
+                                  : (currentStatus == 'arrived'
+                                      ? Icons.location_city_rounded
+                                      : (currentStatus == 'in_transit'
+                                          ? Icons.local_shipping_rounded
+                                          : Icons.navigation_rounded))),
+                          color: currentStatus == 'amount_paid'
+                              ? const Color(0xFF10B981)
+                              : (currentStatus == 'drop_complete'
+                                  ? const Color(0xFFD97706)
+                                  : (currentStatus == 'arrived'
+                                      ? const Color(0xFFD97706)
+                                      : (currentStatus == 'in_transit'
+                                          ? const Color(0xFF0284C7)
+                                          : AppColors.primary))),
                           size: 28,
                         ),
                         const SizedBox(width: 14),
@@ -1040,28 +1114,40 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                currentStatus == 'arrived'
-                                    ? 'ARRIVED AT PICKUP LOCATION'
-                                    : (currentStatus == 'in_transit'
-                                        ? 'TRIP IN TRANSIT TO DROP POINT'
-                                        : 'HEADING TO PICKUP'),
+                                currentStatus == 'amount_paid'
+                                    ? 'PAYMENT RECEIVED'
+                                    : (currentStatus == 'drop_complete'
+                                        ? 'UNLOADED / AWAITING PAYMENT'
+                                        : (currentStatus == 'arrived'
+                                            ? 'ARRIVED AT PICKUP LOCATION'
+                                            : (currentStatus == 'in_transit'
+                                                ? 'TRIP IN TRANSIT TO DROP POINT'
+                                                : 'HEADING TO PICKUP'))),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: currentStatus == 'arrived'
-                                      ? const Color(0xFFB45309)
-                                      : (currentStatus == 'in_transit'
-                                          ? const Color(0xFF0369A1)
-                                          : AppColors.primaryDark),
+                                  color: currentStatus == 'amount_paid'
+                                      ? const Color(0xFF15803D)
+                                      : (currentStatus == 'drop_complete'
+                                          ? const Color(0xFFB45309)
+                                          : (currentStatus == 'arrived'
+                                              ? const Color(0xFFB45309)
+                                              : (currentStatus == 'in_transit'
+                                                  ? const Color(0xFF0369A1)
+                                                  : AppColors.primaryDark))),
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                currentStatus == 'arrived'
-                                    ? 'Ask customer for 4-digit OTP to start trip'
-                                    : (currentStatus == 'in_transit'
-                                        ? 'On the way to dropoff destination'
-                                        : 'Follow GPS route to customer location'),
+                                currentStatus == 'amount_paid'
+                                    ? 'Payment confirmed! Tap below to finalize trip completion.'
+                                    : (currentStatus == 'drop_complete'
+                                        ? 'Collect cash payment or wait for customer online payment.'
+                                        : (currentStatus == 'arrived'
+                                            ? 'Ask customer for 4-digit OTP to start trip'
+                                            : (currentStatus == 'in_transit'
+                                                ? 'On the way to dropoff destination'
+                                                : 'Follow GPS route to customer location'))),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
@@ -1087,37 +1173,46 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 18,
-                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                              child: const Icon(Icons.person, color: AppColors.primary, size: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  customerName,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                                child: const Icon(Icons.person, color: AppColors.primary, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      customerName,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      customerPhone,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  customerPhone,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         Row(
                           children: [
                             IconButton(
@@ -1373,7 +1468,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                   const SizedBox(height: 24),
 
-                  // Progressive Action Button (ARRIVED -> START TRIP (OTP) -> COMPLETE DELIVERY (POD))
+                  // Progressive Action Button (ARRIVED -> START TRIP (OTP) -> UNLOAD CARGO (POD) -> CASH PAYMENT -> CONFIRM COMPLETED)
                   if (currentStatus == 'accepted')
                     GradientButton(
                       text: 'ARRIVED AT PICKUP',
@@ -1393,10 +1488,30 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     )
                   else if (currentStatus == 'in_transit')
                     GradientButton(
-                      text: 'COMPLETE DELIVERY (POD)',
+                      text: 'UNLOAD CARGO & SUBMIT POD',
                       isLoading: _isUpdatingStatus,
                       icon: Icons.task_alt_rounded,
                       onPressed: _showProofOfDeliveryModal,
+                    )
+                  else if (currentStatus == 'drop_complete')
+                    GradientButton(
+                      text: 'Received Cash Payment (₹${(_booking?.fare ?? 0).toStringAsFixed(0)})',
+                      isLoading: _isUpdatingStatus,
+                      icon: Icons.payments_rounded,
+                      onPressed: () => _updateStatus(
+                        'amount_paid',
+                        'Cash Payment Received! Please confirm trip completion.',
+                      ),
+                    )
+                  else if (currentStatus == 'amount_paid')
+                    GradientButton(
+                      text: 'Confirm Trip Completed',
+                      isLoading: _isUpdatingStatus,
+                      icon: Icons.check_circle_rounded,
+                      onPressed: () => _updateStatus(
+                        'completed',
+                        '🎉 Delivery Completed Successfully!',
+                      ),
                     )
                   else
                     GradientButton(

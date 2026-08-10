@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../core/services/supabase_service.dart';
 import '../models/vehicle_model.dart';
+import '../models/vehicle_type_model.dart';
 import 'profile_viewmodel.dart';
 
 class VehicleViewModel extends ChangeNotifier {
@@ -11,6 +12,13 @@ class VehicleViewModel extends ChangeNotifier {
 
   final TextEditingController vehicleNumberController = TextEditingController();
   final TextEditingController rcNumberController = TextEditingController();
+
+  List<VehicleTypeModel> _vehicleTypes = VehicleTypeModel.defaultVehicleTypes;
+  List<VehicleTypeModel> get vehicleTypes => _vehicleTypes;
+
+  VehicleTypeModel? _selectedVehicleType =
+      VehicleTypeModel.defaultVehicleTypes.first;
+  VehicleTypeModel? get selectedVehicleType => _selectedVehicleType;
 
   String? _rcPicPath;
   String? get rcPicPath => _rcPicPath;
@@ -20,6 +28,28 @@ class VehicleViewModel extends ChangeNotifier {
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
+
+  VehicleViewModel() {
+    loadVehicleTypes();
+  }
+
+  Future<void> loadVehicleTypes() async {
+    try {
+      final types = await _supabaseService.fetchVehicleTypes();
+      if (types.isNotEmpty) {
+        _vehicleTypes = types;
+        _selectedVehicleType ??= types.first;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading vehicle types: $e');
+    }
+  }
+
+  void selectVehicleType(VehicleTypeModel type) {
+    _selectedVehicleType = type;
+    notifyListeners();
+  }
 
   void setLoading(bool value) {
     _isLoading = value;
@@ -34,7 +64,8 @@ class VehicleViewModel extends ChangeNotifier {
   Future<void> pickRcImage(ImageSource source) async {
     try {
       final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: source, imageQuality: 80);
+      final pickedFile =
+          await picker.pickImage(source: source, imageQuality: 80);
       if (pickedFile != null) {
         _rcPicPath = pickedFile.path;
         notifyListeners();
@@ -44,12 +75,21 @@ class VehicleViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> submitVehicleDetails(BuildContext context, String driverId) async {
+  Future<void> submitVehicleDetails(
+      BuildContext context, String driverId) async {
     final vehicleNumber = vehicleNumberController.text.trim();
     final rcNumber = rcNumberController.text.trim();
 
+    if (_selectedVehicleType == null) {
+      if (context.mounted) {
+        _showSnackBar(context, 'Please select a vehicle type');
+      }
+      return;
+    }
     if (vehicleNumber.isEmpty) {
-      if (context.mounted) _showSnackBar(context, 'Please enter vehicle registration number');
+      if (context.mounted) {
+        _showSnackBar(context, 'Please enter vehicle registration number');
+      }
       return;
     }
     if (rcNumber.isEmpty) {
@@ -76,6 +116,8 @@ class VehicleViewModel extends ChangeNotifier {
         vehicleNumber: vehicleNumber,
         rcNumber: rcNumber,
         rcPicUrl: rcPicUrl,
+        vehicleTypeId: _selectedVehicleType!.id,
+        vehicleType: _selectedVehicleType!.name,
       );
 
       await _supabaseService.saveVehicle(vehicle);
@@ -83,7 +125,8 @@ class VehicleViewModel extends ChangeNotifier {
       setLoading(false);
       if (context.mounted) {
         // Refresh central ProfileViewModel
-        await Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(driverId);
+        await Provider.of<ProfileViewModel>(context, listen: false)
+            .fetchProfile(driverId);
         if (context.mounted) {
           context.go('/document-collection', extra: {'driverId': driverId});
         }
@@ -91,7 +134,9 @@ class VehicleViewModel extends ChangeNotifier {
     } catch (e) {
       setLoading(false);
       setError(e.toString());
-      if (context.mounted) _showSnackBar(context, 'Error saving vehicle details: $e');
+      if (context.mounted) {
+        _showSnackBar(context, 'Error saving vehicle details: $e');
+      }
     }
   }
 

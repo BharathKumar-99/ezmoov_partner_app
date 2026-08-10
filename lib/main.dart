@@ -21,6 +21,8 @@ import 'views/home/widgets/overlay_bubble_widget.dart';
 import 'viewmodels/profile_viewmodel.dart';
 
 import 'viewmodels/ride_request_viewmodel.dart';
+import 'viewmodels/locale_viewmodel.dart';
+import 'l10n/generated/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,6 +83,7 @@ class EzMoovPartnerApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: profileViewModel),
+        ChangeNotifierProvider(create: (_) => LocaleViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => VehicleViewModel()),
         ChangeNotifierProvider(create: (_) => DocumentViewModel()),
@@ -88,17 +91,27 @@ class EzMoovPartnerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RideRequestViewModel()),
       ],
-      child: MaterialApp.router(
-        title: 'EZMoov Partner',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        routerConfig: AppRouter.createRouter(profileViewModel),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('en', 'US'), Locale('hi', 'IN')],
+      child: Consumer<LocaleViewModel>(
+        builder: (context, localeVM, child) {
+          return MaterialApp.router(
+            title: 'EZMoov Partner',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            routerConfig: AppRouter.createRouter(profileViewModel),
+            locale: localeVM.locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en', ''),
+              Locale('hi', ''),
+              Locale('te', ''),
+            ],
+          );
+        },
       ),
     );
   }

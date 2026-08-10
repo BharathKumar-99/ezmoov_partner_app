@@ -10,6 +10,7 @@ import '../../views/bank/bank_details_view.dart';
 import '../../views/verification/verification_pending_view.dart';
 import '../../views/home/home_view.dart';
 import '../../views/trip/driver_pickup_view.dart';
+import '../../views/support/support_view.dart';
 
 class AppRouter {
   AppRouter._();
@@ -24,7 +25,8 @@ class AppRouter {
         var driver = profileViewModel.driver;
 
         if (driver == null) {
-          final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
+          final savedSession =
+              await profileViewModel.getSavedSessionPhoneOrId();
           if (savedSession != null && savedSession.isNotEmpty) {
             driver = await profileViewModel.fetchProfile(savedSession);
           } else if (authUser != null) {
@@ -38,7 +40,9 @@ class AppRouter {
 
         // 1. Not Logged In Guard
         if (authUser == null && driver == null) {
-          if (location == '/login' || location == '/signup' || location == '/otp') {
+          if (location == '/login' ||
+              location == '/signup' ||
+              location == '/otp') {
             return null;
           }
           return '/login';
@@ -46,7 +50,9 @@ class AppRouter {
 
         // If driver record missing in DB
         if (driver == null) {
-          if (location == '/signup' || location == '/otp' || location == '/login') {
+          if (location == '/signup' ||
+              location == '/otp' ||
+              location == '/login') {
             return null;
           }
           return '/signup';
@@ -78,8 +84,8 @@ class AppRouter {
           return '/verification-pending?driverId=$driverId';
         }
 
-        // 7. Allow pickup navigation route when fully verified
-        if (location.startsWith('/driver/pickup/')) {
+        // 7. Allow pickup navigation route & support view when fully verified
+        if (location.startsWith('/driver/pickup/') || location == '/support') {
           return null;
         }
 
@@ -109,7 +115,8 @@ class AppRouter {
           path: '/otp',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
-            final phone = extra?['phone'] ?? state.uri.queryParameters['phone'] ?? '';
+            final phone =
+                extra?['phone'] ?? state.uri.queryParameters['phone'] ?? '';
             return OtpView(phone: phone);
           },
         ),
@@ -117,7 +124,9 @@ class AppRouter {
           path: '/vehicle-details',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
-            final driverId = extra?['driverId'] ?? state.uri.queryParameters['driverId'] ?? '';
+            final driverId = extra?['driverId'] ??
+                state.uri.queryParameters['driverId'] ??
+                '';
             return VehicleDetailsView(driverId: driverId);
           },
         ),
@@ -125,7 +134,9 @@ class AppRouter {
           path: '/document-collection',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
-            final driverId = extra?['driverId'] ?? state.uri.queryParameters['driverId'] ?? '';
+            final driverId = extra?['driverId'] ??
+                state.uri.queryParameters['driverId'] ??
+                '';
             return DocumentCollectionView(driverId: driverId);
           },
         ),
@@ -133,7 +144,9 @@ class AppRouter {
           path: '/bank-details',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
-            final driverId = extra?['driverId'] ?? state.uri.queryParameters['driverId'] ?? '';
+            final driverId = extra?['driverId'] ??
+                state.uri.queryParameters['driverId'] ??
+                '';
             return BankDetailsView(driverId: driverId);
           },
         ),
@@ -141,7 +154,9 @@ class AppRouter {
           path: '/verification-pending',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
-            final driverId = extra?['driverId'] ?? state.uri.queryParameters['driverId'] ?? '';
+            final driverId = extra?['driverId'] ??
+                state.uri.queryParameters['driverId'] ??
+                '';
             return VerificationPendingView(driverId: driverId);
           },
         ),
@@ -149,7 +164,9 @@ class AppRouter {
           path: '/home',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
-            final driverId = extra?['driverId'] ?? state.uri.queryParameters['driverId'] ?? '';
+            final driverId = extra?['driverId'] ??
+                state.uri.queryParameters['driverId'] ??
+                '';
             return HomeView(driverId: driverId);
           },
         ),
@@ -159,6 +176,10 @@ class AppRouter {
             final bookingId = state.pathParameters['bookingId'] ?? '';
             return DriverPickupView(bookingId: bookingId);
           },
+        ),
+        GoRoute(
+          path: '/support',
+          builder: (context, state) => const SupportView(),
         ),
       ],
     );

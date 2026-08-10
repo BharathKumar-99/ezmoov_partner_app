@@ -17,22 +17,32 @@ class ActiveTripFloatingCard extends StatelessWidget {
     final status = booking.status;
     final isTransit = status == 'in_transit';
     final isArrived = status == 'arrived';
+    final isDropComplete = status == 'drop_complete';
+    final isAmountPaid = status == 'amount_paid';
 
-    final statusText = isTransit
-        ? 'IN TRANSIT TO DROPOFF'
-        : (isArrived ? 'ARRIVED AT PICKUP' : 'HEADING TO PICKUP');
+    final statusText = isAmountPaid
+        ? 'PAYMENT CONFIRMED'
+        : (isDropComplete
+            ? 'UNLOADED / AWAITING PAYMENT'
+            : (isTransit
+                ? 'IN TRANSIT TO DROPOFF'
+                : (isArrived ? 'ARRIVED AT PICKUP' : 'HEADING TO PICKUP')));
 
-    final targetAddress = isTransit
+    final targetAddress = (isTransit || isDropComplete || isAmountPaid)
         ? (booking.dropAddress.isNotEmpty
-              ? booking.dropAddress
-              : 'Dropoff Location')
+            ? booking.dropAddress
+            : 'Dropoff Location')
         : (booking.pickupAddress.isNotEmpty
-              ? booking.pickupAddress
-              : 'Pickup Location');
+            ? booking.pickupAddress
+            : 'Pickup Location');
 
-    final statusBgColor = isTransit
-        ? const Color(0xFF0284C7)
-        : (isArrived ? const Color(0xFFD97706) : AppColors.primary);
+    final statusBgColor = isAmountPaid
+        ? const Color(0xFF10B981)
+        : (isDropComplete
+            ? const Color(0xFFF59E0B)
+            : (isTransit
+                ? const Color(0xFF0284C7)
+                : (isArrived ? const Color(0xFFD97706) : AppColors.primary)));
 
     return Material(
       color: Colors.transparent,
@@ -68,11 +78,15 @@ class ActiveTripFloatingCard extends StatelessWidget {
                   border: Border.all(color: statusBgColor, width: 1.5),
                 ),
                 child: Icon(
-                  isTransit
-                      ? Icons.local_shipping_rounded
-                      : (isArrived
-                            ? Icons.location_city_rounded
-                            : Icons.navigation_rounded),
+                  isAmountPaid
+                      ? Icons.check_circle_rounded
+                      : (isDropComplete
+                          ? Icons.payments_rounded
+                          : (isTransit
+                              ? Icons.local_shipping_rounded
+                              : (isArrived
+                                  ? Icons.location_city_rounded
+                                  : Icons.navigation_rounded))),
                   color: statusBgColor,
                   size: 22,
                 ),
@@ -96,13 +110,17 @@ class ActiveTripFloatingCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          statusText,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: statusBgColor,
-                            letterSpacing: 0.6,
+                        Flexible(
+                          child: Text(
+                            statusText,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: statusBgColor,
+                              letterSpacing: 0.6,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

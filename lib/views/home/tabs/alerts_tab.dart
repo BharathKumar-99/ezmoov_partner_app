@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class AlertsTab extends StatefulWidget {
   const AlertsTab({super.key});
@@ -14,6 +15,8 @@ class AlertsTab extends StatefulWidget {
 class _AlertsTabState extends State<AlertsTab> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<ProfileViewModel>(
       builder: (context, profileVm, child) {
         final List<Map<String, dynamic>> rawNotifications = [];
@@ -25,8 +28,8 @@ class _AlertsTabState extends State<AlertsTab> {
         if (driver != null) {
           if (driver.isFullyVerified) {
             dynamicAlerts.add({
-              'title': '✅ Account Fully Verified',
-              'message': 'Your driver profile, vehicle documents, and bank details are active.',
+              'title': l10n.accountFullyVerifiedTitle,
+              'message': l10n.accountFullyVerifiedMsg,
               'created_at': driver.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
               'icon': Icons.verified_user_rounded,
               'icon_color': const Color(0xFF166534),
@@ -34,8 +37,8 @@ class _AlertsTabState extends State<AlertsTab> {
             });
           } else {
             dynamicAlerts.add({
-              'title': '⏳ Verification In Progress',
-              'message': 'Your driver documentation is under admin review.',
+              'title': l10n.verificationInProgressTitle,
+              'message': l10n.verificationInProgressMsg,
               'created_at': DateTime.now().toIso8601String(),
               'icon': Icons.hourglass_top_rounded,
               'icon_color': const Color(0xFFD97706),
@@ -56,9 +59,9 @@ class _AlertsTabState extends State<AlertsTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Partner Notifications',
-                    style: TextStyle(
+                  Text(
+                    l10n.partnerNotifications,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -71,7 +74,7 @@ class _AlertsTabState extends State<AlertsTab> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '${allNotifs.length} ${allNotifs.length == 1 ? 'Alert' : 'Alerts'}',
+                      l10n.alertsCount(allNotifs.length),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -92,27 +95,27 @@ class _AlertsTabState extends State<AlertsTab> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.notifications_none_rounded,
                         size: 48,
                         color: AppColors.textMuted,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
-                        'No New Notifications',
-                        style: TextStyle(
+                        l10n.noNewNotifications,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'You are all caught up! High demand alerts and account updates will appear here.',
+                        l10n.caughtUpMessage,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),

@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../models/booking_model.dart';
 import '../../../viewmodels/home_viewmodel.dart';
 import '../../../widgets/gradient_button.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class EarningsTab extends StatefulWidget {
   const EarningsTab({super.key});
@@ -26,6 +27,7 @@ class _EarningsTabState extends State<EarningsTab> {
   }
 
   void _showPayoutModal(BuildContext context, HomeViewModel vm) {
+    final l10n = AppLocalizations.of(context)!;
     final available = vm.availableBalance;
     final bank = vm.bankDetails;
     final driverId = vm.driver?.id ?? '';
@@ -60,21 +62,21 @@ class _EarningsTabState extends State<EarningsTab> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'INSTANT BANK PAYOUT',
-                        style: TextStyle(
+                        l10n.instantBankPayout,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
-                        'Transfer earnings directly to your bank account',
-                        style: TextStyle(
+                        l10n.transferEarningsDirectly,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
@@ -98,9 +100,9 @@ class _EarningsTabState extends State<EarningsTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Available Payout Balance',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    Text(
+                      l10n.availablePayoutBalance,
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -134,7 +136,7 @@ class _EarningsTabState extends State<EarningsTab> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            bank?.bankName ?? 'Connected Bank Account',
+                            bank?.bankName ?? l10n.connectedBankAccount,
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -144,7 +146,7 @@ class _EarningsTabState extends State<EarningsTab> {
                           Text(
                             bank != null
                                 ? 'A/C: **** ${bank.accountNumber.length > 4 ? bank.accountNumber.substring(bank.accountNumber.length - 4) : bank.accountNumber} • IFSC: ${bank.ifscCode}'
-                                : 'Primary Payout Method',
+                                : l10n.primaryPayoutMethod,
                             style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                           ),
                         ],
@@ -157,7 +159,7 @@ class _EarningsTabState extends State<EarningsTab> {
               const SizedBox(height: 24),
 
               GradientButton(
-                text: available > 0 ? 'CONFIRM PAYOUT TRANSFER' : 'NO BALANCE TO WITHDRAW',
+                text: available > 0 ? l10n.confirmPayoutTransfer : l10n.noBalanceToWithdraw,
                 isLoading: vm.isProcessingPayout,
                 icon: Icons.flash_on_rounded,
                 onPressed: available > 0
@@ -175,8 +177,8 @@ class _EarningsTabState extends State<EarningsTab> {
                             SnackBar(
                               content: Text(
                                 success
-                                    ? '🎉 Instant payout of ₹ ${amountToWithdraw.toStringAsFixed(2)} transferred to your bank account!'
-                                    : 'Payout transfer failed. Please try again.',
+                                    ? l10n.payoutTransferredSuccess(amountToWithdraw.toStringAsFixed(2))
+                                    : l10n.payoutFailed,
                               ),
                               backgroundColor: success ? const Color(0xFF09A234) : AppColors.error,
                               behavior: SnackBarBehavior.floating,
@@ -195,6 +197,8 @@ class _EarningsTabState extends State<EarningsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<HomeViewModel>(
       builder: (context, vm, child) {
         final bank = vm.bankDetails;
@@ -202,9 +206,9 @@ class _EarningsTabState extends State<EarningsTab> {
         final selectedFilter = vm.earningsFilter;
 
         final filterLabels = {
-          'today': 'Today',
-          'week': 'This Week',
-          'all': 'All Time',
+          'today': l10n.todayFilter,
+          'week': l10n.thisWeekFilter,
+          'all': l10n.allTimeFilter,
         };
 
         return SingleChildScrollView(
@@ -264,7 +268,7 @@ class _EarningsTabState extends State<EarningsTab> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Total Earnings (${filterLabels[selectedFilter]})',
+                          l10n.totalEarningsFilter(filterLabels[selectedFilter] ?? ''),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
@@ -278,7 +282,7 @@ class _EarningsTabState extends State<EarningsTab> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${trips.length} Completed ${trips.length == 1 ? 'Trip' : 'Trips'}',
+                            l10n.completedTripsSummary(trips.length),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 11,
@@ -311,9 +315,9 @@ class _EarningsTabState extends State<EarningsTab> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Trips Fare (85%)',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.tripsFare85,
+                                  style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 11,
                                   ),
@@ -342,9 +346,9 @@ class _EarningsTabState extends State<EarningsTab> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Surge & Incentives',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.surgeAndIncentives,
+                                  style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 11,
                                   ),
@@ -400,7 +404,7 @@ class _EarningsTabState extends State<EarningsTab> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                bank?.bankName ?? 'Payout Bank Account',
+                                bank?.bankName ?? l10n.payoutBankAccount,
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -411,7 +415,7 @@ class _EarningsTabState extends State<EarningsTab> {
                               Text(
                                 bank != null
                                     ? 'A/C: **** ${bank.accountNumber.length > 4 ? bank.accountNumber.substring(bank.accountNumber.length - 4) : bank.accountNumber}'
-                                    : 'Bank Account Linked',
+                                    : l10n.bankAccountLinked,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
@@ -426,9 +430,9 @@ class _EarningsTabState extends State<EarningsTab> {
                             color: const Color(0xFFDCFCE7),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'Verified',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.verified,
+                            style: const TextStyle(
                               color: AppColors.primaryDark,
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -446,9 +450,9 @@ class _EarningsTabState extends State<EarningsTab> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Available for Payout:',
-                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            Text(
+                              l10n.availableForPayout,
+                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                             ),
                             Text(
                               '₹ ${vm.availableBalance.toStringAsFixed(2)}',
@@ -472,9 +476,9 @@ class _EarningsTabState extends State<EarningsTab> {
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           ),
                           icon: const Icon(Icons.flash_on_rounded, size: 16),
-                          label: const Text(
-                            'WITHDRAW',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          label: Text(
+                            l10n.withdraw,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           onPressed: () => _showPayoutModal(context, vm),
                         ),
@@ -490,16 +494,16 @@ class _EarningsTabState extends State<EarningsTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Completed Trip Payouts',
-                    style: TextStyle(
+                  Text(
+                    l10n.completedTripPayouts,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
                   Text(
-                    '${trips.length} Total',
+                    l10n.totalCount(trips.length),
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textMuted,
@@ -520,23 +524,23 @@ class _EarningsTabState extends State<EarningsTab> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.textMuted),
-                      SizedBox(height: 12),
+                      const Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.textMuted),
+                      const SizedBox(height: 12),
                       Text(
-                        'No Completed Trip Payouts Yet',
-                        style: TextStyle(
+                        l10n.noCompletedPayoutsYet,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'Accept and complete delivery orders to earn and see your payouts here.',
+                        l10n.acceptDeliveriesToEarn,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
@@ -563,17 +567,18 @@ class _TripItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tripIdShort = trip.id.length > 8
         ? trip.id.substring(0, 8).toUpperCase()
         : trip.id.toUpperCase();
 
-    final pickupSnippet = trip.pickupAddress.isNotEmpty ? trip.pickupAddress : 'Pickup Location';
-    final dropSnippet = trip.dropAddress.isNotEmpty ? trip.dropAddress : 'Dropoff Location';
+    final pickupSnippet = trip.pickupAddress.isNotEmpty ? trip.pickupAddress : l10n.pickupLocation;
+    final dropSnippet = trip.dropAddress.isNotEmpty ? trip.dropAddress : l10n.dropoffLocation;
     final routeText = '$pickupSnippet ➔ $dropSnippet';
 
     final dateStr = trip.createdAt != null
         ? DateFormat('dd MMM yyyy, hh:mm a').format(trip.createdAt!)
-        : 'Completed Delivery';
+        : l10n.completed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -603,7 +608,7 @@ class _TripItem extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'TRIP #$tripIdShort',
+                      l10n.tripNumber(tripIdShort),
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -647,9 +652,9 @@ class _TripItem extends StatelessWidget {
                         color: const Color(0xFFDCFCE7),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'Completed',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.completed,
+                        style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryDark,

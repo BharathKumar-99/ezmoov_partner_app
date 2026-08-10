@@ -62,7 +62,7 @@ class RideRequestViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Check if the driver currently has an active trip ('accepted', 'arrived', 'in_transit')
+  /// Check if the driver currently has an active trip ('accepted', 'arrived', 'in_transit', 'drop_complete', 'amount_paid')
   Future<void> checkActiveDriverTrip(String driverId) async {
     if (driverId.isEmpty) return;
     try {
@@ -96,7 +96,7 @@ class RideRequestViewModel extends ChangeNotifier {
           (offlineTrip != null ? await _supabaseService.getBookingById(offlineTrip['bookingId']!) : null);
 
       if (bookingToRestore != null &&
-          ['accepted', 'arrived', 'in_transit'].contains(bookingToRestore.status)) {
+          ['accepted', 'arrived', 'in_transit', 'drop_complete', 'amount_paid'].contains(bookingToRestore.status)) {
         _activeDriverTrip = bookingToRestore;
         await _offlineTripService.saveActiveTrip(
           bookingId: bookingToRestore.id,
@@ -187,6 +187,14 @@ class RideRequestViewModel extends ChangeNotifier {
       if (booking.status == 'searching' && !_declinedBookingIds.contains(booking.id)) {
         final dist = calculateDistance(driverLat, driverLng, booking.pickupLat, booking.pickupLng);
         debugPrint('⚡ Booking #${booking.id} searching! Distance to pickup: ${dist.toStringAsFixed(2)} km');
+
+        // ONLY alert driver when driver is near (within 3.0 km) from the start (pickup) point
+        if (driverLat != 0.0 && driverLng != 0.0 && booking.pickupLat != 0.0 && booking.pickupLng != 0.0) {
+          if (dist > 3.0) {
+            debugPrint('⏩ Skipping booking #${booking.id}: Distance to pickup is ${dist.toStringAsFixed(2)} km (exceeds 3 km threshold)');
+            continue;
+          }
+        }
 
         matchingBooking = booking;
         break;

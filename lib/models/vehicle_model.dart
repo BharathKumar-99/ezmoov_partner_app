@@ -4,6 +4,8 @@ class VehicleModel {
   final String vehicleNumber;
   final String rcNumber;
   final String rcPicUrl;
+  final String? vehicleTypeId;
+  final String? vehicleType;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -13,9 +15,16 @@ class VehicleModel {
     required this.vehicleNumber,
     required this.rcNumber,
     required this.rcPicUrl,
+    this.vehicleTypeId,
+    this.vehicleType,
     this.createdAt,
     this.updatedAt,
   });
+
+  static bool _isValidUuid(String? value) {
+    if (value == null || value.isEmpty) return false;
+    return RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(value);
+  }
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
     return VehicleModel(
@@ -24,6 +33,8 @@ class VehicleModel {
       vehicleNumber: json['vehicle_number'] as String? ?? '',
       rcNumber: json['rc_number'] as String? ?? '',
       rcPicUrl: json['rc_pic_url'] as String? ?? '',
+      vehicleTypeId: json['vehicle_type_id'] as String?,
+      vehicleType: json['vehicle_type'] as String?,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
     );
@@ -36,6 +47,8 @@ class VehicleModel {
       'vehicle_number': vehicleNumber,
       'rc_number': rcNumber,
       'rc_pic_url': rcPicUrl,
+      if (_isValidUuid(vehicleTypeId)) 'vehicle_type_id': vehicleTypeId,
+      if (vehicleType != null) 'vehicle_type': vehicleType,
     };
   }
 }
