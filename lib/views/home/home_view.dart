@@ -10,6 +10,7 @@ import 'tabs/earnings_tab.dart';
 import 'tabs/alerts_tab.dart';
 import 'tabs/profile_tab.dart';
 import 'widgets/active_trip_floating_card.dart';
+import 'widgets/pending_bid_floating_card.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 
@@ -121,6 +122,19 @@ class HomeView extends StatelessWidget {
                       booking: activeTrip,
                       onTap: () {
                         context.go('/driver/pickup/${activeTrip.id}');
+                      },
+                    ),
+                  )
+                else if (rideVm.hasPendingBid)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: PendingBidFloatingCard(
+                      booking: rideVm.activePendingBidBooking!,
+                      bid: rideVm.activePendingBid!,
+                      onTap: () {
+                        context.go('/driver/bidding-status/${rideVm.activePendingBidBooking!.id}');
                       },
                     ),
                   ),

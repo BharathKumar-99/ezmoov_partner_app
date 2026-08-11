@@ -1118,106 +1118,109 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ),
                   ),
 
-                  const SizedBox(height: 16),
+                  if (!(_booking?.service?.toLowerCase().contains('bidding') ??
+                      false)) ...[
+                    const SizedBox(height: 16),
 
-                  // Add Extra Charges Button
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(
-                          color: AppColors.primary, width: 1.5),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
-                      minimumSize: const Size(double.infinity, 44),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    // Add Extra Charges Button
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(
+                            color: AppColors.primary, width: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        minimumSize: const Size(double.infinity, 44),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                    icon: const Icon(Icons.add_circle_outline_rounded,
-                        color: AppColors.primary),
-                    label: const Text(
-                      'ADD EXTRA CHARGES',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                      icon: const Icon(Icons.add_circle_outline_rounded,
+                          color: AppColors.primary),
+                      label: const Text(
+                        'ADD EXTRA CHARGES',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
                       ),
+                      onPressed: () {
+                        _showAddExtraChargesPopup(modalContext, setModalState);
+                      },
                     ),
-                    onPressed: () {
-                      _showAddExtraChargesPopup(modalContext, setModalState);
-                    },
-                  ),
 
-                  if (_driverExtraCharges.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.3)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Driver Extra Charges:',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryDark,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  _showAddExtraChargesPopup(
-                                      modalContext, setModalState);
-                                },
-                                child: const Text(
-                                  'Edit',
+                    if (_driverExtraCharges.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Driver Extra Charges:',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                    decoration: TextDecoration.underline,
+                                    color: AppColors.primaryDark,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            children: _driverExtraCharges.entries.map((e) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.5)),
-                                ),
-                                child: Text(
-                                  '${e.key}: ₹${e.value}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
+                                GestureDetector(
+                                  onTap: () {
+                                    _showAddExtraChargesPopup(
+                                        modalContext, setModalState);
+                                  },
+                                  child: const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                      decoration: TextDecoration.underline,
+                                    ),
                                   ),
                                 ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              children: _driverExtraCharges.entries.map((e) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.5)),
+                                  ),
+                                  child: Text(
+                                    '${e.key}: ₹${e.value}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
 
                   const SizedBox(height: 20),

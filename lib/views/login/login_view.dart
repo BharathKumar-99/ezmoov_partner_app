@@ -68,7 +68,6 @@ class LoginView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 40),
-
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -92,6 +91,7 @@ class LoginView extends StatelessWidget {
                           hint: '9876543210',
                           prefixIcon: Icons.phone_android_rounded,
                           keyboardType: TextInputType.phone,
+                          limit: 10,
                         ),
                         const SizedBox(height: 24),
                         GradientButton(
@@ -103,7 +103,6 @@ class LoginView extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 32),
                   Wrap(
                     alignment: WrapAlignment.center,

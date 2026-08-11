@@ -7,8 +7,10 @@ import '../core/services/audio_service.dart';
 import '../core/services/offline_trip_service.dart';
 import '../core/services/notification_service.dart';
 import '../models/booking_model.dart';
-
+import '../models/bid_model.dart';
 import '../views/home/widgets/incoming_ride_dialog.dart';
+import '../views/home/widgets/bidding_outstation_dialog.dart';
+
 
 class RideRequestViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
@@ -23,6 +25,20 @@ class RideRequestViewModel extends ChangeNotifier {
 
   BookingModel? _activeDriverTrip;
   BookingModel? get activeDriverTrip => _activeDriverTrip;
+
+  // Active Pending Bid State
+  BookingModel? _activePendingBidBooking;
+  BidModel? _activePendingBid;
+
+  BookingModel? get activePendingBidBooking => _activePendingBidBooking;
+  BidModel? get activePendingBid => _activePendingBid;
+  bool get hasPendingBid => _activePendingBid != null && _activePendingBidBooking != null;
+
+  void withdrawBid() {
+    _activePendingBidBooking = null;
+    _activePendingBid = null;
+    notifyListeners();
+  }
 
   bool _isAccepting = false;
   bool get isAccepting => _isAccepting;
@@ -83,6 +99,73 @@ class RideRequestViewModel extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Notice checking active driver trip: $e');
+    }
+  }
+
+  /// Check status of active pending bid in public.bids and public.bookings. Clear banner if no longer pending (accepted, rejected, closed, cancelled)
+  Future<void> checkPendingBidStatus(String driverId, BuildContext context) async {
+    if (_activePendingBidBooking == null || _activePendingBid == null) return;
+    try {
+      final bookingId = _activePendingBidBooking!.id;
+
+      // 1. Check bid status in public.bids
+      final bidResponse = await _supabaseService.client
+          .from('bids')
+          .select()
+          .eq('booking_id', bookingId)
+          .eq('driver_id', driverId)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (bidResponse != null) {
+        final bidStatus = (bidResponse['status'] as String?)?.toLowerCase() ?? 'pending';
+
+        if (bidStatus == 'accepted') {
+          debugPrint('🎉 Bid accepted by customer!');
+          final bidAmount = (bidResponse['driver_bid'] as num?)?.toDouble() ?? 0.0;
+          withdrawBid(); // Clear pending floating banner
+          await checkActiveDriverTrip(driverId);
+          if (context.mounted) {
+            _showSnackBar(
+              context,
+              '🎉 Customer accepted your bid of ₹${bidAmount.toStringAsFixed(0)}!',
+              backgroundColor: const Color(0xFF09A234),
+            );
+          }
+          return;
+        } else if (bidStatus != 'pending') {
+          // 'rejected', 'closed', 'cancelled', etc.
+          debugPrint('🔒 Bid status updated to $bidStatus (no longer pending). Clearing banner...');
+          withdrawBid();
+          if (context.mounted) {
+            _showSnackBar(
+              context,
+              'Outstation bid status: $bidStatus',
+              backgroundColor: Colors.black87,
+            );
+          }
+          return;
+        }
+      }
+
+      // 2. Check booking status in public.bookings
+      final currentBooking = await _supabaseService.getBookingById(bookingId);
+      if (currentBooking == null || currentBooking.status != 'searching') {
+        debugPrint('🔒 Outstation booking #$bookingId is no longer searching (${currentBooking?.status}). Clearing banner...');
+        withdrawBid();
+        if (context.mounted) {
+          _showSnackBar(
+            context,
+            currentBooking?.status == 'cancelled'
+                ? 'Outstation ride was cancelled by customer.'
+                : 'Outstation ride closed or accepted.',
+            backgroundColor: Colors.black87,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Notice checking pending bid status: $e');
     }
   }
 
@@ -157,6 +240,9 @@ class RideRequestViewModel extends ChangeNotifier {
     _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       try {
         await checkActiveDriverTrip(driverId);
+        if (context.mounted) {
+          await checkPendingBidStatus(driverId, context);
+        }
 
         final searchingBookings = await _supabaseService.getSearchingBookings();
         if (!context.mounted) return;
@@ -192,6 +278,10 @@ class RideRequestViewModel extends ChangeNotifier {
     double driverLng,
     BuildContext context,
   ) {
+    if (_activePendingBidBooking != null && context.mounted) {
+      checkPendingBidStatus(driverId, context);
+    }
+
     BookingModel? matchingBooking;
 
     for (final booking in bookings) {
@@ -202,15 +292,20 @@ class RideRequestViewModel extends ChangeNotifier {
         debugPrint(
             '⚡ Booking #${booking.id} searching! Distance to pickup: ${dist.toStringAsFixed(2)} km');
 
-        // ONLY alert driver when driver is near (within 3.0 km) from the start (pickup) point
-        if (driverLat != 0.0 &&
-            driverLng != 0.0 &&
-            booking.pickupLat != 0.0 &&
-            booking.pickupLng != 0.0) {
-          if (dist > 3.0) {
-            debugPrint(
-                '⏩ Skipping booking #${booking.id}: Distance to pickup is ${dist.toStringAsFixed(2)} km (exceeds 3 km threshold)');
-            continue;
+        final serviceName = booking.service?.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_') ?? '';
+        final isLocalAdda = serviceName.isEmpty || serviceName == 'local_adda' || serviceName == 'localadda';
+
+        // ONLY alert driver within 3.0 km distance if service is local_adda
+        if (isLocalAdda) {
+          if (driverLat != 0.0 &&
+              driverLng != 0.0 &&
+              booking.pickupLat != 0.0 &&
+              booking.pickupLng != 0.0) {
+            if (dist > 3.0) {
+              debugPrint(
+                  '⏩ Skipping booking #${booking.id}: Service ($serviceName) is local_adda and distance to pickup is ${dist.toStringAsFixed(2)} km (exceeds 3 km threshold)');
+              continue;
+            }
           }
         }
 
@@ -275,8 +370,75 @@ class RideRequestViewModel extends ChangeNotifier {
           customerPhone: matchingBooking.customerPhone,
         );
 
-        showIncomingRideDialog(context, matchingBooking, driverId);
+        final serviceName = matchingBooking.service?.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_') ?? '';
+        final isBiddingOutstation = serviceName == 'bidding_outstation' || serviceName == 'biddingoutstation';
+
+        if (isBiddingOutstation) {
+          showBiddingOutstationDialog(context, matchingBooking, driverId);
+        } else {
+          showIncomingRideDialog(context, matchingBooking, driverId);
+        }
       }
+    }
+  }
+
+  /// Submit driver bid record for bidding_outstation service into public.bids table
+  Future<bool> submitBid({
+    required String bookingId,
+    required String driverId,
+    required double currentRate,
+    required double driverBid,
+    required BuildContext context,
+  }) async {
+    try {
+      _audioService.stopAlert();
+      final success = await _supabaseService.submitDriverBid(
+        bookingId: bookingId,
+        driverId: driverId,
+        currentRate: currentRate,
+        driverBid: driverBid,
+      );
+
+      if (success) {
+        _declinedBookingIds.add(bookingId);
+
+        // Store active pending bid state so floating banner shows up on Home screen
+        if (_activeBroadcastBooking?.id == bookingId) {
+          _activePendingBidBooking = _activeBroadcastBooking;
+          _activeBroadcastBooking = null;
+        }
+
+        _activePendingBid = BidModel(
+          bookingId: bookingId,
+          driverId: driverId,
+          currentBookingRate: currentRate,
+          driverBid: driverBid,
+          status: 'pending',
+          createdAt: DateTime.now(),
+        );
+
+        _isModalOpen = false;
+        notifyListeners();
+
+        if (context.mounted) {
+          _showSnackBar(
+            context,
+            '✅ Bid of ₹${driverBid.toStringAsFixed(0)} submitted! Pending customer response...',
+            backgroundColor: const Color(0xFF09A234),
+          );
+        }
+        return true;
+      }
+      return false;
+    } catch (e) {
+      if (context.mounted) {
+        _showSnackBar(
+          context,
+          'Error submitting bid: $e',
+          backgroundColor: Colors.red,
+        );
+      }
+      return false;
     }
   }
 

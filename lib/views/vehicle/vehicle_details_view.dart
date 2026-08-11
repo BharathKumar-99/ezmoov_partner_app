@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../models/vehicle_type_model.dart';
 import '../../viewmodels/vehicle_viewmodel.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/gradient_button.dart';
@@ -15,77 +14,6 @@ class VehicleDetailsView extends StatelessWidget {
     super.key,
     required this.driverId,
   });
-
-  void _showVehicleTypePicker(BuildContext context, VehicleViewModel vm) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(ctx).size.height * 0.8,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'SELECT VEHICLE TYPE',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textMuted,
-                letterSpacing: 0.8,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Choose your vehicle category',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.separated(
-                itemCount: vm.vehicleTypes.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final type = vm.vehicleTypes[index];
-                  final isSelected = vm.selectedVehicleType?.id == type.id;
-                  return _VehicleTypeCard(
-                    vehicleType: type,
-                    isSelected: isSelected,
-                    onTap: () {
-                      vm.selectVehicleType(type);
-                      Navigator.pop(ctx);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _showImagePicker(BuildContext context, VehicleViewModel vm) {
     showModalBottomSheet(
@@ -156,7 +84,7 @@ class VehicleDetailsView extends StatelessWidget {
       body: SafeArea(
         child: Consumer<VehicleViewModel>(
           builder: (context, vm, child) {
-            final selectedType = vm.selectedVehicleType;
+            final catItem = vm.selectedCatalogItem;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -173,14 +101,13 @@ class VehicleDetailsView extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Provide details of the vehicle you will drive with EZMoov.',
+                    'Select vehicle catalog specifications and provide registration details.',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 28),
-
+                  const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -198,9 +125,8 @@ class VehicleDetailsView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // VEHICLE TYPE SELECTOR DROPDOWN
                         const Text(
-                          'VEHICLE TYPE',
+                          'VEHICLE SPECIFICATIONS',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -208,54 +134,143 @@ class VehicleDetailsView extends StatelessWidget {
                             letterSpacing: 0.8,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 16),
 
-                        InkWell(
-                          onTap: () => _showVehicleTypePicker(context, vm),
-                          borderRadius: BorderRadius.circular(16),
-                          child: selectedType != null
-                              ? _VehicleTypeCard(
-                                  vehicleType: selectedType,
-                                  isSelected: true,
-                                  isDropdown: true,
-                                  onTap: () => _showVehicleTypePicker(context, vm),
-                                )
-                              : Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.background,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: AppColors.border),
-                                  ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Select Vehicle Category',
-                                        style: TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textMuted),
-                                    ],
-                                  ),
-                                ),
+                        // 1. Wheel Count Dropdown
+                        _buildDropdownField(
+                          label: 'Wheel Count',
+                          hint: 'Select Wheel Count',
+                          value: vm.selectedWheelCount,
+                          items: vm.wheelCountOptions,
+                          icon: Icons.tire_repair_rounded,
+                          onChanged: (val) => vm.selectWheelCount(val),
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
 
+                        // 2. Brand Dropdown
+                        _buildDropdownField(
+                          label: 'Vehicle Brand',
+                          hint: vm.selectedWheelCount == null
+                              ? 'Select Wheel Count First'
+                              : 'Select Brand',
+                          value: vm.selectedBrand,
+                          items: vm.brandOptions,
+                          icon: Icons.branding_watermark_rounded,
+                          enabled: vm.selectedWheelCount != null,
+                          onChanged: (val) => vm.selectBrand(val),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // 3. Model Dropdown
+                        _buildDropdownField(
+                          label: 'Vehicle Model',
+                          hint: vm.selectedBrand == null
+                              ? 'Select Brand First'
+                              : 'Select Model',
+                          value: vm.selectedModel,
+                          items: vm.modelOptions,
+                          icon: Icons.local_shipping_rounded,
+                          enabled: vm.selectedBrand != null,
+                          onChanged: (val) => vm.selectModel(val),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // 4. Body Type Dropdown
+                        _buildDropdownField(
+                          label: 'Body Type',
+                          hint: vm.selectedModel == null
+                              ? 'Select Model First'
+                              : 'Select Body Type',
+                          value: vm.selectedBodyType,
+                          items: vm.bodyTypeOptions,
+                          icon: Icons.inventory_2_rounded,
+                          enabled: vm.selectedModel != null,
+                          onChanged: (val) => vm.selectBodyType(val),
+                        ),
+
+                        // Catalog Info summary badge if resolved
+                        if (catItem != null) ...[
+                          const SizedBox(height: 18),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${catItem.brand} ${catItem.model}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Payload: ${catItem.payloadCapacity}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Base: ₹${catItem.baseRate.toStringAsFixed(0)}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '₹${catItem.ratePerKm.toStringAsFixed(0)} / km',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 24),
+                        const Divider(height: 1),
+                        const SizedBox(height: 24),
+
+                        // Registration Number
                         CustomTextField(
                           controller: vm.vehicleNumberController,
                           label: 'Vehicle Registration Number',
-                          hint: 'KA 01 AB 1234',
+                          hint: 'TS 01 AB 1234',
                           prefixIcon: Icons.directions_car_filled_rounded,
                         ),
                         const SizedBox(height: 16),
+
+                        // TC / Permit / RC Number
                         CustomTextField(
                           controller: vm.rcNumberController,
-                          label: 'RC Number',
-                          hint: 'RC9876543210',
+                          label: 'TC / RC Permit Number',
+                          hint: 'TC9876543210',
                           prefixIcon: Icons.badge_outlined,
                         ),
                         const SizedBox(height: 24),
@@ -269,6 +284,7 @@ class VehicleDetailsView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
+
                         InkWell(
                           onTap: () => _showImagePicker(context, vm),
                           borderRadius: BorderRadius.circular(14),
@@ -279,7 +295,9 @@ class VehicleDetailsView extends StatelessWidget {
                               color: AppColors.background,
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: vm.rcPicPath != null ? AppColors.primary : AppColors.border,
+                                color: vm.rcPicPath != null
+                                    ? AppColors.primary
+                                    : AppColors.border,
                                 width: vm.rcPicPath != null ? 2 : 1,
                               ),
                             ),
@@ -318,7 +336,8 @@ class VehicleDetailsView extends StatelessWidget {
                           text: 'Save & Continue',
                           isLoading: vm.isLoading,
                           icon: Icons.arrow_forward_rounded,
-                          onPressed: () => vm.submitVehicleDetails(context, driverId),
+                          onPressed: () =>
+                              vm.submitVehicleDetails(context, driverId),
                         ),
                       ],
                     ),
@@ -331,166 +350,87 @@ class VehicleDetailsView extends StatelessWidget {
       ),
     );
   }
-}
 
-class _VehicleTypeCard extends StatelessWidget {
-  final VehicleTypeModel vehicleType;
-  final bool isSelected;
-  final bool isDropdown;
-  final VoidCallback? onTap;
-
-  const _VehicleTypeCard({
-    required this.vehicleType,
-    required this.isSelected,
-    this.isDropdown = false,
-    this.onTap,
-  });
-
-  IconData _getIconData(String iconName) {
-    switch (iconName) {
-      case 'electric_rickshaw':
-        return Icons.electric_rickshaw_rounded;
-      case 'directions_bus':
-        return Icons.directions_bus_rounded;
-      case 'fire_truck':
-        return Icons.fire_truck_rounded;
-      case 'agriculture':
-        return Icons.agriculture_rounded;
-      case 'local_shipping':
-      default:
-        return Icons.local_shipping_rounded;
-    }
-  }
-
-  Color _getIconColor(String name) {
-    if (name.contains('Mini 3W')) return const Color(0xFFCA8A04);
-    if (name.contains('3 Wheeler')) return const Color(0xFF16A34A);
-    if (name.contains('Tata Ace')) return const Color(0xFF0D9488);
-    if (name.contains('Pickup 8ft')) return const Color(0xFF2563EB);
-    if (name.contains('Pickup 1.7')) return const Color(0xFFEA580C);
-    if (name.contains('14ft Container')) return const Color(0xFF4F46E5);
-    return const Color(0xFFDC2626);
-  }
-
-  Color _getBgColor(String name) {
-    if (name.contains('Mini 3W')) return const Color(0xFFFEF9C3);
-    if (name.contains('3 Wheeler')) return const Color(0xFFDCFCE7);
-    if (name.contains('Tata Ace')) return const Color(0xFFCCFBF1);
-    if (name.contains('Pickup 8ft')) return const Color(0xFFDBEAFE);
-    if (name.contains('Pickup 1.7')) return const Color(0xFFFFEDD5);
-    if (name.contains('14ft Container')) return const Color(0xFFE0E7FF);
-    return const Color(0xFFFEE2E2);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final iconColor = _getIconColor(vehicleType.name);
-    final bgColor = _getBgColor(vehicleType.name);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSelected ? const Color(0xFF16A34A) : AppColors.border,
-          width: isSelected ? 2.0 : 1.0,
-        ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: const Color(0xFF16A34A).withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                // Vehicle Icon in Rounded Box
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    _getIconData(vehicleType.iconName),
-                    color: iconColor,
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: 14),
-
-                // Vehicle Name & Capacity
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        vehicleType.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'Capacity: ${vehicleType.capacity}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // Selection / Dropdown Indicator
-                if (isDropdown)
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 20,
-                      color: AppColors.primary,
-                    ),
-                  )
-                else if (isSelected)
-                  const Icon(
-                    Icons.check_circle_rounded,
-                    size: 24,
-                    color: Color(0xFF16A34A),
-                  )
-                else
-                  const Icon(
-                    Icons.radio_button_unchecked_rounded,
-                    size: 22,
-                    color: AppColors.textMuted,
-                  ),
-              ],
-            ),
+  Widget _buildDropdownField({
+    required String label,
+    required String hint,
+    required String? value,
+    required List<String> items,
+    required IconData icon,
+    bool enabled = true,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
           ),
         ),
-      ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          initialValue: items.contains(value) ? value : null,
+          isExpanded: true,
+          decoration: InputDecoration(
+            prefixIcon: Icon(
+              icon,
+              color: enabled ? AppColors.primary : AppColors.textMuted,
+              size: 20,
+            ),
+            hintText: hint,
+            hintStyle: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 14,
+            ),
+            filled: true,
+            fillColor: enabled ? AppColors.background : const Color(0xFFF1F5F9),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide:
+                  BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
+          ),
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppColors.textMuted,
+          ),
+          dropdownColor: AppColors.surface,
+          items: enabled
+              ? items.map((item) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(
+                      item,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  );
+                }).toList()
+              : [],
+          onChanged: enabled ? onChanged : null,
+        ),
+      ],
     );
   }
 }

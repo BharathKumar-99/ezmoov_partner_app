@@ -10,6 +10,7 @@ import '../../views/bank/bank_details_view.dart';
 import '../../views/verification/verification_pending_view.dart';
 import '../../views/home/home_view.dart';
 import '../../views/trip/driver_pickup_view.dart';
+import '../../views/bidding/outstation_bidding_status_view.dart';
 import '../../views/support/support_view.dart';
 
 class AppRouter {
@@ -84,8 +85,10 @@ class AppRouter {
           return '/verification-pending?driverId=$driverId';
         }
 
-        // 7. Allow pickup navigation route & support view when fully verified
-        if (location.startsWith('/driver/pickup/') || location == '/support') {
+        // 7. Allow pickup navigation route, bidding status view & support view when fully verified
+        if (location.startsWith('/driver/pickup/') ||
+            location.startsWith('/driver/bidding-status/') ||
+            location == '/support') {
           return null;
         }
 
@@ -175,6 +178,13 @@ class AppRouter {
           builder: (context, state) {
             final bookingId = state.pathParameters['bookingId'] ?? '';
             return DriverPickupView(bookingId: bookingId);
+          },
+        ),
+        GoRoute(
+          path: '/driver/bidding-status/:bookingId',
+          builder: (context, state) {
+            final bookingId = state.pathParameters['bookingId'] ?? '';
+            return OutstationBiddingStatusView(bookingId: bookingId);
           },
         ),
         GoRoute(

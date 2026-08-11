@@ -11,6 +11,7 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final bool readOnly;
   final VoidCallback? onTap;
+  final int? limit;
 
   const CustomTextField({
     super.key,
@@ -21,6 +22,7 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.suffixIcon,
     this.validator,
+    this.limit,
     this.readOnly = false,
     this.onTap,
   });
@@ -42,6 +44,7 @@ class CustomTextField extends StatelessWidget {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          maxLength: limit,
           readOnly: readOnly,
           onTap: onTap,
           validator: validator,
@@ -52,6 +55,7 @@ class CustomTextField extends StatelessWidget {
           ),
           decoration: InputDecoration(
             hintText: hint,
+            counterText: '',
             hintStyle: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 14,
@@ -60,7 +64,8 @@ class CustomTextField extends StatelessWidget {
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppColors.surface,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(color: AppColors.border, width: 1.5),

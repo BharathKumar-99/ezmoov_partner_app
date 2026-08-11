@@ -24,6 +24,7 @@ class BookingModel {
   final String? podUrl;
   final String? cancellationReason;
   final String? paymentMode;
+  final String? service;
   final DateTime? acceptedAt;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -52,6 +53,7 @@ class BookingModel {
     this.podUrl,
     this.cancellationReason,
     this.paymentMode,
+    this.service,
     this.acceptedAt,
     this.createdAt,
     this.updatedAt,
@@ -303,6 +305,7 @@ class BookingModel {
       podUrl: _toString(json['pod_url']),
       cancellationReason: _toString(json['cancellation_reason']),
       paymentMode: _toString(json['payment_mode']),
+      service: _toString(json['service']) ?? _toString(json['services']),
       acceptedAt: _toDateTime(json['accepted_at']),
       createdAt: _toDateTime(json['created_at']),
       updatedAt: _toDateTime(json['updated_at']),
@@ -334,6 +337,7 @@ class BookingModel {
       if (podUrl != null) 'pod_url': podUrl,
       if (cancellationReason != null) 'cancellation_reason': cancellationReason,
       if (paymentMode != null) 'payment_mode': paymentMode,
+      if (service != null) 'service': service,
       if (acceptedAt != null) 'accepted_at': acceptedAt!.toIso8601String(),
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
@@ -364,6 +368,7 @@ class BookingModel {
     String? podUrl,
     String? cancellationReason,
     String? paymentMode,
+    String? service,
     DateTime? acceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -392,6 +397,7 @@ class BookingModel {
       podUrl: podUrl ?? this.podUrl,
       cancellationReason: cancellationReason ?? this.cancellationReason,
       paymentMode: paymentMode ?? this.paymentMode,
+      service: service ?? this.service,
       acceptedAt: acceptedAt ?? this.acceptedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

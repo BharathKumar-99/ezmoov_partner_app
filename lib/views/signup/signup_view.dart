@@ -105,7 +105,6 @@ class SignupView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 28),
-
                   Center(
                     child: Stack(
                       children: [
@@ -115,7 +114,8 @@ class SignupView extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppColors.surface,
-                            border: Border.all(color: AppColors.primary, width: 2),
+                            border:
+                                Border.all(color: AppColors.primary, width: 2),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.05),
@@ -159,9 +159,7 @@ class SignupView extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -199,6 +197,7 @@ class SignupView extends StatelessWidget {
                           hint: '9876543210',
                           prefixIcon: Icons.phone_android_rounded,
                           keyboardType: TextInputType.phone,
+                          limit: 10,
                         ),
                         const SizedBox(height: 28),
                         GradientButton(
@@ -210,7 +209,6 @@ class SignupView extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
                   Wrap(
                     alignment: WrapAlignment.center,

@@ -9,6 +9,7 @@ import '../../models/bank_details_model.dart';
 import '../../models/rating_model.dart';
 import '../../models/booking_model.dart';
 import '../../models/earning_model.dart';
+import '../../models/vehicle_catalog_model.dart';
 
 class SupabaseService {
   SupabaseService._internal();
@@ -181,7 +182,6 @@ class SupabaseService {
 
       await client.from('drivers').update({
         'is_vehicle_added': true,
-        if (vehicle.vehicleType != null) 'vehicle_type': vehicle.vehicleType,
         'vehicle_number': vehicle.vehicleNumber,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', vehicle.driverId);
@@ -361,7 +361,6 @@ class SupabaseService {
       return [];
     }
   }
-
 
   /// Get currently active booking for driver ('accepted', 'arrived', 'in_transit', 'drop_complete', or 'amount_paid')
   Future<BookingModel?> getActiveDriverBooking(String driverId) async {
@@ -678,6 +677,56 @@ class SupabaseService {
       debugPrint('Successfully saved FCM token to Supabase for user $userId');
     } catch (e) {
       debugPrint('Error saving FCM token to Supabase: $e');
+    }
+  }
+
+  /// Submit driver bid record into public.bids table
+  Future<bool> submitDriverBid({
+    required String bookingId,
+    required String driverId,
+    required double currentRate,
+    required double driverBid,
+  }) async {
+    try {
+      final nowStr = DateTime.now().toIso8601String();
+      await client.from('bids').insert({
+        'booking_id': bookingId,
+        'driver_id': driverId,
+        'current_booking_rate': currentRate,
+        'driver_bid': driverBid,
+        'status': 'pending',
+        'created_at': nowStr,
+        'updated_at': nowStr,
+      });
+      debugPrint(
+          '✅ Bid submitted successfully for booking #$bookingId: ₹$driverBid');
+      return true;
+    } catch (e) {
+      debugPrint('Error submitting driver bid to public.bids: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch vehicle catalog items from public.vehicle_catalog table
+  Future<List<VehicleCatalogModel>> fetchVehicleCatalog() async {
+    try {
+      final response = await client
+          .from('vehicle_catalog')
+          .select()
+          .order('wheel_count', ascending: true)
+          .order('brand', ascending: true);
+
+      final list = (response as List<dynamic>)
+          .map((item) =>
+              VehicleCatalogModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      if (list.isNotEmpty) return list;
+      return VehicleCatalogModel.defaultCatalog;
+    } catch (e) {
+      debugPrint(
+          'Notice fetching vehicle_catalog: $e. Falling back to defaults.');
+      return VehicleCatalogModel.defaultCatalog;
     }
   }
 }
