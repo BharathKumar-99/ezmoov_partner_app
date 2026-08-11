@@ -113,6 +113,8 @@ class NotificationService {
     required String bookingId,
     required String pickupAddress,
     required double fare,
+    String? customerName,
+    String? customerPhone,
   }) async {
     await initialize();
 
@@ -140,10 +142,12 @@ class NotificationService {
     );
 
     try {
+      final nameStr = (customerName != null && customerName.isNotEmpty) ? customerName : 'Customer';
+      final phoneStr = (customerPhone != null && customerPhone.isNotEmpty) ? ' • 📞 $customerPhone' : '';
       await _notificationsPlugin.show(
         bookingId.hashCode,
-        '⚡ INCOMING RIDE REQUEST (₹${fare.toStringAsFixed(0)})',
-        'Pickup: $pickupAddress',
+        '⚡ INCOMING RIDE (₹${fare.toStringAsFixed(0)}) - $nameStr',
+        'Pickup: $pickupAddress$phoneStr',
         details,
         payload: bookingId,
       );

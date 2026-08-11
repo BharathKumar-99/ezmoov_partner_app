@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
@@ -6,7 +5,8 @@ import '../../../models/booking_model.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../widgets/gradient_button.dart';
 
-void showIncomingRideDialog(BuildContext context, BookingModel booking, String driverId) {
+void showIncomingRideDialog(
+    BuildContext context, BookingModel booking, String driverId) {
   showModalBottomSheet(
     context: context,
     isDismissible: false,
@@ -36,11 +36,10 @@ class IncomingRideDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<RideRequestViewModel>(
       builder: (context, vm, child) {
-        final customerDisplayName = (booking.customerName != null && booking.customerName!.isNotEmpty)
-            ? booking.customerName!
-            : (booking.customerId.isNotEmpty
-                ? 'Customer (${booking.customerId.substring(0, min(8, booking.customerId.length))})'
-                : 'Customer Delivery Request');
+        final customerDisplayName =
+            (booking.customerName != null && booking.customerName!.isNotEmpty)
+                ? booking.customerName!
+                : 'Customer Delivery Request';
 
         return Container(
           decoration: const BoxDecoration(
@@ -97,7 +96,8 @@ class IncomingRideDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.secondary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -116,10 +116,10 @@ class IncomingRideDialog extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Total Fare Display
+              // Total Fare & Customer Info Display
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Column(
@@ -128,33 +128,60 @@ class IncomingRideDialog extends StatelessWidget {
                         Text(
                           customerDisplayName,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Standard Delivery Order',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
+                        const SizedBox(height: 3),
+                        if (booking.customerPhone != null &&
+                            booking.customerPhone!.isNotEmpty)
+                          Row(
+                            children: [
+                              const Icon(Icons.phone_outlined,
+                                  size: 13, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                booking.customerPhone!,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          const Text(
+                            'Standard Delivery Order',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    '₹ ${booking.fare.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                      letterSpacing: -0.5,
-                    ),
+                  Builder(
+                    builder: (context) {
+                      final displayFare = booking.fare > 0
+                          ? booking.fare
+                          : BookingModel.extractFare(booking.toJson());
+                      return Text(
+                        displayFare > 0
+                            ? '₹ ${displayFare.toStringAsFixed(2)}'
+                            : '₹ 0.00',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                          letterSpacing: -0.5,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -173,7 +200,8 @@ class IncomingRideDialog extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.circle, color: AppColors.primary, size: 12),
+                        const Icon(Icons.circle,
+                            color: AppColors.primary, size: 12),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
@@ -189,7 +217,9 @@ class IncomingRideDialog extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                booking.pickupAddress.isNotEmpty ? booking.pickupAddress : 'Pickup Address',
+                                booking.pickupAddress.isNotEmpty
+                                    ? booking.pickupAddress
+                                    : 'Pickup Address',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -211,7 +241,8 @@ class IncomingRideDialog extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_rounded, color: AppColors.error, size: 14),
+                        const Icon(Icons.location_on_rounded,
+                            color: AppColors.error, size: 14),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
@@ -227,7 +258,9 @@ class IncomingRideDialog extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                booking.dropAddress.isNotEmpty ? booking.dropAddress : 'Drop Address',
+                                booking.dropAddress.isNotEmpty
+                                    ? booking.dropAddress
+                                    : 'Drop Address',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -254,7 +287,8 @@ class IncomingRideDialog extends StatelessWidget {
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: const BorderSide(color: AppColors.border, width: 1.5),
+                        side: const BorderSide(
+                            color: AppColors.border, width: 1.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -263,7 +297,6 @@ class IncomingRideDialog extends StatelessWidget {
                         vm.declineRide(booking.id);
                         Navigator.of(context).pop();
                       },
-
                       child: const Text(
                         'Decline',
                         style: TextStyle(

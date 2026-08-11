@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,7 +13,6 @@ import '../../viewmodels/ride_request_viewmodel.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../viewmodels/home_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
-
 
 class DriverPickupView extends StatefulWidget {
   final String bookingId;
@@ -34,8 +34,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   bool _isUploadingPickup = false;
   File? _podImageFile;
   bool _isUploadingPod = false;
+  Map<String, dynamic> _driverExtraCharges = {};
   Timer? _statusCheckTimer;
-
 
   @override
   void initState() {
@@ -45,9 +45,11 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   void _startStatusCheckTimer() {
-    _statusCheckTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+    _statusCheckTimer =
+        Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (!mounted) return;
-      final updatedBooking = await SupabaseService.instance.getBookingById(widget.bookingId);
+      final updatedBooking =
+          await SupabaseService.instance.getBookingById(widget.bookingId);
       if (!mounted) return;
       if (updatedBooking != null) {
         if (updatedBooking.status == 'cancelled') {
@@ -78,7 +80,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   Future<void> _loadBookingDetails() async {
-    final booking = await SupabaseService.instance.getBookingById(widget.bookingId);
+    final booking =
+        await SupabaseService.instance.getBookingById(widget.bookingId);
     if (mounted) {
       if (booking?.status == 'cancelled') {
         context.read<RideRequestViewModel>().clearActiveDriverTrip();
@@ -190,10 +193,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }) async {
     Uri url;
     if (lat != 0.0 && lng != 0.0) {
-      url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving');
+      url = Uri.parse(
+          'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving');
     } else if (fallbackAddress.isNotEmpty) {
       final encoded = Uri.encodeComponent(fallbackAddress);
-      url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$encoded&travelmode=driving');
+      url = Uri.parse(
+          'https://www.google.com/maps/dir/?api=1&destination=$encoded&travelmode=driving');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -231,11 +236,14 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     });
 
     try {
-      await SupabaseService.instance.updateBookingStatus(widget.bookingId, newStatus);
+      await SupabaseService.instance
+          .updateBookingStatus(widget.bookingId, newStatus);
+      final reloadedBooking =
+          await SupabaseService.instance.getBookingById(widget.bookingId);
 
       if (mounted) {
         setState(() {
-          _booking = _booking?.copyWith(status: newStatus);
+          _booking = reloadedBooking ?? _booking?.copyWith(status: newStatus);
           _isUpdatingStatus = false;
         });
 
@@ -259,7 +267,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         }
       }
     } catch (e) {
-
       if (mounted) {
         setState(() {
           _isUpdatingStatus = false;
@@ -364,7 +371,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: const BorderSide(
+                              color: AppColors.primary, width: 2),
                         ),
                       ),
                       onChanged: (_) {
@@ -388,7 +396,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       child: _pickupImageFile != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(16),
-                              child: Image.file(_pickupImageFile!, fit: BoxFit.cover),
+                              child: Image.file(_pickupImageFile!,
+                                  fit: BoxFit.cover),
                             )
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -416,21 +425,27 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                         backgroundColor: AppColors.primary,
                                         foregroundColor: Colors.white,
                                         elevation: 0,
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
-                                      icon: const Icon(Icons.camera_alt, size: 14),
-                                      label: const Text('Camera', style: TextStyle(fontSize: 12)),
+                                      icon: const Icon(Icons.camera_alt,
+                                          size: 14),
+                                      label: const Text('Camera',
+                                          style: TextStyle(fontSize: 12)),
                                       onPressed: () async {
-                                        final picked = await ImagePicker().pickImage(
+                                        final picked =
+                                            await ImagePicker().pickImage(
                                           source: ImageSource.camera,
                                           imageQuality: 70,
                                         );
                                         if (picked != null) {
                                           setModalState(() {
-                                            _pickupImageFile = File(picked.path);
+                                            _pickupImageFile =
+                                                File(picked.path);
                                             otpError = null;
                                           });
                                         }
@@ -439,22 +454,32 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                     const SizedBox(width: 8),
                                     OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: AppColors.border),
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        side: const BorderSide(
+                                            color: AppColors.border),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
-                                      icon: const Icon(Icons.photo_library, size: 14, color: AppColors.textPrimary),
-                                      label: const Text('Gallery', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+                                      icon: const Icon(Icons.photo_library,
+                                          size: 14,
+                                          color: AppColors.textPrimary),
+                                      label: const Text('Gallery',
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textPrimary)),
                                       onPressed: () async {
-                                        final picked = await ImagePicker().pickImage(
+                                        final picked =
+                                            await ImagePicker().pickImage(
                                           source: ImageSource.gallery,
                                           imageQuality: 70,
                                         );
                                         if (picked != null) {
                                           setModalState(() {
-                                            _pickupImageFile = File(picked.path);
+                                            _pickupImageFile =
+                                                File(picked.path);
                                             otpError = null;
                                           });
                                         }
@@ -481,14 +506,18 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                         if (_pickupImageFile == null) {
                           setModalState(() {
-                            otpError = 'Proof of Pickup photo is MANDATORY before starting trip';
+                            otpError =
+                                'Proof of Pickup photo is MANDATORY before starting trip';
                           });
                           return;
                         }
 
-                        if (expectedOtp != null && expectedOtp.isNotEmpty && inputOtp != expectedOtp) {
+                        if (expectedOtp != null &&
+                            expectedOtp.isNotEmpty &&
+                            inputOtp != expectedOtp) {
                           setModalState(() {
-                            otpError = 'Incorrect OTP. Ask customer for start PIN.';
+                            otpError =
+                                'Incorrect OTP. Ask customer for start PIN.';
                           });
                           return;
                         }
@@ -604,21 +633,27 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? AppColors.error.withValues(alpha: 0.08)
                               : AppColors.background,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? AppColors.error : AppColors.border,
+                            color:
+                                isSelected ? AppColors.error : AppColors.border,
                           ),
                         ),
                         child: Row(
                           children: [
                             Icon(
-                              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                              color: isSelected ? AppColors.error : AppColors.textMuted,
+                              isSelected
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_off,
+                              color: isSelected
+                                  ? AppColors.error
+                                  : AppColors.textMuted,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -627,8 +662,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 reason,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: isSelected ? AppColors.error : AppColors.textPrimary,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? AppColors.error
+                                      : AppColors.textPrimary,
                                 ),
                               ),
                             ),
@@ -644,7 +683,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.error,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
                       ),
                       onPressed: isCancelling
                           ? null
@@ -654,14 +694,17 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                               });
 
                               try {
-                                await SupabaseService.instance.cancelBookingWithReason(
+                                await SupabaseService.instance
+                                    .cancelBookingWithReason(
                                   bookingId: widget.bookingId,
                                   reason: selectedReason,
                                 );
 
                                 if (context.mounted) {
                                   Navigator.of(modalContext).pop();
-                                  context.read<RideRequestViewModel>().clearActiveDriverTrip();
+                                  context
+                                      .read<RideRequestViewModel>()
+                                      .clearActiveDriverTrip();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text('Trip cancelled.'),
@@ -676,7 +719,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 });
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error cancelling trip: $e')),
+                                    SnackBar(
+                                        content:
+                                            Text('Error cancelling trip: $e')),
                                   );
                                 }
                               }
@@ -685,7 +730,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ? const SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2),
                             )
                           : const Text(
                               'CONFIRM CANCELLATION',
@@ -698,6 +744,220 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   ),
                 ],
               ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showAddExtraChargesPopup(
+      BuildContext dialogContext, StateSetter setParentModalState) {
+    final chargeNameController = TextEditingController();
+    final chargeAmountController = TextEditingController();
+    Map<String, dynamic> tempChargesMap =
+        Map<String, dynamic>.from(_driverExtraCharges);
+
+    showDialog(
+      context: dialogContext,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.receipt_long_rounded,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Flexible(
+                    child: Text(
+                      'ADD EXTRA CHARGES',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Add extra trip expenses (e.g. Toll, Gas, Parking):',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: chargeNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Charge Name',
+                        hintText: 'e.g. toll',
+                        filled: true,
+                        fillColor: AppColors.background,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: chargeAmountController,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^[0-9]+(?:[.,][0-9]{1,2})?$')),
+                      ],
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: 'Charge Number / Amount (₹)',
+                        hintText: 'e.g. 55',
+                        filled: true,
+                        fillColor: AppColors.background,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // + ADD Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        icon: const Icon(Icons.add_rounded, size: 20),
+                        label: const Text('ADD',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 14)),
+                        onPressed: () {
+                          final name =
+                              chargeNameController.text.trim().toLowerCase();
+                          final amountText = chargeAmountController.text.trim();
+                          final numVal = double.tryParse(amountText);
+
+                          if (name.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Please enter a charge name (e.g., toll)')),
+                            );
+                            return;
+                          }
+                          if (numVal == null || numVal <= 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Please enter a valid numeric charge amount')),
+                            );
+                            return;
+                          }
+
+                          setDialogState(() {
+                            tempChargesMap[name] =
+                                numVal % 1 == 0 ? numVal.toInt() : numVal;
+                            chargeNameController.clear();
+                            chargeAmountController.clear();
+                          });
+                        },
+                      ),
+                    ),
+
+                    if (tempChargesMap.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Added Charges List:',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: tempChargesMap.entries.map((entry) {
+                          return Chip(
+                            backgroundColor:
+                                AppColors.primary.withValues(alpha: 0.1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: const BorderSide(color: AppColors.primary),
+                            ),
+                            label: Text(
+                              '${entry.key}: ₹${entry.value}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                            deleteIcon: const Icon(Icons.close,
+                                size: 16, color: AppColors.error),
+                            onDeleted: () {
+                              setDialogState(() {
+                                tempChargesMap.remove(entry.key);
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('CANCEL',
+                      style: TextStyle(color: AppColors.textSecondary)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    setParentModalState(() {
+                      _driverExtraCharges =
+                          Map<String, dynamic>.from(tempChargesMap);
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('SUBMIT',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
             );
           },
         );
@@ -776,7 +1036,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     child: _podImageFile != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(16),
-                            child: Image.file(_podImageFile!, fit: BoxFit.cover),
+                            child:
+                                Image.file(_podImageFile!, fit: BoxFit.cover),
                           )
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -808,10 +1069,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
-                                    icon: const Icon(Icons.camera_alt, size: 16),
+                                    icon:
+                                        const Icon(Icons.camera_alt, size: 16),
                                     label: const Text('Camera'),
                                     onPressed: () async {
-                                      final picked = await ImagePicker().pickImage(
+                                      final picked =
+                                          await ImagePicker().pickImage(
                                         source: ImageSource.camera,
                                         imageQuality: 70,
                                       );
@@ -825,15 +1088,20 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                   const SizedBox(width: 10),
                                   OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(color: AppColors.border),
+                                      side: const BorderSide(
+                                          color: AppColors.border),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
-                                    icon: const Icon(Icons.photo_library, size: 16, color: AppColors.textPrimary),
-                                    label: const Text('Gallery', style: TextStyle(color: AppColors.textPrimary)),
+                                    icon: const Icon(Icons.photo_library,
+                                        size: 16, color: AppColors.textPrimary),
+                                    label: const Text('Gallery',
+                                        style: TextStyle(
+                                            color: AppColors.textPrimary)),
                                     onPressed: () async {
-                                      final picked = await ImagePicker().pickImage(
+                                      final picked =
+                                          await ImagePicker().pickImage(
                                         source: ImageSource.gallery,
                                         imageQuality: 70,
                                       );
@@ -850,6 +1118,108 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ),
                   ),
 
+                  const SizedBox(height: 16),
+
+                  // Add Extra Charges Button
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                          color: AppColors.primary, width: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
+                      minimumSize: const Size(double.infinity, 44),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(Icons.add_circle_outline_rounded,
+                        color: AppColors.primary),
+                    label: const Text(
+                      'ADD EXTRA CHARGES',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    onPressed: () {
+                      _showAddExtraChargesPopup(modalContext, setModalState);
+                    },
+                  ),
+
+                  if (_driverExtraCharges.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Driver Extra Charges:',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryDark,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  _showAddExtraChargesPopup(
+                                      modalContext, setModalState);
+                                },
+                                child: const Text(
+                                  'Edit',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: _driverExtraCharges.entries.map((e) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.5)),
+                                ),
+                                child: Text(
+                                  '${e.key}: ₹${e.value}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 20),
 
                   GradientButton(
@@ -860,7 +1230,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       if (_podImageFile == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Proof of Delivery photo is MANDATORY before completing delivery.'),
+                            content: Text(
+                                'Proof of Delivery photo is MANDATORY before completing delivery.'),
                             backgroundColor: AppColors.error,
                             behavior: SnackBarBehavior.floating,
                           ),
@@ -872,17 +1243,26 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         _isUploadingPod = true;
                       });
                       try {
+                        if (_driverExtraCharges.isNotEmpty) {
+                          await SupabaseService.instance.saveDriverCharges(
+                            bookingId: widget.bookingId,
+                            driverCharges: _driverExtraCharges,
+                          );
+                        }
+
                         await SupabaseService.instance.uploadPodImage(
                           bookingId: widget.bookingId,
                           file: _podImageFile!,
                         );
                       } catch (e) {
-                        debugPrint('Notice uploading POD photo: $e');
+                        debugPrint('Notice uploading POD photo/charges: $e');
                       }
 
                       if (!modalContext.mounted) return;
                       Navigator.of(modalContext).pop();
-                      _updateStatus('drop_complete', '📦 Cargo unloaded & POD submitted! Awaiting payment.');
+                      await _loadBookingDetails();
+                      await _updateStatus('drop_complete',
+                          '📦 Cargo unloaded & POD submitted! Awaiting payment.');
                     },
                   ),
                 ],
@@ -905,7 +1285,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               title: const Column(
                 children: [
                   Icon(Icons.star_rounded, color: Color(0xFFEAB308), size: 48),
@@ -939,7 +1320,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       final starValue = index + 1.0;
                       return IconButton(
                         icon: Icon(
-                          starValue <= selectedRating ? Icons.star_rounded : Icons.star_border_rounded,
+                          starValue <= selectedRating
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
                           color: const Color(0xFFEAB308),
                           size: 32,
                         ),
@@ -977,10 +1360,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: () async {
-                    final driverId = context.read<ProfileViewModel>().driver?.id ?? '';
+                    final driverId =
+                        context.read<ProfileViewModel>().driver?.id ?? '';
                     if (driverId.isNotEmpty && _booking != null) {
                       await SupabaseService.instance.submitCustomerRating(
                         bookingId: widget.bookingId,
@@ -995,7 +1380,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       GoRouter.of(context).go('/home');
                     }
                   },
-                  child: const Text('SUBMIT RATING', style: TextStyle(color: Colors.white)),
+                  child: const Text('SUBMIT RATING',
+                      style: TextStyle(color: Colors.white)),
                 ),
               ],
             );
@@ -1012,16 +1398,15 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         currentStatus == 'drop_complete' ||
         currentStatus == 'amount_paid';
 
-    final navLat = isTransit
-        ? (_booking?.dropLat ?? 0.0)
-        : (_booking?.pickupLat ?? 0.0);
-    final navLng = isTransit
-        ? (_booking?.dropLng ?? 0.0)
-        : (_booking?.pickupLng ?? 0.0);
+    final navLat =
+        isTransit ? (_booking?.dropLat ?? 0.0) : (_booking?.pickupLat ?? 0.0);
+    final navLng =
+        isTransit ? (_booking?.dropLng ?? 0.0) : (_booking?.pickupLng ?? 0.0);
     final navAddress = isTransit
         ? (_booking?.dropAddress ?? '')
         : (_booking?.pickupAddress ?? '');
-    final navTargetLabel = isTransit ? 'Dropoff Location' : 'Customer Pickup Location';
+    final navTargetLabel =
+        isTransit ? 'Dropoff Location' : 'Customer Pickup Location';
 
     final customerPhone = _booking?.customerPhone ?? '';
     final customerName = _booking?.customerName ?? 'Customer';
@@ -1035,7 +1420,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   ? 'Awaiting Payment'
                   : (currentStatus == 'in_transit'
                       ? 'Trip in Transit'
-                      : (currentStatus == 'arrived' ? 'Arrived at Pickup' : 'Pickup Navigation'))),
+                      : (currentStatus == 'arrived'
+                          ? 'Arrived at Pickup'
+                          : 'Pickup Navigation'))),
         ),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -1053,7 +1440,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -1164,7 +1552,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                   // Customer Contact Quick Actions Card (Call / SMS)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(16),
@@ -1178,8 +1567,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             children: [
                               CircleAvatar(
                                 radius: 18,
-                                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                                child: const Icon(Icons.person, color: AppColors.primary, size: 20),
+                                backgroundColor:
+                                    AppColors.primary.withValues(alpha: 0.1),
+                                child: const Icon(Icons.person,
+                                    color: AppColors.primary, size: 20),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -1218,18 +1609,22 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             IconButton(
                               tooltip: 'Call Customer',
                               style: IconButton.styleFrom(
-                                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                                backgroundColor:
+                                    AppColors.primary.withValues(alpha: 0.1),
                               ),
-                              icon: const Icon(Icons.call_rounded, color: AppColors.primary),
+                              icon: const Icon(Icons.call_rounded,
+                                  color: AppColors.primary),
                               onPressed: () => _makePhoneCall(customerPhone),
                             ),
                             const SizedBox(width: 8),
                             IconButton(
                               tooltip: 'Send SMS',
                               style: IconButton.styleFrom(
-                                backgroundColor: const Color(0xFF0284C7).withValues(alpha: 0.1),
+                                backgroundColor: const Color(0xFF0284C7)
+                                    .withValues(alpha: 0.1),
                               ),
-                              icon: const Icon(Icons.message_rounded, color: Color(0xFF0284C7)),
+                              icon: const Icon(Icons.message_rounded,
+                                  color: Color(0xFF0284C7)),
                               onPressed: () => _sendSms(customerPhone),
                             ),
                           ],
@@ -1249,7 +1644,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     ),
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF1A73E8), Color(0xFF1557B0)],
@@ -1259,7 +1655,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1A73E8).withValues(alpha: 0.3),
+                            color:
+                                const Color(0xFF1A73E8).withValues(alpha: 0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -1306,7 +1703,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
@@ -1367,7 +1765,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(10),
@@ -1389,19 +1788,22 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         // Route (Pickup & Drop) with dedicated GMaps buttons
                         Row(
                           children: [
-                            const Icon(Icons.circle, color: AppColors.primary, size: 12),
+                            const Icon(Icons.circle,
+                                color: AppColors.primary, size: 12),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 _booking?.pickupAddress.isNotEmpty == true
                                     ? _booking!.pickupAddress
                                     : 'Customer Pickup Point',
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.bold),
                               ),
                             ),
                             IconButton(
                               tooltip: 'Navigate to Pickup in GMaps',
-                              icon: const Icon(Icons.directions_outlined, color: Color(0xFF1A73E8)),
+                              icon: const Icon(Icons.directions_outlined,
+                                  color: Color(0xFF1A73E8)),
                               onPressed: () => _openGoogleMaps(
                                 lat: _booking?.pickupLat ?? 0.0,
                                 lng: _booking?.pickupLng ?? 0.0,
@@ -1411,26 +1813,30 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ],
                         ),
                         Container(
-                          margin: const EdgeInsets.only(left: 5, top: 2, bottom: 2),
+                          margin:
+                              const EdgeInsets.only(left: 5, top: 2, bottom: 2),
                           height: 20,
                           width: 2,
                           color: AppColors.divider,
                         ),
                         Row(
                           children: [
-                            const Icon(Icons.location_on_rounded, color: AppColors.error, size: 14),
+                            const Icon(Icons.location_on_rounded,
+                                color: AppColors.error, size: 14),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 _booking?.dropAddress.isNotEmpty == true
                                     ? _booking!.dropAddress
                                     : 'Customer Dropoff Point',
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.bold),
                               ),
                             ),
                             IconButton(
                               tooltip: 'Navigate to Dropoff in GMaps',
-                              icon: const Icon(Icons.directions_outlined, color: Color(0xFF1A73E8)),
+                              icon: const Icon(Icons.directions_outlined,
+                                  color: Color(0xFF1A73E8)),
                               onPressed: () => _openGoogleMaps(
                                 lat: _booking?.dropLat ?? 0.0,
                                 lng: _booking?.dropLng ?? 0.0,
@@ -1449,10 +1855,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             children: [
                               const Text(
                                 'Total Delivery Fare:',
-                                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary),
                               ),
                               Text(
-                                '₹ ${_booking!.fare.toStringAsFixed(2)}',
+                                '₹ ${_booking!.amount?['total_price'].toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -1495,7 +1903,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     )
                   else if (currentStatus == 'drop_complete')
                     GradientButton(
-                      text: 'Received Cash Payment (₹${(_booking?.fare ?? 0).toStringAsFixed(0)})',
+                      text:
+                          'Received Cash Payment (₹${(_booking?.amount?['total_price'] ?? 0).toStringAsFixed(0)})',
                       isLoading: _isUpdatingStatus,
                       icon: Icons.payments_rounded,
                       onPressed: () => _updateStatus(
@@ -1533,7 +1942,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          icon: const Icon(Icons.cancel_outlined, color: AppColors.error, size: 18),
+                          icon: const Icon(Icons.cancel_outlined,
+                              color: AppColors.error, size: 18),
                           label: const Text(
                             'Cancel Trip',
                             style: TextStyle(

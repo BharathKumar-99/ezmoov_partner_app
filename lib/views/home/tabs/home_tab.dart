@@ -48,11 +48,16 @@ class _HomeTabState extends State<HomeTab> {
 
         final todayTripsCount = todayCompletedTrips.length;
 
-        // Total earnings sum from all completed trips
-        final totalEarningsSum = completedTrips.fold<double>(
-          0.0,
-          (sum, booking) => sum + booking.fare,
-        );
+        final homeVm = context.watch<HomeViewModel>();
+
+        // Total earnings sum from public.earning (fallback to completed trips)
+        final totalEarningsSum = homeVm.driverEarnings.isNotEmpty
+            ? homeVm.totalEarnings
+            : completedTrips.fold<double>(
+                0.0,
+                (sum, booking) => sum + booking.fare,
+              );
+
 
         // Driver Rating: driver.rating or average from ratings list
         double ratingValue = driver?.rating ?? 5.0;

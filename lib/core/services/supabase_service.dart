@@ -8,6 +8,7 @@ import '../../models/document_model.dart';
 import '../../models/bank_details_model.dart';
 import '../../models/rating_model.dart';
 import '../../models/booking_model.dart';
+import '../../models/earning_model.dart';
 
 class SupabaseService {
   SupabaseService._internal();
@@ -154,13 +155,15 @@ class SupabaseService {
       final response = await client.from('vehicle_types').select();
       if ((response as List).isNotEmpty) {
         final list = (response as List)
-            .map((item) => VehicleTypeModel.fromJson(item as Map<String, dynamic>))
+            .map((item) =>
+                VehicleTypeModel.fromJson(item as Map<String, dynamic>))
             .toList();
         list.sort((a, b) => a.capacityKg.compareTo(b.capacityKg));
         return list;
       }
     } catch (e) {
-      debugPrint('Error fetching vehicle types from DB, using default list: $e');
+      debugPrint(
+          'Error fetching vehicle types from DB, using default list: $e');
     }
     return VehicleTypeModel.defaultVehicleTypes;
   }
@@ -342,6 +345,24 @@ class SupabaseService {
     }
   }
 
+  /// Get driver earnings from public.earning table
+  Future<List<EarningModel>> getDriverEarnings(String driverId) async {
+    try {
+      final response = await client
+          .from('earning')
+          .select()
+          .eq('driver_id', driverId)
+          .order('created_at', ascending: false);
+
+      final list = response as List<dynamic>;
+      return list.map((json) => EarningModel.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Notice fetching driver earnings: $e');
+      return [];
+    }
+  }
+
+
   /// Get currently active booking for driver ('accepted', 'arrived', 'in_transit', 'drop_complete', or 'amount_paid')
   Future<BookingModel?> getActiveDriverBooking(String driverId) async {
     try {
@@ -349,7 +370,13 @@ class SupabaseService {
           .from('bookings')
           .select()
           .eq('driver_id', driverId)
-          .inFilter('status', ['accepted', 'arrived', 'in_transit', 'drop_complete', 'amount_paid'])
+          .inFilter('status', [
+            'accepted',
+            'arrived',
+            'in_transit',
+            'drop_complete',
+            'amount_paid'
+          ])
           .order('created_at', ascending: false)
           .limit(1)
           .maybeSingle();
@@ -571,6 +598,37 @@ class SupabaseService {
       return publicUrl;
     } catch (e) {
       debugPrint('Error uploading POD image: $e');
+      rethrow;
+    }
+  }
+
+  /// Save driver_charges JSON map into public.bookings amount column
+  Future<void> saveDriverCharges({
+    required String bookingId,
+    required Map<String, dynamic> driverCharges,
+  }) async {
+    try {
+      final currentBooking = await getBookingById(bookingId);
+      Map<String, dynamic> amountMap = {};
+
+      if (currentBooking?.amount != null) {
+        amountMap = Map<String, dynamic>.from(currentBooking!.amount!);
+      }
+
+      // Add/Update driver_charges map in amount JSON
+      amountMap['driver_charges'] = driverCharges;
+      amountMap['total_price'] += driverCharges.values.reduce((a, b) => a + b);
+
+      // Save updated amount map to public.bookings
+      await client.from('bookings').update({
+        'amount': amountMap,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', bookingId);
+
+      debugPrint(
+          '✅ Successfully saved driver_charges to booking #$bookingId: $amountMap');
+    } catch (e) {
+      debugPrint('Error saving driver_charges: $e');
       rethrow;
     }
   }

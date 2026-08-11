@@ -12,6 +12,8 @@ import '../models/vehicle_model.dart';
 import '../models/document_model.dart';
 import '../models/bank_details_model.dart';
 import '../models/booking_model.dart';
+import '../models/earning_model.dart';
+
 
 class HomeViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
@@ -47,6 +49,9 @@ class HomeViewModel extends ChangeNotifier {
   // Earnings & Payout State
   List<BookingModel> _driverTrips = [];
   List<BookingModel> get driverTrips => _driverTrips;
+
+  List<EarningModel> _driverEarnings = [];
+  List<EarningModel> get driverEarnings => _driverEarnings;
 
   String _earningsFilter = 'week'; // 'today', 'week', 'all'
   String get earningsFilter => _earningsFilter;
@@ -103,9 +108,11 @@ class HomeViewModel extends ChangeNotifier {
 
     try {
       final trips = await _supabaseService.getDriverTrips(driverId);
+      final earnings = await _supabaseService.getDriverEarnings(driverId);
       final payouts = await _supabaseService.getDriverPayouts(driverId);
 
       _driverTrips = trips;
+      _driverEarnings = earnings;
 
       double withdrawnSum = 0.0;
       for (final payout in payouts) {
@@ -143,8 +150,35 @@ class HomeViewModel extends ChangeNotifier {
     }).toList();
   }
 
-  /// Total earnings calculated from completed trips
+  /// Get driver earnings filtered by time window from public.earning
+  List<EarningModel> get filteredEarnings {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final weekStart = now.subtract(const Duration(days: 7));
+
+    return _driverEarnings.where((item) {
+      final createdAt = item.createdAt ?? now;
+
+      if (_earningsFilter == 'today') {
+        return createdAt.isAfter(todayStart);
+      } else if (_earningsFilter == 'week') {
+        return createdAt.isAfter(weekStart);
+      }
+      return true; // 'all'
+    }).toList();
+  }
+
+  /// Total earnings calculated by adding up driver_earning from public.earning table
   double get totalEarnings {
+    if (_driverEarnings.isNotEmpty) {
+      double sum = 0.0;
+      for (final item in filteredEarnings) {
+        sum += item.driverEarning;
+      }
+      return sum;
+    }
+
+    // Fallback if public.earning table is empty
     double sum = 0.0;
     for (final trip in filteredCompletedTrips) {
       sum += trip.fare;
@@ -160,12 +194,20 @@ class HomeViewModel extends ChangeNotifier {
 
   /// Available balance for withdrawal
   double get availableBalance {
-    final netAllTime = _driverTrips
-        .where((t) => t.status == 'completed')
-        .fold(0.0, (prev, t) => prev + t.fare);
+    double netAllTime = 0.0;
+    if (_driverEarnings.isNotEmpty) {
+      for (final item in _driverEarnings) {
+        netAllTime += item.driverEarning;
+      }
+    } else {
+      netAllTime = _driverTrips
+          .where((t) => t.status == 'completed')
+          .fold(0.0, (prev, t) => prev + t.fare);
+    }
     final avail = netAllTime - _totalWithdrawnAmount;
     return avail > 0 ? avail : 0.0;
   }
+
 
   /// Process instant bank payout withdrawal
   Future<bool> processInstantPayout({

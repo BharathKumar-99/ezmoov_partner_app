@@ -26,6 +26,7 @@ class _EarningsTabState extends State<EarningsTab> {
     });
   }
 
+  // ignore: unused_element
   void _showPayoutModal(BuildContext context, HomeViewModel vm) {
     final l10n = AppLocalizations.of(context)!;
     final available = vm.availableBalance;
@@ -302,72 +303,6 @@ class _EarningsTabState extends State<EarningsTab> {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.tripsFare85,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '₹ ${vm.tripFaresTotal.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.surgeAndIncentives,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '₹ ${vm.bonusesTotal.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -480,7 +415,7 @@ class _EarningsTabState extends State<EarningsTab> {
                             l10n.withdraw,
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
-                          onPressed: () => _showPayoutModal(context, vm),
+                          onPressed: null,
                         ),
                       ],
                     ),

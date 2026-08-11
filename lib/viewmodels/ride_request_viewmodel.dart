@@ -44,7 +44,6 @@ class RideRequestViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
   /// Haversine formula to calculate distance in km between two GPS coordinates
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     if (lat1 == 0.0 || lon1 == 0.0 || lat2 == 0.0 || lon2 == 0.0) return 0.0;
@@ -66,8 +65,10 @@ class RideRequestViewModel extends ChangeNotifier {
   Future<void> checkActiveDriverTrip(String driverId) async {
     if (driverId.isEmpty) return;
     try {
-      final activeBooking = await _supabaseService.getActiveDriverBooking(driverId);
-      if (_activeDriverTrip?.id != activeBooking?.id || _activeDriverTrip?.status != activeBooking?.status) {
+      final activeBooking =
+          await _supabaseService.getActiveDriverBooking(driverId);
+      if (_activeDriverTrip?.id != activeBooking?.id ||
+          _activeDriverTrip?.status != activeBooking?.status) {
         _activeDriverTrip = activeBooking;
         if (activeBooking != null && activeBooking.id.isNotEmpty) {
           await _offlineTripService.saveActiveTrip(
@@ -86,17 +87,22 @@ class RideRequestViewModel extends ChangeNotifier {
   }
 
   /// Restore active trip on app launch if app was restarted during a trip
-  Future<void> restoreActiveTripOnLaunch(String driverId, BuildContext context) async {
+  Future<void> restoreActiveTripOnLaunch(
+      String driverId, BuildContext context) async {
     if (driverId.isEmpty) return;
     try {
       final offlineTrip = await _offlineTripService.getActiveTrip();
-      final activeBooking = await _supabaseService.getActiveDriverBooking(driverId);
+      final activeBooking =
+          await _supabaseService.getActiveDriverBooking(driverId);
 
       final bookingToRestore = activeBooking ??
-          (offlineTrip != null ? await _supabaseService.getBookingById(offlineTrip['bookingId']!) : null);
+          (offlineTrip != null
+              ? await _supabaseService.getBookingById(offlineTrip['bookingId']!)
+              : null);
 
       if (bookingToRestore != null &&
-          ['accepted', 'arrived', 'in_transit', 'drop_complete', 'amount_paid'].contains(bookingToRestore.status)) {
+          ['accepted', 'arrived', 'in_transit', 'drop_complete', 'amount_paid']
+              .contains(bookingToRestore.status)) {
         _activeDriverTrip = bookingToRestore;
         await _offlineTripService.saveActiveTrip(
           bookingId: bookingToRestore.id,
@@ -124,7 +130,8 @@ class RideRequestViewModel extends ChangeNotifier {
   }) {
     stopBroadcastListening();
 
-    debugPrint('📡 Starting Realtime Broadcast Stream & 3s Polling for driver $driverId at ($driverLat, $driverLng)...');
+    debugPrint(
+        '📡 Starting Realtime Broadcast Stream & 3s Polling for driver $driverId at ($driverLat, $driverLng)...');
 
     // Initial check for active driver trip
     checkActiveDriverTrip(driverId);
@@ -134,7 +141,8 @@ class RideRequestViewModel extends ChangeNotifier {
       _subscription = _supabaseService.subscribeToBookingsStream().listen(
         (bookings) {
           if (context.mounted) {
-            _processBookingsList(bookings, driverId, driverLat, driverLng, context);
+            _processBookingsList(
+                bookings, driverId, driverLat, driverLng, context);
           }
         },
         onError: (error) {
@@ -154,15 +162,18 @@ class RideRequestViewModel extends ChangeNotifier {
         if (!context.mounted) return;
 
         if (searchingBookings.isNotEmpty) {
-          _processBookingsList(searchingBookings, driverId, driverLat, driverLng, context);
+          _processBookingsList(
+              searchingBookings, driverId, driverLat, driverLng, context);
         } else if (_activeBroadcastBooking != null) {
           // If active booking was cancelled or taken in DB
           if (_isModalOpen) {
-            debugPrint('🔒 Ride no longer searching (cancelled or accepted). Auto-closing pop-up...');
+            debugPrint(
+                '🔒 Ride no longer searching (cancelled or accepted). Auto-closing pop-up...');
             _audioService.stopAlert();
             Navigator.of(context, rootNavigator: true).pop();
             _isModalOpen = false;
-            _showSnackBar(context, 'Ride request was cancelled or accepted by another driver.');
+            _showSnackBar(context,
+                'Ride request was cancelled or accepted by another driver.');
           }
           _activeBroadcastBooking = null;
           notifyListeners();
@@ -184,14 +195,21 @@ class RideRequestViewModel extends ChangeNotifier {
     BookingModel? matchingBooking;
 
     for (final booking in bookings) {
-      if (booking.status == 'searching' && !_declinedBookingIds.contains(booking.id)) {
-        final dist = calculateDistance(driverLat, driverLng, booking.pickupLat, booking.pickupLng);
-        debugPrint('⚡ Booking #${booking.id} searching! Distance to pickup: ${dist.toStringAsFixed(2)} km');
+      if (booking.status == 'searching' &&
+          !_declinedBookingIds.contains(booking.id)) {
+        final dist = calculateDistance(
+            driverLat, driverLng, booking.pickupLat, booking.pickupLng);
+        debugPrint(
+            '⚡ Booking #${booking.id} searching! Distance to pickup: ${dist.toStringAsFixed(2)} km');
 
         // ONLY alert driver when driver is near (within 3.0 km) from the start (pickup) point
-        if (driverLat != 0.0 && driverLng != 0.0 && booking.pickupLat != 0.0 && booking.pickupLng != 0.0) {
+        if (driverLat != 0.0 &&
+            driverLng != 0.0 &&
+            booking.pickupLat != 0.0 &&
+            booking.pickupLng != 0.0) {
           if (dist > 3.0) {
-            debugPrint('⏩ Skipping booking #${booking.id}: Distance to pickup is ${dist.toStringAsFixed(2)} km (exceeds 3 km threshold)');
+            debugPrint(
+                '⏩ Skipping booking #${booking.id}: Distance to pickup is ${dist.toStringAsFixed(2)} km (exceeds 3 km threshold)');
             continue;
           }
         }
@@ -200,7 +218,6 @@ class RideRequestViewModel extends ChangeNotifier {
         break;
       }
     }
-
 
     // Check if active broadcast booking was explicitly cancelled or accepted by another driver
     if (_activeBroadcastBooking != null) {
@@ -213,11 +230,14 @@ class RideRequestViewModel extends ChangeNotifier {
       }
 
       final isCancelled = currentActiveInStream?.status == 'cancelled';
-      final isTakenByOther = matchingBooking == null || (currentActiveInStream != null && currentActiveInStream.status != 'searching');
+      final isTakenByOther = matchingBooking == null ||
+          (currentActiveInStream != null &&
+              currentActiveInStream.status != 'searching');
 
       if (isCancelled || isTakenByOther) {
         if (_isModalOpen && context.mounted) {
-          debugPrint('🔒 Booking #${_activeBroadcastBooking!.id} cancelled/taken. Auto-closing pop-up...');
+          debugPrint(
+              '🔒 Booking #${_activeBroadcastBooking!.id} cancelled/taken. Auto-closing pop-up...');
           _audioService.stopAlert();
           Navigator.of(context, rootNavigator: true).pop();
           _isModalOpen = false;
@@ -251,13 +271,14 @@ class RideRequestViewModel extends ChangeNotifier {
           bookingId: matchingBooking.id,
           pickupAddress: matchingBooking.pickupAddress,
           fare: matchingBooking.fare,
+          customerName: matchingBooking.customerName,
+          customerPhone: matchingBooking.customerPhone,
         );
 
         showIncomingRideDialog(context, matchingBooking, driverId);
       }
     }
   }
-
 
   /// Stop stream listener and polling timer
   void stopBroadcastListening() {
@@ -305,7 +326,8 @@ class RideRequestViewModel extends ChangeNotifier {
         }
 
         if (_activeBroadcastBooking != null) {
-          _activeDriverTrip = _activeBroadcastBooking?.copyWith(status: 'accepted', driverId: driverId);
+          _activeDriverTrip = _activeBroadcastBooking?.copyWith(
+              status: 'accepted', driverId: driverId);
         }
         await _offlineTripService.saveActiveTrip(
           bookingId: bookingId,
@@ -322,7 +344,6 @@ class RideRequestViewModel extends ChangeNotifier {
           backgroundColor: const Color(0xFF09A234),
         );
         GoRouter.of(context).go('/driver/pickup/$bookingId');
-
       } else {
         if (_isModalOpen) {
           Navigator.of(context, rootNavigator: true).pop();
@@ -330,7 +351,9 @@ class RideRequestViewModel extends ChangeNotifier {
         }
         _showSnackBar(
           context,
-          message.isNotEmpty ? message : 'Ride already taken by another driver.',
+          message.isNotEmpty
+              ? message
+              : 'Ride already taken by another driver.',
           backgroundColor: Colors.black87,
         );
       }
@@ -338,7 +361,8 @@ class RideRequestViewModel extends ChangeNotifier {
       _isAccepting = false;
       notifyListeners();
       if (context.mounted) {
-        _showSnackBar(context, 'Error accepting ride: $e', backgroundColor: Colors.red);
+        _showSnackBar(context, 'Error accepting ride: $e',
+            backgroundColor: Colors.red);
       }
     }
   }
@@ -353,8 +377,8 @@ class RideRequestViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
-  void _showSnackBar(BuildContext context, String message, {Color? backgroundColor}) {
+  void _showSnackBar(BuildContext context, String message,
+      {Color? backgroundColor}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
