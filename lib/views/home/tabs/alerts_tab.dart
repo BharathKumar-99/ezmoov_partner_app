@@ -15,6 +15,8 @@ class AlertsTab extends StatefulWidget {
 
 class _AlertsTabState extends State<AlertsTab> {
   List<Map<String, dynamic>> _dbNotifications = [];
+  String? _loadedDriverId;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -28,10 +30,13 @@ class _AlertsTabState extends State<AlertsTab> {
     final profileVm = context.read<ProfileViewModel>();
     final driverId = profileVm.driver?.id;
     if (driverId != null && driverId.isNotEmpty) {
+      _loadedDriverId = driverId;
+      if (mounted) setState(() => _isLoading = true);
       final notifs = await SupabaseService.instance.getDriverNotifications(driverId);
       if (mounted) {
         setState(() {
           _dbNotifications = notifs;
+          _isLoading = false;
         });
       }
     }
@@ -44,6 +49,13 @@ class _AlertsTabState extends State<AlertsTab> {
     return Consumer<ProfileViewModel>(
       builder: (context, profileVm, child) {
         final driver = profileVm.driver;
+
+        // Auto-refetch if driver profile loaded after initState
+        if (driver?.id != null && driver!.id!.isNotEmpty && driver.id != _loadedDriverId) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _loadNotifications();
+          });
+        }
 
         // Auto-generate dynamic account alerts based on real driver state
         final List<Map<String, dynamic>> dynamicAlerts = [];
@@ -73,10 +85,12 @@ class _AlertsTabState extends State<AlertsTab> {
         // Combine DB notifications with dynamic account status alerts
         final allNotifs = [..._dbNotifications, ...dynamicAlerts];
 
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(20),
-          child: Column(
+        return RefreshIndicator(
+          onRefresh: _loadNotifications,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            padding: const EdgeInsets.all(20),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -174,9 +188,10 @@ class _AlertsTabState extends State<AlertsTab> {
                 }),
             ],
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 }
 

@@ -282,6 +282,113 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     }
   }
 
+  void _handleReceivedPaymentClick() {
+    final modeStr = (_booking?.paymentMode ?? '').toLowerCase();
+    final isOnlinePayment =
+        modeStr.contains('online') || modeStr.contains('razorpay');
+
+    // If online payment selected by customer and status is not yet amount_paid
+    if (isOnlinePayment && _booking?.status != 'amount_paid') {
+      showDialog(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Row(
+            children: [
+              Icon(Icons.hourglass_top_rounded,
+                  color: Color(0xFFF59E0B), size: 26),
+              SizedBox(width: 10),
+              Flexible(
+                child: Text('Online Payment Pending',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary)),
+              ),
+            ],
+          ),
+          content: const Text(
+            'The customer selected Online Payment (Razorpay). The payment has not been confirmed yet.\n\nPlease ask the customer to complete payment on their phone. The status will automatically update to "Payment Received" once paid.',
+            style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('WAIT FOR PAYMENT',
+                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                _confirmCashPaymentModal();
+              },
+              child: const Text('RECEIVED CASH INSTEAD',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      _confirmCashPaymentModal();
+    }
+  }
+
+  void _confirmCashPaymentModal() {
+    final double totalFare =
+        (_booking?.amount?['total_price'] ?? _booking?.fare ?? 0.0).toDouble();
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Row(
+          children: [
+            Icon(Icons.payments_rounded, color: Color(0xFF10B981), size: 26),
+            SizedBox(width: 10),
+            Text('Confirm Cash Payment',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary)),
+          ],
+        ),
+        content: Text(
+          'Did you collect ₹${totalFare.toStringAsFixed(0)} cash directly from the customer?',
+          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('CANCEL',
+                style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              _updateStatus(
+                'amount_paid',
+                'Cash Payment Received! Please confirm trip completion.',
+              );
+            },
+            child: const Text('YES, RECEIVED CASH',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showStartTripOtpModal() {
     final otpController = TextEditingController();
     String? otpError;
@@ -1910,10 +2017,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           'Received Cash Payment (₹${(_booking?.amount?['total_price'] ?? 0).toStringAsFixed(0)})',
                       isLoading: _isUpdatingStatus,
                       icon: Icons.payments_rounded,
-                      onPressed: () => _updateStatus(
-                        'amount_paid',
-                        'Cash Payment Received! Please confirm trip completion.',
-                      ),
+                      onPressed: _handleReceivedPaymentClick,
                     )
                   else if (currentStatus == 'amount_paid')
                     GradientButton(

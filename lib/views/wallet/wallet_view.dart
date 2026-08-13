@@ -346,29 +346,37 @@ class _WalletViewState extends State<WalletView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Available Wallet Balance',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.white70,
-                                        fontWeight: FontWeight.w500,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Available Wallet Balance',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.white70,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      '₹${walletBalance.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        letterSpacing: -0.5,
+                                      const SizedBox(height: 6),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          '₹${walletBalance.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            letterSpacing: -0.5,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 if (effectiveDriverId != null)
                                   // +Add Money Pill Button
                                   ElevatedButton.icon(
@@ -740,11 +748,17 @@ class _WalletViewState extends State<WalletView> {
                           children: walletVm.transactions.map((tx) {
                             String cleanTitle = tx.description;
                             cleanTitle = cleanTitle
-                                .replaceAll(RegExp(r'\(Booking #[0-9a-fA-F\-]+\)'), '')
-                                .replaceAll(RegExp(r'\([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\)'), '')
+                                .replaceAll(
+                                    RegExp(r'\(Booking #[0-9a-fA-F\-]+\)'), '')
+                                .replaceAll(
+                                    RegExp(
+                                        r'\([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\)'),
+                                    '')
                                 .trim();
                             if (cleanTitle.isEmpty) {
-                              cleanTitle = tx.isCredit ? 'Trip Earning Credit' : 'Daily Fee Deduction';
+                              cleanTitle = tx.isCredit
+                                  ? 'Trip Earning Credit'
+                                  : 'Daily Fee Deduction';
                             }
                             return _TransactionTile(
                               title: cleanTitle,
@@ -900,40 +914,41 @@ class _TransactionTile extends StatelessWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: effectiveIconBgColor,
-                child: Icon(effectiveIconData,
-                    color: effectiveIconColor, size: 18),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: effectiveIconBgColor,
+            child: Icon(effectiveIconData, color: effectiveIconColor, size: 18),
           ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
           Text(
             amount,
             style: TextStyle(

@@ -444,6 +444,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- 9b. PL/pgSQL Function: Make Inactive Drivers Offline (Executed every 5 minutes)
+-- Sets driver is_online = false if updated_at is older than 5 minutes
+CREATE OR REPLACE FUNCTION public.make_inactive_drivers_offline()
+RETURNS JSONB AS $$
+DECLARE
+    v_updated_count INT := 0;
+BEGIN
+    UPDATE public.drivers
+    SET is_online = false,
+        updated_at = now()
+    WHERE is_online = true
+      AND (updated_at IS NULL OR updated_at < (now() - INTERVAL '5 minutes'));
+
+    GET DIAGNOSTICS v_updated_count = ROW_COUNT;
+
+    RETURN jsonb_build_object(
+        'success', true, 
+        'offline_count', v_updated_count, 
+        'timestamp', now()
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- 10. PL/pgSQL Function & Trigger: Credit Driver Wallet on Booking Completion
 -- Keep v_final_earning directly as total_price from amount JSONB (no commission deductions)
 CREATE OR REPLACE FUNCTION public.credit_driver_wallet_on_booking_completion()
@@ -459,15 +482,18 @@ BEGIN
         END IF;
 
         -- Extract total_price from amount JSONB column
-        IF NEW.amount IS NOT NULL AND (NEW.amount ? 'total_price' OR NEW.amount ? 'totalPrice') THEN
+        IF NEW.amount IS NOT NULL AND jsonb_typeof(NEW.amount) = 'object' THEN
             v_total_price := COALESCE(
                 (NEW.amount->>'total_price')::NUMERIC,
                 (NEW.amount->>'totalPrice')::NUMERIC,
-                NEW.fare,
+                (NEW.amount->>'total_fare')::NUMERIC,
+                (NEW.amount->>'base_fare')::NUMERIC,
                 0.00
             );
+        ELSIF NEW.amount IS NOT NULL AND jsonb_typeof(NEW.amount) = 'number' THEN
+            v_total_price := (NEW.amount::text)::NUMERIC;
         ELSE
-            v_total_price := COALESCE(NEW.fare, 0.00);
+            v_total_price := 0.00;
         END IF;
 
         -- Keep v_final_earning directly as total_price from amount (no commission deduction)
@@ -490,7 +516,7 @@ BEGIN
                 NEW.driver_id, 
                 v_final_earning, 
                 'earning_credit', 
-                'Trip Earning Credit (' || COALESCE(NEW.pickup_location->>'address', 'Booking #' || SUBSTRING(NEW.id::text, 1, 8)) || ')',
+                'Trip Earning Credit (' || COALESCE(NEW.pickup_address, 'Booking #' || SUBSTRING(NEW.id::text, 1, 8)) || ')',
                 NEW.id::text
             );
 
@@ -520,11 +546,21 @@ GRANT EXECUTE ON FUNCTION public.process_daily_wallet_deductions TO anon, authen
 GRANT EXECUTE ON FUNCTION public.recharge_driver_wallet TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.record_driver_rejection TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.make_all_drivers_offline TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.make_inactive_drivers_offline TO anon, authenticated, service_role;
 
--- 10. Safe Daily Cron Schedules (4:50 AM Make Offline & 5:00 AM Wallet Deductions)
+-- 10. Safe Cron Schedules (Every 5 min Inactive Drivers Offline, 4:50 AM Make Offline & 5:00 AM Wallet Deductions)
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+        -- Schedule 5-Minute Cron: Auto-Offline Drivers Inactive for > 5 Minutes
+        IF NOT EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'every-5min-auto-offline-inactive-drivers') THEN
+            PERFORM cron.schedule(
+                'every-5min-auto-offline-inactive-drivers',
+                '*/5 * * * *',
+                'SELECT public.make_inactive_drivers_offline();'
+            );
+        END IF;
+
         -- Schedule 4:50 AM Cron: Make All Drivers Offline
         IF NOT EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'daily-450am-make-drivers-offline') THEN
             PERFORM cron.schedule(
