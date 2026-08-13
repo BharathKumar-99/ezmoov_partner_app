@@ -5,15 +5,21 @@ import '../core/constants/app_colors.dart';
 
 class DocumentUploadCard extends StatelessWidget {
   final String title;
-  final String description;
+  final String subtitle;
+  final String buttonText;
+  final IconData iconData;
   final String? imagePath;
+  final bool isRequired;
   final Function(ImageSource) onImageSelected;
 
   const DocumentUploadCard({
     super.key,
     required this.title,
-    required this.description,
+    required this.subtitle,
+    required this.buttonText,
+    required this.iconData,
     this.imagePath,
+    this.isRequired = true,
     required this.onImageSelected,
   });
 
@@ -80,14 +86,14 @@ class DocumentUploadCard extends StatelessWidget {
     final bool isUploaded = imagePath != null && imagePath!.isNotEmpty;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isUploaded ? AppColors.primary : AppColors.border,
-          width: isUploaded ? 1.8 : 1,
+          color: isUploaded ? const Color(0xFF09A234) : const Color(0xFFE5E7EB),
+          width: isUploaded ? 1.8 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
@@ -97,85 +103,111 @@ class DocumentUploadCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: isUploaded ? AppColors.primary.withValues(alpha: 0.08) : AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: isUploaded
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(11),
-                    child: Image.file(
-                      File(imagePath!),
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : const Icon(
-                    Icons.description_outlined,
-                    color: AppColors.textMuted,
-                    size: 28,
-                  ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+          // Top Row: Icon + Title/Subtitle + Required Badge
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Icon Box
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isUploaded ? const Color(0xFFDCFCE7) : const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: isUploaded
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.file(
+                          File(imagePath!),
+                          fit: BoxFit.cover,
                         ),
+                      )
+                    : Icon(
+                        iconData,
+                        color: const Color(0xFF09A234),
+                        size: 22,
+                      ),
+              ),
+              const SizedBox(width: 14),
+
+              // Title & Subtitle Column
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    if (isUploaded)
-                      const Icon(
-                        Icons.check_circle,
-                        color: AppColors.primary,
-                        size: 20,
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
                       ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  isUploaded ? 'Document attached' : description,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isUploaded ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight: isUploaded ? FontWeight.w600 : FontWeight.normal,
+              ),
+              const SizedBox(width: 8),
+
+              // Required Badge
+              if (isRequired)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isUploaded ? const Color(0xFFDCFCE7) : const Color(0xFFFEF9C3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    isUploaded ? 'Attached' : 'Required',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isUploaded ? const Color(0xFF166534) : const Color(0xFF854D0E),
+                    ),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
-          const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: () => _showPickerModal(context),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              side: BorderSide(
-                color: isUploaded ? AppColors.primary : AppColors.border,
+
+          const SizedBox(height: 14),
+
+          // Upload Button
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: () => _showPickerModal(context),
+              icon: Icon(
+                isUploaded ? Icons.check_circle_rounded : Icons.cloud_upload_outlined,
+                size: 18,
+                color: isUploaded ? const Color(0xFF09A234) : AppColors.textSecondary,
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+              label: Text(
+                isUploaded ? 'Change Document' : buttonText,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: isUploaded ? const Color(0xFF09A234) : AppColors.textSecondary,
+                ),
               ),
-            ),
-            child: Text(
-              isUploaded ? 'Change' : 'Upload',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isUploaded ? AppColors.primary : AppColors.textPrimary,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: isUploaded ? const Color(0xFFF0FDF4) : const Color(0xFFF9FAFB),
+                side: BorderSide(
+                  color: isUploaded ? const Color(0xFF09A234) : const Color(0xFFE5E7EB),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(22),
+                ),
               ),
             ),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../core/services/supabase_service.dart';
 import '../core/services/location_service.dart';
 import '../core/services/background_service_manager.dart';
@@ -244,6 +245,51 @@ class HomeViewModel extends ChangeNotifier {
 
   Future<void> toggleOnlineStatus(bool value, BuildContext context) async {
     if (_driver == null || _driver!.id == null) return;
+
+    if (value) {
+      // Check if driver is blocked (unpaid daily fee or 2 order rejections)
+      final dailyStatus = await _supabaseService.getDriverDailyStatus(_driver!.id!);
+      if (dailyStatus != null && dailyStatus.isBlocked) {
+        _isOnline = false;
+        notifyListeners();
+
+        if (context.mounted) {
+          final isRejectionBlock = dailyStatus.blockReason == 'exceeded_rejections' || dailyStatus.rejectionsCount >= 2;
+          final title = isRejectionBlock ? 'Orders Paused ⛔' : 'Daily Fee Unpaid ⚠️';
+          final message = isRejectionBlock
+              ? 'You have rejected 2 orders today. Order allocation is paused for the remainder of today and will resume tomorrow.'
+              : 'Your daily vehicle platform fee is unpaid due to low wallet balance. Please recharge your wallet to go online and receive orders.';
+
+          showDialog(
+            context: context,
+            builder: (dialogCtx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              content: Text(message),
+              actions: [
+                if (!isRejectionBlock)
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF09A234),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(dialogCtx);
+                      context.push('/wallet');
+                    },
+                    child: const Text('Recharge Wallet', style: TextStyle(color: Colors.white)),
+                  ),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+    }
 
     final previousStatus = _isOnline;
     _isOnline = value;

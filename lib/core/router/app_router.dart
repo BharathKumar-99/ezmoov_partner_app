@@ -12,6 +12,7 @@ import '../../views/home/home_view.dart';
 import '../../views/trip/driver_pickup_view.dart';
 import '../../views/bidding/outstation_bidding_status_view.dart';
 import '../../views/support/support_view.dart';
+import '../../views/wallet/wallet_view.dart';
 
 class AppRouter {
   AppRouter._();
@@ -28,6 +29,7 @@ class AppRouter {
         if (driver == null) {
           final savedSession =
               await profileViewModel.getSavedSessionPhoneOrId();
+
           if (savedSession != null && savedSession.isNotEmpty) {
             driver = await profileViewModel.fetchProfile(savedSession);
           } else if (authUser != null) {
@@ -49,7 +51,7 @@ class AppRouter {
           return '/login';
         }
 
-        // If driver record missing in DB
+        // 2. Driver Record Missing in DB Guard
         if (driver == null) {
           if (location == '/signup' ||
               location == '/otp' ||
@@ -85,10 +87,11 @@ class AppRouter {
           return '/verification-pending?driverId=$driverId';
         }
 
-        // 7. Allow pickup navigation route, bidding status view & support view when fully verified
+        // 7. Allow pickup navigation route, bidding status view, support view & wallet view when fully verified
         if (location.startsWith('/driver/pickup/') ||
             location.startsWith('/driver/bidding-status/') ||
-            location == '/support') {
+            location == '/support' ||
+            location == '/wallet') {
           return null;
         }
 
@@ -120,6 +123,7 @@ class AppRouter {
             final extra = state.extra as Map<String, dynamic>?;
             final phone =
                 extra?['phone'] ?? state.uri.queryParameters['phone'] ?? '';
+
             return OtpView(phone: phone);
           },
         ),
@@ -130,6 +134,7 @@ class AppRouter {
             final driverId = extra?['driverId'] ??
                 state.uri.queryParameters['driverId'] ??
                 '';
+
             return VehicleDetailsView(driverId: driverId);
           },
         ),
@@ -140,6 +145,7 @@ class AppRouter {
             final driverId = extra?['driverId'] ??
                 state.uri.queryParameters['driverId'] ??
                 '';
+
             return DocumentCollectionView(driverId: driverId);
           },
         ),
@@ -150,6 +156,7 @@ class AppRouter {
             final driverId = extra?['driverId'] ??
                 state.uri.queryParameters['driverId'] ??
                 '';
+
             return BankDetailsView(driverId: driverId);
           },
         ),
@@ -160,6 +167,7 @@ class AppRouter {
             final driverId = extra?['driverId'] ??
                 state.uri.queryParameters['driverId'] ??
                 '';
+
             return VerificationPendingView(driverId: driverId);
           },
         ),
@@ -170,6 +178,7 @@ class AppRouter {
             final driverId = extra?['driverId'] ??
                 state.uri.queryParameters['driverId'] ??
                 '';
+
             return HomeView(driverId: driverId);
           },
         ),
@@ -190,6 +199,16 @@ class AppRouter {
         GoRoute(
           path: '/support',
           builder: (context, state) => const SupportView(),
+        ),
+        GoRoute(
+          path: '/wallet',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final driverId = extra?['driverId'] ??
+                state.uri.queryParameters['driverId'] ??
+                '';
+            return WalletView(driverId: driverId);
+          },
         ),
       ],
     );

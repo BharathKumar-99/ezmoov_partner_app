@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
 import '../../../viewmodels/home_viewmodel.dart';
+import '../../../viewmodels/wallet_viewmodel.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class HomeTab extends StatefulWidget {
@@ -21,6 +23,7 @@ class _HomeTabState extends State<HomeTab> {
       final profileVm = context.read<ProfileViewModel>();
       if (profileVm.driver?.id != null) {
         context.read<HomeViewModel>().fetchEarnings(profileVm.driver!.id!);
+        context.read<WalletViewModel>().fetchWalletData(profileVm.driver!.id!);
       }
     });
   }
@@ -121,6 +124,87 @@ class _HomeTabState extends State<HomeTab> {
               ),
 
               const SizedBox(height: 24),
+
+              Consumer<WalletViewModel>(
+                builder: (context, walletVm, child) {
+                  if (!walletVm.isBlocked) return const SizedBox.shrink();
+
+                  final isFeePending = walletVm.blockReason == 'insufficient_wallet_balance';
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.red.shade300, width: 1.5),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              isFeePending ? Icons.warning_amber_rounded : Icons.block_rounded,
+                              color: Colors.red.shade700,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                isFeePending
+                                    ? 'Orders Paused: Daily Fee Pending ⚠️'
+                                    : 'Orders Paused for Today ⛔',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red.shade900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          isFeePending
+                              ? 'Your daily vehicle fee (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)}) is pending. Recharge your wallet to start getting ride requests.'
+                              : 'You rejected 2 order requests today. Order allocation is paused for the remainder of today.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red.shade800,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              context.push('/wallet?driverId=${driver?.id ?? ''}');
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red.shade700,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                            icon: Icon(
+                              isFeePending ? Icons.account_balance_wallet_rounded : Icons.info_outline_rounded,
+                              size: 18,
+                            ),
+                            label: Text(
+                              isFeePending ? 'Recharge Wallet Now' : 'View Wallet Details',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
 
               // 2. GO ONLINE / OFFLINE SWITCH WIDGET (FULLY RESPONSIVE FOR TELUGU & ALL LANGUAGES)
               Container(

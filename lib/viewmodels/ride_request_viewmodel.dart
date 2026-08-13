@@ -49,7 +49,7 @@ class RideRequestViewModel extends ChangeNotifier {
   Set<String> get declinedBookingIds => _declinedBookingIds;
 
   /// Explicitly decline a ride request so it is never shown again to this driver
-  void declineRide(String bookingId) {
+  void declineRide(String bookingId, {String? driverId}) {
     if (bookingId.isEmpty) return;
     _declinedBookingIds.add(bookingId);
     _audioService.stopAlert();
@@ -58,6 +58,10 @@ class RideRequestViewModel extends ChangeNotifier {
     }
     _isModalOpen = false;
     notifyListeners();
+
+    if (driverId != null && driverId.isNotEmpty) {
+      _supabaseService.recordDriverRejection(driverId);
+    }
   }
 
   /// Haversine formula to calculate distance in km between two GPS coordinates
@@ -355,29 +359,39 @@ class RideRequestViewModel extends ChangeNotifier {
       notifyListeners();
 
       if (!_isModalOpen && context.mounted) {
-        debugPrint('🎉 POP-UP TRIGGERED for booking #${matchingBooking.id}!');
-        _isModalOpen = true;
+        _supabaseService.getDriverDailyStatus(driverId).then((status) {
+          if (status != null && status.isBlocked) {
+            debugPrint('⛔ Driver $driverId is blocked today (${status.blockReason}). Suppressing ride request dialog.');
+            return;
+          }
 
-        // Play audio alert ringtone
-        _audioService.playRideRequestAlert();
+          final currentBooking = matchingBooking;
+          if (currentBooking != null && !_isModalOpen && context.mounted) {
+            debugPrint('🎉 POP-UP TRIGGERED for booking #${currentBooking.id}!');
+            _isModalOpen = true;
 
-        // Trigger system heads-up push notification
-        NotificationService.instance.showIncomingRideNotification(
-          bookingId: matchingBooking.id,
-          pickupAddress: matchingBooking.pickupAddress,
-          fare: matchingBooking.fare,
-          customerName: matchingBooking.customerName,
-          customerPhone: matchingBooking.customerPhone,
-        );
+            // Play audio alert ringtone
+            _audioService.playRideRequestAlert();
 
-        final serviceName = matchingBooking.service?.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_') ?? '';
-        final isBiddingOutstation = serviceName == 'bidding_outstation' || serviceName == 'biddingoutstation';
+            // Trigger system heads-up push notification
+            NotificationService.instance.showIncomingRideNotification(
+              bookingId: currentBooking.id,
+              pickupAddress: currentBooking.pickupAddress,
+              fare: currentBooking.fare,
+              customerName: currentBooking.customerName,
+              customerPhone: currentBooking.customerPhone,
+            );
 
-        if (isBiddingOutstation) {
-          showBiddingOutstationDialog(context, matchingBooking, driverId);
-        } else {
-          showIncomingRideDialog(context, matchingBooking, driverId);
-        }
+            final serviceName = currentBooking.service?.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_') ?? '';
+            final isBiddingOutstation = serviceName == 'bidding_outstation' || serviceName == 'biddingoutstation';
+
+            if (isBiddingOutstation) {
+              showBiddingOutstationDialog(context, currentBooking, driverId);
+            } else {
+              showIncomingRideDialog(context, currentBooking, driverId);
+            }
+          }
+        });
       }
     }
   }

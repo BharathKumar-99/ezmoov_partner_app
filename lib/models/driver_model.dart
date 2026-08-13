@@ -4,6 +4,8 @@ class DriverModel {
   final String email;
   final String phone;
   final String? profilePicUrl;
+  final String? selfieWithVehicleUrl;
+  final String? ownerName;
   final String? vehicleType;
   final String? vehicleNumber;
   final bool isOnline;
@@ -25,6 +27,8 @@ class DriverModel {
     required this.email,
     required this.phone,
     this.profilePicUrl,
+    this.selfieWithVehicleUrl,
+    this.ownerName,
     this.vehicleType,
     this.vehicleNumber,
     this.isOnline = false,
@@ -42,7 +46,8 @@ class DriverModel {
   });
 
   bool get isFullyVerified =>
-      isVerified || (isVehicleVerified && isDocumentsVerified && isBankDetailsVerified);
+      isVerified ||
+      (isVehicleVerified && isDocumentsVerified && isBankDetailsVerified);
 
   /// Extract latitude numeric value from currentLocation JSON map or object
   double? get latitude {
@@ -73,6 +78,8 @@ class DriverModel {
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
       profilePicUrl: json['profile_pic_url'] as String?,
+      selfieWithVehicleUrl: json['selfie_with_vehicle_url'] as String?,
+      ownerName: json['owner_name'] as String?,
       vehicleType: json['vehicle_type'] as String?,
       vehicleNumber: json['vehicle_number'] as String?,
       isOnline: json['is_online'] as bool? ?? false,
@@ -85,8 +92,12 @@ class DriverModel {
       isDocumentsVerified: json['is_documents_verified'] as bool? ?? false,
       isBankDetailsVerified: json['is_bank_details_verified'] as bool? ?? false,
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
     );
   }
 
@@ -97,6 +108,8 @@ class DriverModel {
       'email': email,
       'phone': phone,
       'profile_pic_url': profilePicUrl,
+      'selfie_with_vehicle_url': selfieWithVehicleUrl,
+      'owner_name': ownerName,
       if (vehicleType != null) 'vehicle_type': vehicleType,
       if (vehicleNumber != null) 'vehicle_number': vehicleNumber,
       'is_online': isOnline,
@@ -118,6 +131,8 @@ class DriverModel {
     String? email,
     String? phone,
     String? profilePicUrl,
+    String? selfieWithVehicleUrl,
+    String? ownerName,
     String? vehicleType,
     String? vehicleNumber,
     bool? isOnline,
@@ -139,6 +154,8 @@ class DriverModel {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       profilePicUrl: profilePicUrl ?? this.profilePicUrl,
+      selfieWithVehicleUrl: selfieWithVehicleUrl ?? this.selfieWithVehicleUrl,
+      ownerName: ownerName ?? this.ownerName,
       vehicleType: vehicleType ?? this.vehicleType,
       vehicleNumber: vehicleNumber ?? this.vehicleNumber,
       isOnline: isOnline ?? this.isOnline,
@@ -149,7 +166,8 @@ class DriverModel {
       isBankDetailsAdded: isBankDetailsAdded ?? this.isBankDetailsAdded,
       isVehicleVerified: isVehicleVerified ?? this.isVehicleVerified,
       isDocumentsVerified: isDocumentsVerified ?? this.isDocumentsVerified,
-      isBankDetailsVerified: isBankDetailsVerified ?? this.isBankDetailsVerified,
+      isBankDetailsVerified:
+          isBankDetailsVerified ?? this.isBankDetailsVerified,
       rating: rating ?? this.rating,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

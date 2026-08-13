@@ -23,6 +23,7 @@ import 'viewmodels/profile_viewmodel.dart';
 import 'viewmodels/ride_request_viewmodel.dart';
 import 'viewmodels/locale_viewmodel.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'viewmodels/wallet_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,8 +35,7 @@ Future<void> main() async {
   }
 
   final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
-  final supabasePublishableKey =
-      dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ??
+  final supabasePublishableKey = dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ??
       dotenv.env['SUPABASE_ANON_KEY'] ??
       '';
 
@@ -50,7 +50,8 @@ Future<void> main() async {
       debugPrint('Supabase initialization notice: $e');
     }
   } else {
-    debugPrint('⚠️ Warning: SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is not defined in .env');
+    debugPrint(
+        '⚠️ Warning: SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is not defined in .env');
   }
 
   // Initialize Firebase & FCM
@@ -70,7 +71,6 @@ Future<void> main() async {
   final profileViewModel = ProfileViewModel();
 
   runApp(EzMoovPartnerApp(profileViewModel: profileViewModel));
-
 }
 
 class EzMoovPartnerApp extends StatelessWidget {
@@ -90,6 +90,7 @@ class EzMoovPartnerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BankDetailsViewModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RideRequestViewModel()),
+        ChangeNotifierProvider(create: (_) => WalletViewModel()),
       ],
       child: Consumer<LocaleViewModel>(
         builder: (context, localeVM, child) {
@@ -128,4 +129,3 @@ void overlayMain() {
     ),
   );
 }
-

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -13,13 +14,35 @@ class AlertsTab extends StatefulWidget {
 }
 
 class _AlertsTabState extends State<AlertsTab> {
+  List<Map<String, dynamic>> _dbNotifications = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNotifications();
+    });
+  }
+
+  Future<void> _loadNotifications() async {
+    final profileVm = context.read<ProfileViewModel>();
+    final driverId = profileVm.driver?.id;
+    if (driverId != null && driverId.isNotEmpty) {
+      final notifs = await SupabaseService.instance.getDriverNotifications(driverId);
+      if (mounted) {
+        setState(() {
+          _dbNotifications = notifs;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
     return Consumer<ProfileViewModel>(
       builder: (context, profileVm, child) {
-        final List<Map<String, dynamic>> rawNotifications = [];
         final driver = profileVm.driver;
 
         // Auto-generate dynamic account alerts based on real driver state
@@ -48,7 +71,7 @@ class _AlertsTabState extends State<AlertsTab> {
         }
 
         // Combine DB notifications with dynamic account status alerts
-        final allNotifs = [...rawNotifications, ...dynamicAlerts];
+        final allNotifs = [..._dbNotifications, ...dynamicAlerts];
 
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),

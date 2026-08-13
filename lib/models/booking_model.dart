@@ -220,9 +220,11 @@ class BookingModel {
     // Helper to extract driver_charges sum if present
     double extraDriverChargesSum = 0.0;
     dynamic driverChargesObj;
-    if (json['amount'] is Map && (json['amount'] as Map).containsKey('driver_charges')) {
+    if (json['amount'] is Map &&
+        (json['amount'] as Map).containsKey('driver_charges')) {
       driverChargesObj = json['amount']['driver_charges'];
-    } else if (json['amount'] is String && json['amount'].toString().contains('driver_charges')) {
+    } else if (json['amount'] is String &&
+        json['amount'].toString().contains('driver_charges')) {
       try {
         final decoded = jsonDecode(json['amount'].toString());
         if (decoded is Map && decoded.containsKey('driver_charges')) {
@@ -272,7 +274,8 @@ class BookingModel {
     // 2. Try top-level map fields
     if (baseFareCalculated == 0.0) {
       final topLevelFare = extractFromMap(json);
-      if (topLevelFare != null && topLevelFare > 0) baseFareCalculated = topLevelFare;
+      if (topLevelFare != null && topLevelFare > 0)
+        baseFareCalculated = topLevelFare;
     }
 
     return baseFareCalculated + extraDriverChargesSum;

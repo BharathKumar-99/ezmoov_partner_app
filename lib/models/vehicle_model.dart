@@ -19,6 +19,8 @@ class VehicleModel {
     this.updatedAt,
   });
 
+  String? get vehicleType => vehicleTypeId;
+
   static bool _isValidUuid(String? value) {
     if (value == null || value.isEmpty) return false;
     return RegExp(

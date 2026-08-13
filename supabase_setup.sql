@@ -22,9 +22,15 @@ CREATE TABLE IF NOT EXISTS public.drivers (
     is_documents_verified BOOLEAN DEFAULT false,
     is_bank_details_verified BOOLEAN DEFAULT false,
     rating NUMERIC(3, 2) DEFAULT 5.00,
+    selfie_with_vehicle_url TEXT,
+    owner_name TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Ensure selfie_with_vehicle_url and owner_name exist on drivers table
+ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS selfie_with_vehicle_url TEXT;
+ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS owner_name TEXT;
 
 -- Spatial index on drivers current location for fast proximity queries
 CREATE INDEX IF NOT EXISTS idx_drivers_current_location 
@@ -49,18 +55,34 @@ CREATE TABLE IF NOT EXISTS public.vehicles (
 CREATE INDEX IF NOT EXISTS idx_vehicles_driver_id 
 ON public.vehicles (driver_id);
 
--- 4. Create Documents Table
+-- 4. Create Documents Table (All 9 Required Verification Documents)
 CREATE TABLE IF NOT EXISTS public.documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     driver_id UUID NOT NULL REFERENCES public.drivers(id) ON DELETE CASCADE,
-    puc_url TEXT NOT NULL,
-    permit_url TEXT NOT NULL,
-    fitness_url TEXT NOT NULL,
-    police_clearance_url TEXT NOT NULL,
+    aadhaar_url TEXT DEFAULT '',
+    driving_license_url TEXT DEFAULT '',
+    vehicle_rc_url TEXT DEFAULT '',
+    pan_card_url TEXT DEFAULT '',
+    insurance_url TEXT DEFAULT '',
+    puc_url TEXT DEFAULT '',
+    permit_url TEXT DEFAULT '',
+    fitness_url TEXT DEFAULT '',
+    police_clearance_url TEXT DEFAULT '',
     status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Ensure all 9 document URL columns exist if table already exists
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS aadhaar_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS driving_license_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS vehicle_rc_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS pan_card_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS insurance_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS puc_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS permit_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS fitness_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS police_clearance_url TEXT DEFAULT '';
 
 -- Index on driver_id
 CREATE INDEX IF NOT EXISTS idx_documents_driver_id 

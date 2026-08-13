@@ -9,6 +9,7 @@ import 'tabs/home_tab.dart';
 import 'tabs/earnings_tab.dart';
 import 'tabs/alerts_tab.dart';
 import 'tabs/profile_tab.dart';
+import '../wallet/wallet_view.dart';
 import 'widgets/active_trip_floating_card.dart';
 import 'widgets/pending_bid_floating_card.dart';
 
@@ -38,7 +39,6 @@ class HomeView extends StatelessWidget {
         rideVm.restoreActiveTripOnLaunch(effectiveDriverId, context);
       }
 
-
       if (driverId.isNotEmpty && (profileVm.driver == null || profileVm.driver!.id != driverId)) {
         profileVm.fetchProfile(driverId, context);
       } else if (profileVm.driver != null && profileVm.isOnline) {
@@ -53,15 +53,22 @@ class HomeView extends StatelessWidget {
 
     return Consumer2<HomeViewModel, RideRequestViewModel>(
       builder: (context, homeVm, rideVm, child) {
-        const List<Widget> tabs = [
-          HomeTab(),
-          EarningsTab(),
-          AlertsTab(),
-          ProfileTab(),
+        final profileVm = context.watch<ProfileViewModel>();
+        final effectiveDriverId = driverId.isNotEmpty
+            ? driverId
+            : (profileVm.driver?.id ?? '');
+
+        final List<Widget> tabs = [
+          const HomeTab(),
+          WalletView(driverId: effectiveDriverId),
+          const EarningsTab(),
+          const AlertsTab(),
+          const ProfileTab(),
         ];
 
         final List<String> tabTitles = [
           l10n.appTitle,
+          'Wallet & Payouts',
           l10n.earnings,
           l10n.alerts,
           l10n.profile,
@@ -100,6 +107,13 @@ class HomeView extends StatelessWidget {
               ],
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary),
+                tooltip: 'Wallet',
+                onPressed: () {
+                  homeVm.setTabIndex(1);
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.logout_rounded, color: AppColors.error),
                 onPressed: () => context.read<ProfileViewModel>().clearProfileAndLogout(context),
@@ -160,16 +174,20 @@ class HomeView extends StatelessWidget {
               backgroundColor: AppColors.surface,
               selectedItemColor: AppColors.primary,
               unselectedItemColor: AppColors.textMuted,
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
               elevation: 0,
               items: [
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.home_rounded),
                   label: l10n.home,
                 ),
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.account_balance_wallet_rounded),
+                  label: 'Wallet',
+                ),
                 BottomNavigationBarItem(
-                  icon: const Icon(Icons.account_balance_wallet_rounded),
+                  icon: const Icon(Icons.payments_rounded),
                   label: l10n.earnings,
                 ),
                 BottomNavigationBarItem(

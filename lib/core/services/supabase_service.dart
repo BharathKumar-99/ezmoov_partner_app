@@ -10,6 +10,7 @@ import '../../models/rating_model.dart';
 import '../../models/booking_model.dart';
 import '../../models/earning_model.dart';
 import '../../models/vehicle_catalog_model.dart';
+import '../../models/wallet_model.dart';
 
 class SupabaseService {
   SupabaseService._internal();
@@ -727,6 +728,135 @@ class SupabaseService {
       debugPrint(
           'Notice fetching vehicle_catalog: $e. Falling back to defaults.');
       return VehicleCatalogModel.defaultCatalog;
+    }
+  }
+
+  // ==========================================
+  // WALLET & DAILY REJECTION SYSTEM METHODS
+  // ==========================================
+
+  /// Get driver wallet balance
+  Future<DriverWalletModel?> getDriverWallet(String driverId) async {
+    try {
+      final response = await client
+          .from('driver_wallets')
+          .select()
+          .eq('driver_id', driverId)
+          .maybeSingle();
+
+      if (response == null) {
+        // Create initial wallet with 0.0 balance if not exists
+        final newWallet = await client
+            .from('driver_wallets')
+            .insert({'driver_id': driverId, 'balance': 0.0})
+            .select()
+            .single();
+        return DriverWalletModel.fromJson(newWallet);
+      }
+      return DriverWalletModel.fromJson(response);
+    } catch (e) {
+      debugPrint('Notice getting driver wallet: $e');
+      return DriverWalletModel(driverId: driverId, balance: 0.0);
+    }
+  }
+
+  /// Get wallet transactions history for driver
+  Future<List<WalletTransactionModel>> getWalletTransactions(
+      String driverId) async {
+    try {
+      final response = await client
+          .from('wallet_transactions')
+          .select()
+          .eq('driver_id', driverId)
+          .order('created_at', ascending: false);
+
+      final list = response as List<dynamic>;
+      return list.map((json) => WalletTransactionModel.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Notice getting wallet transactions: $e');
+      return [];
+    }
+  }
+
+  /// Get driver daily status for current date (fee deduction & rejection count)
+  Future<DriverDailyStatusModel?> getDriverDailyStatus(String driverId) async {
+    try {
+      final todayStr = DateTime.now().toIso8601String().split('T').first;
+      final response = await client
+          .from('driver_daily_status')
+          .select()
+          .eq('driver_id', driverId)
+          .eq('status_date', todayStr)
+          .maybeSingle();
+
+      if (response == null) return null;
+      return DriverDailyStatusModel.fromJson(response);
+    } catch (e) {
+      debugPrint('Notice getting driver daily status: $e');
+      return null;
+    }
+  }
+
+  /// Invoke RPC function recharge_driver_wallet
+  Future<Map<String, dynamic>> rechargeDriverWallet({
+    required String driverId,
+    required double amount,
+  }) async {
+    try {
+      final response = await client.rpc(
+        'recharge_driver_wallet',
+        params: {
+          'p_driver_id': driverId,
+          'p_amount': amount,
+        },
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      return {
+        'success': false,
+        'message': 'Unexpected response from recharge RPC'
+      };
+    } catch (e) {
+      debugPrint('Error invoking recharge_driver_wallet RPC: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Invoke RPC function record_driver_rejection
+  Future<Map<String, dynamic>> recordDriverRejection(String driverId) async {
+    try {
+      final response = await client.rpc(
+        'record_driver_rejection',
+        params: {'p_driver_id': driverId},
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      return {
+        'success': false,
+        'message': 'Unexpected response from rejection RPC'
+      };
+    } catch (e) {
+      debugPrint('Error invoking record_driver_rejection RPC: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Get notifications for driver from public.driver_notifications
+  Future<List<Map<String, dynamic>>> getDriverNotifications(
+      String driverId) async {
+    try {
+      final response = await client
+          .from('driver_notifications')
+          .select()
+          .eq('driver_id', driverId)
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('Notice fetching driver notifications: $e');
+      return [];
     }
   }
 }

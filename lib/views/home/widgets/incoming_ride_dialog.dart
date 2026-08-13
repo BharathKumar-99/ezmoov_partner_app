@@ -294,7 +294,7 @@ class IncomingRideDialog extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        vm.declineRide(booking.id);
+                        vm.declineRide(booking.id, driverId: driverId);
                         Navigator.of(context).pop();
                       },
                       child: const Text(

@@ -17,7 +17,7 @@ class VehicleTypeModel {
 
   factory VehicleTypeModel.fromJson(Map<String, dynamic> json) {
     return VehicleTypeModel(
-      id: json['id'] as String? ?? '',
+      id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       capacity: json['capacity'] as String? ?? '',
       capacityKg: (json['capacity_kg'] as num?)?.toDouble() ?? 0.0,

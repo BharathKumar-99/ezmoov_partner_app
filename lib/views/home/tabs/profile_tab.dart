@@ -236,6 +236,18 @@ class ProfileTab extends StatelessWidget {
               const SizedBox(height: 12),
 
               _ProfileTile(
+                icon: Icons.account_balance_wallet_rounded,
+                iconColor: const Color(0xFF09A234),
+                title: 'Driver Wallet & Daily Fee',
+                subtitle: 'Manage wallet balance, pay daily vehicle fee & view payouts',
+                onTap: () {
+                  context.push('/wallet?driverId=${driver?.id ?? ''}');
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              _ProfileTile(
                 icon: Icons.account_balance_rounded,
                 iconColor: const Color(0xFFD97706),
                 title: bank?.bankName ?? l10n.bankAccount,

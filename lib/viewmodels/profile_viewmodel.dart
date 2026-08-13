@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/services/supabase_service.dart';
 import '../core/services/fcm_service.dart';
 import '../models/driver_model.dart';
@@ -13,6 +14,8 @@ import '../models/bank_details_model.dart';
 import '../models/rating_model.dart';
 import '../models/booking_model.dart';
 import 'ride_request_viewmodel.dart';
+import 'wallet_viewmodel.dart';
+import '../models/wallet_model.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
@@ -140,6 +143,17 @@ class ProfileViewModel extends ChangeNotifier {
         _ratings = await _supabaseService.getDriverRatings(loadedDriver.id!);
         _trips = await _supabaseService.getDriverTrips(loadedDriver.id!);
 
+        if (_isOnline && context != null && context.mounted) {
+          final walletVm = Provider.of<WalletViewModel>(context, listen: false);
+          await walletVm.fetchWalletData(loadedDriver.id!);
+
+          if (walletVm.isBlocked) {
+            _isOnline = false;
+            await _supabaseService.updateOnlineStatus(loadedDriver.id!, false);
+            _driver = _driver?.copyWith(isOnline: false);
+          }
+        }
+
         if (_isOnline) {
           final permission = await Geolocator.checkPermission();
           if (permission == LocationPermission.always ||
@@ -187,6 +201,9 @@ class ProfileViewModel extends ChangeNotifier {
             ).stopBroadcastListening();
           }
         }
+        if (loadedDriver.id != null) {
+          subscribeToDriverRealtime(loadedDriver.id!, (context != null && context.mounted) ? context : null);
+        }
       } else {
         _driver = null;
         _vehicle = null;
@@ -195,6 +212,7 @@ class ProfileViewModel extends ChangeNotifier {
         _ratings = [];
         _trips = [];
         _stopLocationTimer();
+        unsubscribeDriverRealtime();
         if (context != null && context.mounted) {
           Provider.of<RideRequestViewModel>(
             context,
@@ -212,6 +230,78 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
+  RealtimeChannel? _driverRealtimeChannel;
+  String? _subscribedDriverId;
+
+  /// Subscribe to Realtime postgres changes on drivers table for instant online/offline status sync
+  void subscribeToDriverRealtime(String driverId, [BuildContext? context]) {
+    if (driverId.isEmpty || _subscribedDriverId == driverId) return;
+
+    unsubscribeDriverRealtime();
+    _subscribedDriverId = driverId;
+
+    try {
+      debugPrint('⚡ Subscribing to Supabase Realtime for Driver Profile/Online Status: $driverId');
+      _driverRealtimeChannel = _supabaseService.client
+          .channel('public:driver_status:$driverId')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.update,
+            schema: 'public',
+            table: 'drivers',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'id',
+              value: driverId,
+            ),
+            callback: (payload) {
+              final newRecord = payload.newRecord;
+              debugPrint('⚡ Realtime Driver record update received: $newRecord');
+
+              if (newRecord.containsKey('is_online')) {
+                final newIsOnline = newRecord['is_online'] as bool? ?? false;
+                if (_isOnline != newIsOnline) {
+                  debugPrint('⚡ Online Status changed via Realtime: $_isOnline -> $newIsOnline');
+                  _isOnline = newIsOnline;
+                  _driver = _driver?.copyWith(isOnline: newIsOnline);
+
+                  if (!newIsOnline) {
+                    _stopLocationTimer();
+                    if (context != null && context.mounted) {
+                      Provider.of<RideRequestViewModel>(context, listen: false).stopBroadcastListening();
+                    }
+                  } else if (newIsOnline) {
+                    _start30SecLocationTimer();
+                    if (context != null && context.mounted) {
+                      Provider.of<RideRequestViewModel>(context, listen: false).startBroadcastListening(
+                        driverId: driverId,
+                        driverLat: _latitude,
+                        driverLng: _longitude,
+                        context: context,
+                      );
+                    }
+                  }
+                  notifyListeners();
+                }
+              }
+            },
+          )
+          .subscribe();
+    } catch (e) {
+      debugPrint('Notice establishing realtime driver subscription: $e');
+    }
+  }
+
+  void unsubscribeDriverRealtime() {
+    if (_driverRealtimeChannel != null) {
+      _supabaseService.client.removeChannel(_driverRealtimeChannel!);
+      _driverRealtimeChannel = null;
+      _subscribedDriverId = null;
+    }
+  }
+
+  bool _isTogglingOnline = false;
+  bool get isTogglingOnline => _isTogglingOnline;
+
   /// Direct setter for driver profile (used during auth/onboarding)
   void updateDriverLocal(DriverModel driverModel) {
     _driver = driverModel;
@@ -219,25 +309,110 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Toggle online status in Supabase and handle 30s location timer after checking location permissions
+  double _getDailyFeeForVehicleName(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('2') || lower.contains('two') || lower.contains('bike')) {
+      return 100.0;
+    } else if (lower.contains('mini 3w') || lower.contains('3 wheel') || lower.contains('3w') || lower.contains('rickshaw')) {
+      return 175.0;
+    } else if (lower.contains('7ft') || lower.contains('7 feet') || lower.contains('tata ace') || lower.contains('ace')) {
+      return 200.0;
+    } else if (lower.contains('8ft') || lower.contains('8 feet') || lower.contains('pickup 8')) {
+      return 250.0;
+    } else if (lower.contains('9') || lower.contains('10') || lower.contains('9-10ft')) {
+      return 270.0;
+    } else if (lower.contains('14') || lower.contains('16') || lower.contains('17') || lower.contains('container')) {
+      return 300.0;
+    }
+    return 100.0;
+  }
+
+  /// Toggle online status in Supabase and handle 30s location timer after checking location permissions & wallet daily fee block
   Future<void> toggleOnlineStatus(bool value, BuildContext context) async {
     if (_driver == null || _driver!.id == null) return;
+    if (_isTogglingOnline) return;
 
-    if (value) {
-      // 1. Explicitly prompt for location permission before going online
-      final hasPermission = await handleLocationPermission(context);
-      if (!hasPermission) {
-        _isOnline = false;
-        notifyListeners();
-        return;
-      }
-    }
-
-    final previousStatus = _isOnline;
-    _isOnline = value;
+    _isTogglingOnline = true;
     notifyListeners();
 
+    final previousStatus = _isOnline;
+
     try {
+      if (value) {
+        // Fast parallel fetch for daily status, wallet, and vehicle
+        final results = await Future.wait([
+          _supabaseService.getDriverDailyStatus(_driver!.id!),
+          _supabaseService.getDriverWallet(_driver!.id!),
+          _supabaseService.getVehicleByDriverId(_driver!.id!),
+        ]);
+
+        final dailyStatus = results[0] as DriverDailyStatusModel?;
+        final wallet = results[1] as DriverWalletModel?;
+        final vehicle = results[2] as VehicleModel?;
+
+        final vehicleType = vehicle?.vehicleType ?? '2 Wheeler';
+        final vehicleDailyFee = _getDailyFeeForVehicleName(vehicleType);
+        final walletBalance = wallet?.balance ?? 0.0;
+
+        final isRejectionBlock = (dailyStatus?.rejectionsCount ?? 0) >= 2 || dailyStatus?.blockReason == 'exceeded_rejections';
+        final isFeeUnpaid = (dailyStatus?.feeDeducted ?? false) == false;
+        final isFeeBlock = isFeeUnpaid && walletBalance < vehicleDailyFee;
+
+        if (isRejectionBlock || isFeeBlock || dailyStatus?.isBlocked == true) {
+          _isOnline = false;
+          await _supabaseService.updateOnlineStatus(_driver!.id!, false);
+
+          if (context.mounted) {
+            final title = isRejectionBlock ? 'Orders Paused ⛔' : 'Daily Fee Unpaid ⚠️';
+            final message = isRejectionBlock
+                ? 'You have rejected 2 orders today. Order allocation is paused for the remainder of today and will resume tomorrow.'
+                : 'Your daily vehicle platform fee (₹${vehicleDailyFee.toStringAsFixed(0)}) is unpaid due to insufficient wallet balance (₹${walletBalance.toStringAsFixed(0)}). Please recharge your wallet to go online and receive orders.';
+
+            showDialog(
+              context: context,
+              builder: (dialogCtx) => AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                content: Text(message),
+                actions: [
+                  if (!isRejectionBlock)
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF09A234),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(dialogCtx);
+                        context.push('/wallet');
+                      },
+                      child: const Text('Recharge Wallet', style: TextStyle(color: Colors.white)),
+                    ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogCtx),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
+          return;
+        }
+
+        // If fee is unpaid but wallet balance is >= daily fee, auto-deduct fee now!
+        if (isFeeUnpaid && walletBalance >= vehicleDailyFee) {
+          await _supabaseService.rechargeDriverWallet(driverId: _driver!.id!, amount: 0);
+        }
+
+        // Prompt for location permission before going online
+        if (!context.mounted) return;
+        final hasPermission = await handleLocationPermission(context);
+        if (!hasPermission) {
+          _isOnline = false;
+          return;
+        }
+      }
+
+      _isOnline = value;
       await _supabaseService.updateOnlineStatus(_driver!.id!, value);
 
       if (value) {
@@ -283,7 +458,6 @@ class ProfileViewModel extends ChangeNotifier {
       }
 
       _driver = _driver!.copyWith(isOnline: value);
-      notifyListeners();
 
       if (context.mounted) {
         _showSnackBar(
@@ -302,10 +476,12 @@ class ProfileViewModel extends ChangeNotifier {
           ).stopBroadcastListening();
         }
       }
-      notifyListeners();
       if (context.mounted) {
         _showSnackBar(context, 'Failed to update online status: $e');
       }
+    } finally {
+      _isTogglingOnline = false;
+      notifyListeners();
     }
   }
 
@@ -463,6 +639,7 @@ class ProfileViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _stopLocationTimer();
+    unsubscribeDriverRealtime();
     super.dispose();
   }
 }
