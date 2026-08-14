@@ -21,6 +21,8 @@ class DriverModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  final String? address;
+
   DriverModel({
     this.id,
     required this.name,
@@ -29,6 +31,7 @@ class DriverModel {
     this.profilePicUrl,
     this.selfieWithVehicleUrl,
     this.ownerName,
+    this.address,
     this.vehicleType,
     this.vehicleNumber,
     this.isOnline = false,
@@ -80,6 +83,7 @@ class DriverModel {
       profilePicUrl: json['profile_pic_url'] as String?,
       selfieWithVehicleUrl: json['selfie_with_vehicle_url'] as String?,
       ownerName: json['owner_name'] as String?,
+      address: json['address'] as String?,
       vehicleType: json['vehicle_type'] as String?,
       vehicleNumber: json['vehicle_number'] as String?,
       isOnline: json['is_online'] as bool? ?? false,
@@ -110,6 +114,7 @@ class DriverModel {
       'profile_pic_url': profilePicUrl,
       'selfie_with_vehicle_url': selfieWithVehicleUrl,
       'owner_name': ownerName,
+      if (address != null) 'address': address,
       if (vehicleType != null) 'vehicle_type': vehicleType,
       if (vehicleNumber != null) 'vehicle_number': vehicleNumber,
       'is_online': isOnline,
@@ -133,6 +138,7 @@ class DriverModel {
     String? profilePicUrl,
     String? selfieWithVehicleUrl,
     String? ownerName,
+    String? address,
     String? vehicleType,
     String? vehicleNumber,
     bool? isOnline,
@@ -156,6 +162,7 @@ class DriverModel {
       profilePicUrl: profilePicUrl ?? this.profilePicUrl,
       selfieWithVehicleUrl: selfieWithVehicleUrl ?? this.selfieWithVehicleUrl,
       ownerName: ownerName ?? this.ownerName,
+      address: address ?? this.address,
       vehicleType: vehicleType ?? this.vehicleType,
       vehicleNumber: vehicleNumber ?? this.vehicleNumber,
       isOnline: isOnline ?? this.isOnline,

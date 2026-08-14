@@ -7,6 +7,7 @@ import '../core/services/background_service_manager.dart';
 import '../core/services/overlay_bubble_service.dart';
 import '../models/driver_model.dart';
 import 'profile_viewmodel.dart';
+import 'wallet_viewmodel.dart';
 
 
 import '../models/vehicle_model.dart';
@@ -247,18 +248,20 @@ class HomeViewModel extends ChangeNotifier {
     if (_driver == null || _driver!.id == null) return;
 
     if (value) {
-      // Check if driver is blocked (unpaid daily fee or 2 order rejections)
+      // Check if driver pass is active
       final dailyStatus = await _supabaseService.getDriverDailyStatus(_driver!.id!);
-      if (dailyStatus != null && dailyStatus.isBlocked) {
+      final isPassActive = dailyStatus?.isPassActive ?? false;
+      final isRejectionBlock = dailyStatus?.blockReason == 'exceeded_rejections' || (dailyStatus?.rejectionsCount ?? 0) >= 2;
+
+      if (!isPassActive || isRejectionBlock || dailyStatus?.isBlocked == true) {
         _isOnline = false;
         notifyListeners();
 
         if (context.mounted) {
-          final isRejectionBlock = dailyStatus.blockReason == 'exceeded_rejections' || dailyStatus.rejectionsCount >= 2;
-          final title = isRejectionBlock ? 'Orders Paused ⛔' : 'Daily Fee Unpaid ⚠️';
+          final title = isRejectionBlock ? 'Orders Paused ⛔' : 'Daily Pass Required ⚠️';
           final message = isRejectionBlock
               ? 'You have rejected 2 orders today. Order allocation is paused for the remainder of today and will resume tomorrow.'
-              : 'Your daily vehicle platform fee is unpaid due to low wallet balance. Please recharge your wallet to go online and receive orders.';
+              : 'Your 24-hour daily pass is expired or unpaid. You must pay your daily fee to go online for the next 24 hours.';
 
           showDialog(
             context: context,
@@ -267,21 +270,30 @@ class HomeViewModel extends ChangeNotifier {
               title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
               content: Text(message),
               actions: [
-                if (!isRejectionBlock)
-                  ElevatedButton(
+                if (!isRejectionBlock) ...[
+                  ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF09A234),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     onPressed: () {
                       Navigator.pop(dialogCtx);
-                      context.push('/wallet');
+                      context.read<WalletViewModel>().payDailyFee(driverId: _driver!.id!, context: context);
                     },
-                    child: const Text('Recharge Wallet', style: TextStyle(color: Colors.white)),
+                    icon: const Icon(Icons.flash_on_rounded, size: 16, color: Colors.white),
+                    label: const Text('Pay Daily Fee', style: TextStyle(color: Colors.white)),
                   ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(dialogCtx);
+                      context.push('/wallet?driverId=${_driver!.id!}');
+                    },
+                    child: const Text('View Wallet', style: TextStyle(color: Color(0xFF09A234))),
+                  ),
+                ],
                 TextButton(
                   onPressed: () => Navigator.pop(dialogCtx),
-                  child: const Text('OK'),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
                 ),
               ],
             ),

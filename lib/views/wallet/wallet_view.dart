@@ -293,6 +293,286 @@ class _WalletViewState extends State<WalletView> {
     );
   }
 
+  void _showWithdrawBottomSheet(
+      BuildContext context, String driverId, double walletBalance) {
+    final amountController = TextEditingController(
+      text: walletBalance > 0 ? walletBalance.toStringAsFixed(0) : '',
+    );
+    String? amountError;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final walletVm = context.watch<WalletViewModel>();
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF09A234)
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.north_east_rounded,
+                                color: Color(0xFF09A234),
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Withdraw Funds 💸',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(modalCtx),
+                          icon: const Icon(Icons.close_rounded,
+                              color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Transfer your available earnings balance directly to your linked bank account / UPI.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Available Balance Banner
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF09A234).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF09A234).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Available Balance:',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            '₹${walletBalance.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF09A234),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 1-2 Days Timeline Banner Notice
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.blue.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.schedule_rounded,
+                              color: Colors.blue, size: 20),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Payout Timeline: Funds will be credited to your bank account / UPI within 1 - 2 business days.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Quick Chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [100, 500, 1000, 2000].map((amt) {
+                          final isAvailable = walletBalance >= amt;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text('₹$amt'),
+                              selected: amountController.text == '$amt',
+                              onSelected: isAvailable
+                                  ? (selected) {
+                                      setModalState(() {
+                                        amountController.text = '$amt';
+                                        amountError = null;
+                                      });
+                                    }
+                                  : null,
+                              selectedColor: const Color(0xFF09A234),
+                              disabledColor: Colors.grey.shade200,
+                              labelStyle: TextStyle(
+                                color: amountController.text == '$amt'
+                                    ? Colors.white
+                                    : (isAvailable
+                                        ? AppColors.textPrimary
+                                        : Colors.grey),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // TextField Amount
+                    TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Withdrawal Amount (₹)',
+                        hintText: 'Enter amount (e.g. 500)',
+                        errorText: amountError,
+                        prefixIcon: const Icon(Icons.currency_rupee_rounded,
+                            color: Color(0xFF09A234)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: Color(0xFF09A234), width: 2),
+                        ),
+                      ),
+                      onChanged: (val) {
+                        setModalState(() {
+                          amountError = null;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Action Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: walletVm.isWithdrawing
+                            ? null
+                            : () async {
+                                final inputVal = double.tryParse(
+                                        amountController.text.trim()) ??
+                                    0;
+                                if (inputVal <= 0) {
+                                  setModalState(() {
+                                    amountError =
+                                        'Please enter a valid amount greater than ₹0';
+                                  });
+                                  return;
+                                }
+                                if (inputVal > walletBalance) {
+                                  setModalState(() {
+                                    amountError =
+                                        'Amount exceeds available wallet balance (₹${walletBalance.toStringAsFixed(0)})';
+                                  });
+                                  return;
+                                }
+
+                                final success = await walletVm.withdrawWallet(
+                                  driverId: driverId,
+                                  amount: inputVal,
+                                  context: context,
+                                );
+
+                                if (success && modalCtx.mounted) {
+                                  Navigator.pop(modalCtx);
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF09A234),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: walletVm.isWithdrawing
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.north_east_rounded, size: 20),
+                        label: Text(
+                          walletVm.isWithdrawing
+                              ? 'Processing Withdrawal...'
+                              : 'CONFIRM WITHDRAWAL',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileVm = context.watch<ProfileViewModel>();
@@ -376,37 +656,80 @@ class _WalletViewState extends State<WalletView> {
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                if (effectiveDriverId != null)
-                                  // +Add Money Pill Button
-                                  ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: const Color(0xFF09A234),
-                                      elevation: 0,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 14, vertical: 10),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(24),
+                              ],
+                            ),
+                            if (effectiveDriverId != null) ...[
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor:
+                                            const Color(0xFF09A234),
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                        ),
                                       ),
-                                    ),
-                                    onPressed: () {
-                                      _showAddMoneyBottomSheet(
-                                          context, effectiveDriverId);
-                                    },
-                                    icon: const Icon(Icons.add_rounded,
-                                        size: 18, color: Color(0xFF09A234)),
-                                    label: const Text(
-                                      'Add Money',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                        color: Color(0xFF09A234),
+                                      onPressed: () {
+                                        _showAddMoneyBottomSheet(
+                                            context, effectiveDriverId);
+                                      },
+                                      icon: const Icon(
+                                          Icons.add_circle_outline_rounded,
+                                          size: 18,
+                                          color: Color(0xFF09A234)),
+                                      label: const Text(
+                                        'Add Money',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Color(0xFF09A234),
+                                        ),
                                       ),
                                     ),
                                   ),
-                              ],
-                            ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            Colors.white.withValues(alpha: 0.2),
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                        shape: RoundedRectangleBorder(
+                                          side: const BorderSide(
+                                              color: Colors.white70, width: 1),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        _showWithdrawBottomSheet(context,
+                                            effectiveDriverId, walletBalance);
+                                      },
+                                      icon: const Icon(Icons.north_east_rounded,
+                                          size: 18, color: Colors.white),
+                                      label: const Text(
+                                        'Withdraw',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
 
                             const SizedBox(height: 20),
 
@@ -545,7 +868,7 @@ class _WalletViewState extends State<WalletView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Row 1: Vehicle Daily Fee Status
+                        // Row 1: Vehicle Daily Fee & 24-Hour Pass Status
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -554,13 +877,19 @@ class _WalletViewState extends State<WalletView> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF09A234)
-                                        .withValues(alpha: 0.1),
+                                    color: walletVm.isPassActive
+                                        ? const Color(0xFF09A234)
+                                            .withValues(alpha: 0.1)
+                                        : Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: const Icon(
-                                    Icons.time_to_leave_rounded,
-                                    color: Color(0xFF09A234),
+                                  child: Icon(
+                                    walletVm.isPassActive
+                                        ? Icons.verified_user_rounded
+                                        : Icons.timer_off_rounded,
+                                    color: walletVm.isPassActive
+                                        ? const Color(0xFF09A234)
+                                        : Colors.red,
                                     size: 20,
                                   ),
                                 ),
@@ -569,7 +898,7 @@ class _WalletViewState extends State<WalletView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const Text(
-                                      'Daily Vehicle Fee Status',
+                                      'Daily Pass',
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
@@ -578,15 +907,15 @@ class _WalletViewState extends State<WalletView> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      walletVm.feeDeductedToday
-                                          ? 'Today\'s Fee (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)}): Paid'
-                                          : 'Today\'s Fee (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)}): Unpaid',
+                                      walletVm.isPassActive
+                                          ? 'Active (Expires ${walletVm.passExpiresAt != null ? DateFormat('MMM dd, hh:mm a').format(walletVm.passExpiresAt!) : ''})'
+                                          : 'Pass Expired / Unpaid (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} / 24 hrs)',
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: walletVm.feeDeductedToday
+                                        color: walletVm.isPassActive
                                             ? const Color(0xFF09A234)
-                                            : Colors.red,
+                                            : Colors.red.shade700,
                                       ),
                                     ),
                                   ],
@@ -597,17 +926,19 @@ class _WalletViewState extends State<WalletView> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: walletVm.feeDeductedToday
+                                color: walletVm.isPassActive
                                     ? const Color(0xFFDCFCE7)
                                     : const Color(0xFFFEE2E2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                walletVm.feeDeductedToday ? 'Paid' : 'Unpaid',
+                                walletVm.isPassActive
+                                    ? 'Pass Active'
+                                    : 'Unpaid',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: walletVm.feeDeductedToday
+                                  color: walletVm.isPassActive
                                       ? const Color(0xFF09A234)
                                       : Colors.red,
                                 ),
@@ -615,6 +946,55 @@ class _WalletViewState extends State<WalletView> {
                             ),
                           ],
                         ),
+
+                        // Pay Daily Fee Action Button if Pass is Expired/Unpaid
+                        if (!walletVm.isPassActive &&
+                            effectiveDriverId != null) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: walletVm.isPayingFee
+                                  ? null
+                                  : () {
+                                      walletVm.payDailyFee(
+                                        driverId: effectiveDriverId,
+                                        context: context,
+                                      );
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF09A234),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: walletVm.isPayingFee
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.flash_on_rounded,
+                                      size: 18),
+                              label: Text(
+                                walletVm.isPayingFee
+                                    ? 'Activating Pass...'
+                                    : 'Pay Daily Fee (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)}) - Activate 24 Hr Pass',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
 
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 12),
@@ -697,10 +1077,33 @@ class _WalletViewState extends State<WalletView> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
 
-                const SizedBox(height: 16),
-
-                const SizedBox(height: 24),
+                // 4B. WITHDRAWAL REQUESTS & PAYOUT PROGRESS
+                if (walletVm.payouts.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'RECENT WITHDRAWALS',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ...walletVm.payouts
+                            .take(3)
+                            .map((payout) => _buildPayoutProgressCard(payout)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // 5. TRANSACTIONS SECTION
                 Padding(
@@ -751,15 +1154,32 @@ class _WalletViewState extends State<WalletView> {
                                 .replaceAll(
                                     RegExp(r'\(Booking #[0-9a-fA-F\-]+\)'), '')
                                 .replaceAll(
+                                    RegExp(r'\(Driver #[0-9a-fA-F\-]+\)'), '')
+                                .replaceAll(
                                     RegExp(
                                         r'\([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\)'),
                                     '')
+                                .replaceAll(
+                                    RegExp(
+                                        r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'),
+                                    '')
                                 .trim();
-                            if (cleanTitle.isEmpty) {
+
+                            if (tx.type == 'daily_fee' ||
+                                tx.type == 'daily_deduction' ||
+                                cleanTitle
+                                    .toLowerCase()
+                                    .contains('daily fee') ||
+                                cleanTitle
+                                    .toLowerCase()
+                                    .contains('daily vehicle platform fee')) {
+                              cleanTitle = 'Daily Pay';
+                            } else if (cleanTitle.isEmpty) {
                               cleanTitle = tx.isCredit
                                   ? 'Trip Earning Credit'
-                                  : 'Daily Fee Deduction';
+                                  : 'Daily Pay';
                             }
+
                             return _TransactionTile(
                               title: cleanTitle,
                               subtitle:
@@ -778,6 +1198,182 @@ class _WalletViewState extends State<WalletView> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPayoutProgressCard(Map<String, dynamic> payout) {
+    final amount = (payout['amount'] as num?)?.toDouble() ?? 0.0;
+    final status = (payout['status'] as String? ?? 'created').toLowerCase();
+    final method = payout['payout_method'] as String? ?? 'Bank Transfer';
+    final createdAtStr = payout['created_at'] as String?;
+    final dateFormatted = createdAtStr != null
+        ? DateFormat('MMM dd, hh:mm a').format(DateTime.parse(createdAtStr))
+        : 'Recently';
+
+    int stepIndex = 0;
+    Color statusColor = Colors.amber.shade800;
+    String statusLabel = 'Created';
+
+    if (status == 'accepted') {
+      stepIndex = 1;
+      statusColor = Colors.blue.shade700;
+      statusLabel = 'Accepted';
+    } else if (status == 'processing') {
+      stepIndex = 2;
+      statusColor = Colors.orange.shade700;
+      statusLabel = 'Processing';
+    } else if (status == 'completed' || status == 'processed') {
+      stepIndex = 3;
+      statusColor = const Color(0xFF09A234);
+      statusLabel = 'Completed';
+    } else if (status == 'failed') {
+      stepIndex = -1;
+      statusColor = Colors.red.shade700;
+      statusLabel = 'Failed & Refunded';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      status == 'completed'
+                          ? Icons.check_circle_rounded
+                          : (status == 'failed'
+                              ? Icons.error_rounded
+                              : Icons.hourglass_top_rounded),
+                      color: statusColor,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '₹${amount.toStringAsFixed(0)} Withdrawal',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$method • $dateFormatted',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (status != 'failed') ...[
+            const SizedBox(height: 14),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildStepNode('Created', 0, stepIndex),
+                _buildStepConnector(0, stepIndex),
+                _buildStepNode('Accepted', 1, stepIndex),
+                _buildStepConnector(1, stepIndex),
+                _buildStepNode('Processing', 2, stepIndex),
+                _buildStepConnector(2, stepIndex),
+                _buildStepNode('Complete', 3, stepIndex),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepNode(String label, int index, int currentIndex) {
+    final isDone = currentIndex >= index;
+    final isCurrent = currentIndex == index;
+    final color = isDone
+        ? const Color(0xFF09A234)
+        : AppColors.textMuted.withValues(alpha: 0.3);
+
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              color: isDone ? color : AppColors.surface,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isCurrent ? const Color(0xFF09A234) : color,
+                width: 2,
+              ),
+            ),
+            child: isDone
+                ? const Icon(Icons.check, size: 12, color: Colors.white)
+                : null,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+              color: isDone ? AppColors.textPrimary : AppColors.textMuted,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepConnector(int fromIndex, int currentIndex) {
+    final isDone = currentIndex > fromIndex;
+    return Container(
+      height: 2,
+      width: 16,
+      color: isDone ? const Color(0xFF09A234) : AppColors.border,
     );
   }
 

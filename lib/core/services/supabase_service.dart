@@ -170,8 +170,8 @@ class SupabaseService {
     return VehicleTypeModel.defaultVehicleTypes;
   }
 
-  /// Save Vehicle details & update driver vehicle status
-  Future<VehicleModel> saveVehicle(VehicleModel vehicle) async {
+  /// Save Vehicle details & update driver vehicle status, address and owner_name
+  Future<VehicleModel> saveVehicle(VehicleModel vehicle, {String? address}) async {
     try {
       final vehicleData = vehicle.toJson();
       if (vehicle.id == null) {
@@ -181,11 +181,22 @@ class SupabaseService {
       final response =
           await client.from('vehicles').insert(vehicleData).select().single();
 
-      await client.from('drivers').update({
+      final updateData = <String, dynamic>{
         'is_vehicle_added': true,
         'vehicle_number': vehicle.vehicleNumber,
         'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', vehicle.driverId);
+      };
+      if (address != null && address.isNotEmpty) {
+        updateData['address'] = address;
+      }
+      if (vehicle.ownerName != null && vehicle.ownerName!.isNotEmpty) {
+        updateData['owner_name'] = vehicle.ownerName;
+      }
+      if (vehicle.vehicleTypeName != null && vehicle.vehicleTypeName!.isNotEmpty) {
+        updateData['vehicle_type'] = vehicle.vehicleTypeName;
+      }
+
+      await client.from('drivers').update(updateData).eq('id', vehicle.driverId);
 
       return VehicleModel.fromJson(response);
     } catch (e) {
@@ -374,6 +385,7 @@ class SupabaseService {
             'accepted',
             'arrived',
             'in_transit',
+            'arrived_at_dropoff',
             'drop_complete',
             'amount_paid'
           ])
@@ -415,6 +427,19 @@ class SupabaseService {
       }).eq('id', bookingId);
     } catch (e) {
       debugPrint('Error updating booking status: $e');
+      rethrow;
+    }
+  }
+
+  /// Update booking pickup photo URL
+  Future<void> updateBookingPickupUrl(String bookingId, String pickupUrl) async {
+    try {
+      await client.from('bookings').update({
+        'pickup_url': pickupUrl,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', bookingId);
+    } catch (e) {
+      debugPrint('Error updating booking pickup url: $e');
       rethrow;
     }
   }
@@ -469,10 +494,10 @@ class SupabaseService {
     required String filePath,
     required String fileName,
   }) async {
-    try {
-      final file = File(filePath);
-      final storagePath = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+    final file = File(filePath);
+    final storagePath = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
 
+    try {
       await client.storage.from(bucket).upload(
             storagePath,
             file,
@@ -482,7 +507,22 @@ class SupabaseService {
       final publicUrl = client.storage.from(bucket).getPublicUrl(storagePath);
       return publicUrl;
     } catch (e) {
-      debugPrint('Error uploading image to $bucket: $e');
+      debugPrint('Error uploading image to bucket "$bucket": $e');
+
+      // Fallback: If specified bucket is not found in Supabase storage, retry with 'documents'
+      if (e.toString().contains('Bucket not found') && bucket != 'documents') {
+        try {
+          debugPrint('Retrying image upload to fallback bucket "documents"...');
+          await client.storage.from('documents').upload(
+                storagePath,
+                file,
+                fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+              );
+          return client.storage.from('documents').getPublicUrl(storagePath);
+        } catch (fallbackErr) {
+          debugPrint('Fallback bucket upload also failed: $fallbackErr');
+        }
+      }
       rethrow;
     }
   }
@@ -839,6 +879,52 @@ class SupabaseService {
       };
     } catch (e) {
       debugPrint('Error invoking record_driver_rejection RPC: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Invoke RPC function pay_driver_daily_fee to purchase 24-hour pass
+  Future<Map<String, dynamic>> payDriverDailyFee(String driverId) async {
+    try {
+      final response = await client.rpc(
+        'pay_driver_daily_fee',
+        params: {'p_driver_id': driverId},
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      return {
+        'success': false,
+        'message': 'Unexpected response from pay_driver_daily_fee RPC'
+      };
+    } catch (e) {
+      debugPrint('Error invoking pay_driver_daily_fee RPC: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Invoke RPC function withdraw_driver_wallet to process wallet withdrawal
+  Future<Map<String, dynamic>> withdrawDriverWallet({
+    required String driverId,
+    required double amount,
+  }) async {
+    try {
+      final response = await client.rpc(
+        'withdraw_driver_wallet',
+        params: {
+          'p_driver_id': driverId,
+          'p_amount': amount,
+        },
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      return {
+        'success': false,
+        'message': 'Unexpected response from withdraw_driver_wallet RPC'
+      };
+    } catch (e) {
+      debugPrint('Error invoking withdraw_driver_wallet RPC: $e');
       return {'success': false, 'message': e.toString()};
     }
   }

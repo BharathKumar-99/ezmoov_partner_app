@@ -3,28 +3,50 @@ class VehicleTypeModel {
   final String name;
   final String capacity;
   final double capacityKg;
-  final double estFare;
+  final double baseFare;
+  final double dailyFee;
   final String iconName;
+  final bool isActive;
+  final bool active;
+  final int graceTime;
+  final int waitTime;
 
   VehicleTypeModel({
     required this.id,
     required this.name,
     required this.capacity,
     required this.capacityKg,
-    required this.estFare,
+    required this.baseFare,
+    required this.dailyFee,
     required this.iconName,
+    this.isActive = true,
+    this.active = true,
+    this.graceTime = 15,
+    this.waitTime = 30,
   });
 
+  double get estFare => baseFare;
+
   factory VehicleTypeModel.fromJson(Map<String, dynamic> json) {
+    final isAct = (json['is_active'] as bool?) ?? (json['active'] as bool?) ?? true;
     return VehicleTypeModel(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       capacity: json['capacity'] as String? ?? '',
       capacityKg: (json['capacity_kg'] as num?)?.toDouble() ?? 0.0,
-      estFare: (json['est_fare'] as num?)?.toDouble() ??
-          (json['base_fare'] as num?)?.toDouble() ??
+      baseFare: (json['base_fare'] as num?)?.toDouble() ??
+          (json['est_fare'] as num?)?.toDouble() ??
           0.0,
-      iconName: json['icon_name'] as String? ?? 'electric_rickshaw',
+      dailyFee: (json['daily_fee'] as num?)?.toDouble() ?? 100.0,
+      iconName: json['icon_name'] as String? ?? 'local_shipping',
+      isActive: isAct,
+      active: isAct,
+      graceTime: (json['grace_time'] as num?)?.toInt() ??
+          (json['gracetime'] as num?)?.toInt() ??
+          15,
+      waitTime: (json['waittime'] as num?)?.toInt() ??
+          (json['wait_time'] as num?)?.toInt() ??
+          30,
     );
   }
 
@@ -34,68 +56,108 @@ class VehicleTypeModel {
       'name': name,
       'capacity': capacity,
       'capacity_kg': capacityKg,
-      'est_fare': estFare,
+      'base_fare': baseFare,
+      'daily_fee': dailyFee,
       'icon_name': iconName,
+      'is_active': isActive,
+      'active': active,
+      'grace_time': graceTime,
+      'waittime': waitTime,
     };
   }
 
-  // Pre-configured default vehicle types matching app specifications with valid UUID format
+  // Default vehicle dataset matching database table
   static final List<VehicleTypeModel> defaultVehicleTypes = [
     VehicleTypeModel(
-      id: '11111111-1111-1111-1111-111111111111',
-      name: 'Mini 3W',
-      capacity: '90kg',
-      capacityKg: 90,
-      estFare: 206,
-      iconName: 'electric_rickshaw',
+      id: '1',
+      name: '2 Wheeler',
+      capacity: '20 Kgs',
+      capacityKg: 20,
+      baseFare: 100,
+      dailyFee: 100,
+      iconName: 'two_wheeler',
+      isActive: false,
+      active: false,
+      graceTime: 10,
+      waitTime: 15,
     ),
     VehicleTypeModel(
-      id: '22222222-2222-2222-2222-222222222222',
+      id: '2',
       name: '3 Wheeler',
-      capacity: '500kg',
+      capacity: '500 Kgs',
       capacityKg: 500,
-      estFare: 356,
-      iconName: 'local_shipping',
+      baseFare: 210,
+      dailyFee: 175,
+      iconName: 'electric_rickshaw',
+      isActive: true,
+      active: true,
+      graceTime: 15,
+      waitTime: 30,
     ),
     VehicleTypeModel(
-      id: '33333333-3333-3333-3333-333333333333',
-      name: 'Tata Ace',
-      capacity: '750kg',
+      id: '3',
+      name: 'Mini 3 Wheeler',
+      capacity: '90 Kgs',
+      capacityKg: 90,
+      baseFare: 150,
+      dailyFee: 175,
+      iconName: 'electric_rickshaw',
+      isActive: true,
+      active: true,
+      graceTime: 15,
+      waitTime: 30,
+    ),
+    VehicleTypeModel(
+      id: '4',
+      name: '4 Wheeler',
+      capacity: '750 Kgs',
       capacityKg: 750,
-      estFare: 374,
+      baseFare: 218,
+      dailyFee: 200,
       iconName: 'local_shipping',
+      isActive: true,
+      active: true,
+      graceTime: 15,
+      waitTime: 45,
     ),
     VehicleTypeModel(
-      id: '44444444-4444-4444-4444-444444444444',
-      name: 'Pickup 8ft',
-      capacity: '1,200kg',
+      id: '5',
+      name: '8 Ft Vehicle',
+      capacity: '1200 Kgs',
       capacityKg: 1200,
-      estFare: 511,
-      iconName: 'directions_bus',
+      baseFare: 318,
+      dailyFee: 250,
+      iconName: 'local_shipping',
+      isActive: true,
+      active: true,
+      graceTime: 20,
+      waitTime: 60,
     ),
     VehicleTypeModel(
-      id: '55555555-5555-5555-5555-555555555555',
-      name: 'Pickup 1.7 Ton',
-      capacity: '1,700kg',
+      id: '6',
+      name: '9 Ft Vehicle',
+      capacity: '1700 Kgs',
       capacityKg: 1700,
-      estFare: 612,
-      iconName: 'fire_truck',
+      baseFare: 380,
+      dailyFee: 270,
+      iconName: 'local_shipping',
+      isActive: true,
+      active: true,
+      graceTime: 20,
+      waitTime: 60,
     ),
     VehicleTypeModel(
-      id: '66666666-6666-6666-6666-666666666666',
-      name: '14ft Container',
-      capacity: '3,500kg',
-      capacityKg: 3500,
-      estFare: 1063,
-      iconName: 'fire_truck',
-    ),
-    VehicleTypeModel(
-      id: '77777777-7777-7777-7777-777777777777',
-      name: '17ft Open',
-      capacity: '6,000kg',
-      capacityKg: 6000,
-      estFare: 1733,
-      iconName: 'agriculture',
+      id: '7',
+      name: '10 Ft Vehicle',
+      capacity: '2000 Kgs',
+      capacityKg: 2000,
+      baseFare: 450,
+      dailyFee: 270,
+      iconName: 'local_shipping',
+      isActive: true,
+      active: true,
+      graceTime: 20,
+      waitTime: 60,
     ),
   ];
 }

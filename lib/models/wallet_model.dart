@@ -90,6 +90,7 @@ class DriverDailyStatusModel {
   final DateTime statusDate;
   final double dailyFee;
   final bool feeDeducted;
+  final DateTime? passExpiresAt;
   final int rejectionsCount;
   final bool isBlocked;
   final String? blockReason; // 'insufficient_wallet_balance', 'exceeded_rejections'
@@ -100,10 +101,14 @@ class DriverDailyStatusModel {
     required this.statusDate,
     this.dailyFee = 100.0,
     this.feeDeducted = false,
+    this.passExpiresAt,
     this.rejectionsCount = 0,
     this.isBlocked = false,
     this.blockReason,
   });
+
+  bool get isPassActive =>
+      passExpiresAt != null && passExpiresAt!.isAfter(DateTime.now());
 
   factory DriverDailyStatusModel.fromJson(Map<String, dynamic> json) {
     return DriverDailyStatusModel(
@@ -114,6 +119,9 @@ class DriverDailyStatusModel {
           : DateTime.now(),
       dailyFee: (json['daily_fee'] as num?)?.toDouble() ?? 100.0,
       feeDeducted: json['fee_deducted'] as bool? ?? false,
+      passExpiresAt: json['pass_expires_at'] != null
+          ? DateTime.parse(json['pass_expires_at'])
+          : null,
       rejectionsCount: json['rejections_count'] as int? ?? 0,
       isBlocked: json['is_blocked'] as bool? ?? false,
       blockReason: json['block_reason'] as String?,
@@ -127,6 +135,8 @@ class DriverDailyStatusModel {
       'status_date': statusDate.toIso8601String().split('T').first,
       'daily_fee': dailyFee,
       'fee_deducted': feeDeducted,
+      if (passExpiresAt != null)
+        'pass_expires_at': passExpiresAt!.toIso8601String(),
       'rejections_count': rejectionsCount,
       'is_blocked': isBlocked,
       if (blockReason != null) 'block_reason': blockReason,

@@ -147,7 +147,8 @@ class ProfileViewModel extends ChangeNotifier {
           final walletVm = Provider.of<WalletViewModel>(context, listen: false);
           await walletVm.fetchWalletData(loadedDriver.id!);
 
-          if (walletVm.isBlocked) {
+          if (walletVm.isBlocked || !walletVm.isPassActive) {
+            debugPrint('🚨 Daily Pass expired or driver blocked! Auto-offlining driver.');
             _isOnline = false;
             await _supabaseService.updateOnlineStatus(loadedDriver.id!, false);
             _driver = _driver?.copyWith(isOnline: false);
@@ -355,18 +356,17 @@ class ProfileViewModel extends ChangeNotifier {
         final walletBalance = wallet?.balance ?? 0.0;
 
         final isRejectionBlock = (dailyStatus?.rejectionsCount ?? 0) >= 2 || dailyStatus?.blockReason == 'exceeded_rejections';
-        final isFeeUnpaid = (dailyStatus?.feeDeducted ?? false) == false;
-        final isFeeBlock = isFeeUnpaid && walletBalance < vehicleDailyFee;
+        final isPassActive = dailyStatus?.isPassActive ?? false;
 
-        if (isRejectionBlock || isFeeBlock || dailyStatus?.isBlocked == true) {
+        if (isRejectionBlock || !isPassActive || dailyStatus?.isBlocked == true) {
           _isOnline = false;
           await _supabaseService.updateOnlineStatus(_driver!.id!, false);
 
           if (context.mounted) {
-            final title = isRejectionBlock ? 'Orders Paused ⛔' : 'Daily Fee Unpaid ⚠️';
+            final title = isRejectionBlock ? 'Orders Paused ⛔' : 'Daily Pass Required ⚠️';
             final message = isRejectionBlock
                 ? 'You have rejected 2 orders today. Order allocation is paused for the remainder of today and will resume tomorrow.'
-                : 'Your daily vehicle platform fee (₹${vehicleDailyFee.toStringAsFixed(0)}) is unpaid due to insufficient wallet balance (₹${walletBalance.toStringAsFixed(0)}). Please recharge your wallet to go online and receive orders.';
+                : 'Your 24-hour daily pass is expired or unpaid. You must pay your daily fee (₹${vehicleDailyFee.toStringAsFixed(0)}) to go online for the next 24 hours.';
 
             showDialog(
               context: context,
@@ -375,32 +375,38 @@ class ProfileViewModel extends ChangeNotifier {
                 title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
                 content: Text(message),
                 actions: [
-                  if (!isRejectionBlock)
-                    ElevatedButton(
+                  if (!isRejectionBlock) ...[
+                    ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF09A234),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () {
                         Navigator.pop(dialogCtx);
-                        context.push('/wallet');
+                        context.read<WalletViewModel>().payDailyFee(driverId: _driver!.id!, context: context);
                       },
-                      child: const Text('Recharge Wallet', style: TextStyle(color: Colors.white)),
+                      icon: const Icon(Icons.flash_on_rounded, size: 16, color: Colors.white),
+                      label: Text('Pay Daily Fee (₹${vehicleDailyFee.toStringAsFixed(0)})', style: const TextStyle(color: Colors.white)),
                     ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogCtx);
+                        context.push('/wallet?driverId=${_driver!.id!}');
+                      },
+                      child: const Text('View Wallet', style: TextStyle(color: Color(0xFF09A234))),
+                    ),
+                  ],
                   TextButton(
                     onPressed: () => Navigator.pop(dialogCtx),
-                    child: const Text('OK'),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
                   ),
                 ],
               ),
             );
           }
+          _isTogglingOnline = false;
+          notifyListeners();
           return;
-        }
-
-        // If fee is unpaid but wallet balance is >= daily fee, auto-deduct fee now!
-        if (isFeeUnpaid && walletBalance >= vehicleDailyFee) {
-          await _supabaseService.rechargeDriverWallet(driverId: _driver!.id!, amount: 0);
         }
 
         // Prompt for location permission before going online

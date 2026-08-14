@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../models/vehicle_type_model.dart';
 import '../../viewmodels/vehicle_viewmodel.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/gradient_button.dart';
@@ -84,8 +85,6 @@ class VehicleDetailsView extends StatelessWidget {
       body: SafeArea(
         child: Consumer<VehicleViewModel>(
           builder: (context, vm, child) {
-            final catItem = vm.selectedCatalogItem;
-
             return SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -136,63 +135,132 @@ class VehicleDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
 
-                        // 1. Wheel Count Dropdown
-                        _buildDropdownField(
-                          label: 'Wheel Count',
-                          hint: 'Select Wheel Count',
-                          value: vm.selectedWheelCount,
-                          items: vm.wheelCountOptions,
-                          icon: Icons.tire_repair_rounded,
-                          onChanged: (val) => vm.selectWheelCount(val),
+                        // 1. Vehicle Type Dropdown
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Vehicle Type',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            DropdownButtonFormField<VehicleTypeModel>(
+                              initialValue: vm.selectedVehicleType,
+                              isExpanded: true,
+                              itemHeight: 58.0,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(
+                                  Icons.local_shipping_rounded,
+                                  color: AppColors.primary,
+                                  size: 20,
+                                ),
+                                hintText: 'Select Vehicle Type',
+                                hintStyle: const TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 14,
+                                ),
+                                filled: true,
+                                fillColor: AppColors.background,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: AppColors.border),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: AppColors.border),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                      color: AppColors.primary, width: 2),
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: AppColors.textMuted,
+                              ),
+                              dropdownColor: AppColors.surface,
+                              selectedItemBuilder: (BuildContext context) {
+                                return vm.vehicleTypes.map<Widget>((vType) {
+                                  return Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '${vType.name} (${vType.capacity})',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }).toList();
+                              },
+                              items: vm.vehicleTypes.map((vType) {
+                                return DropdownMenuItem<VehicleTypeModel>(
+                                  value: vType,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 2),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary.withValues(alpha: 0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            _getVehicleIcon(vType.iconName.isEmpty ? vType.name : vType.iconName),
+                                            color: AppColors.primary,
+                                            size: 18,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '${vType.name} (${vType.capacity})',
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'Base: ₹${vType.baseFare.toStringAsFixed(0)} • Daily Fee: ₹${vType.dailyFee.toStringAsFixed(0)} / 24h',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: AppColors.textSecondary,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (val) => vm.selectVehicleType(val),
+                            ),
+                          ],
                         ),
 
-                        const SizedBox(height: 16),
-
-                        // 2. Brand Dropdown
-                        _buildDropdownField(
-                          label: 'Vehicle Brand',
-                          hint: vm.selectedWheelCount == null
-                              ? 'Select Wheel Count First'
-                              : 'Select Brand',
-                          value: vm.selectedBrand,
-                          items: vm.brandOptions,
-                          icon: Icons.branding_watermark_rounded,
-                          enabled: vm.selectedWheelCount != null,
-                          onChanged: (val) => vm.selectBrand(val),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // 3. Model Dropdown
-                        _buildDropdownField(
-                          label: 'Vehicle Model',
-                          hint: vm.selectedBrand == null
-                              ? 'Select Brand First'
-                              : 'Select Model',
-                          value: vm.selectedModel,
-                          items: vm.modelOptions,
-                          icon: Icons.local_shipping_rounded,
-                          enabled: vm.selectedBrand != null,
-                          onChanged: (val) => vm.selectModel(val),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // 4. Body Type Dropdown
-                        _buildDropdownField(
-                          label: 'Body Type',
-                          hint: vm.selectedModel == null
-                              ? 'Select Model First'
-                              : 'Select Body Type',
-                          value: vm.selectedBodyType,
-                          items: vm.bodyTypeOptions,
-                          icon: Icons.inventory_2_rounded,
-                          enabled: vm.selectedModel != null,
-                          onChanged: (val) => vm.selectBodyType(val),
-                        ),
-
-                        // Catalog Info summary badge if resolved
-                        if (catItem != null) ...[
+                        // Selected Vehicle Type info badge
+                        if (vm.selectedVehicleType != null) ...[
                           const SizedBox(height: 18),
                           Container(
                             padding: const EdgeInsets.all(14),
@@ -210,7 +278,7 @@ class VehicleDetailsView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${catItem.brand} ${catItem.model}',
+                                      vm.selectedVehicleType!.name,
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
@@ -219,7 +287,7 @@ class VehicleDetailsView extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Payload: ${catItem.payloadCapacity}',
+                                      'Payload: ${vm.selectedVehicleType!.capacity}',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         color: AppColors.textSecondary,
@@ -231,7 +299,7 @@ class VehicleDetailsView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      'Base: ₹${catItem.baseRate.toStringAsFixed(0)}',
+                                      'Base Fare: ₹${vm.selectedVehicleType!.baseFare.toStringAsFixed(0)}',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
@@ -240,10 +308,11 @@ class VehicleDetailsView extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '₹${catItem.ratePerKm.toStringAsFixed(0)} / km',
+                                      'Daily Fee: ₹${vm.selectedVehicleType!.dailyFee.toStringAsFixed(0)} / 24 hrs',
                                       style: const TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textMuted,
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
@@ -257,12 +326,30 @@ class VehicleDetailsView extends StatelessWidget {
                         const Divider(height: 1),
                         const SizedBox(height: 24),
 
+                        // Driver Full Address
+                        CustomTextField(
+                          controller: vm.addressController,
+                          label: 'Full Operational Address',
+                          hint: 'House No, Street, City, State - Pincode',
+                          prefixIcon: Icons.home_work_rounded,
+                        ),
+                        const SizedBox(height: 16),
+
                         // Registration Number
                         CustomTextField(
                           controller: vm.vehicleNumberController,
                           label: 'Vehicle Registration Number',
                           hint: 'TS 01 AB 1234',
                           prefixIcon: Icons.directions_car_filled_rounded,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Vehicle Owner Name (Optional)
+                        CustomTextField(
+                          controller: vm.ownerNameController,
+                          label: 'Vehicle Owner Name (Optional)',
+                          hint: 'Enter owner name if vehicle is registered to someone else',
+                          prefixIcon: Icons.person_outline_rounded,
                         ),
                         const SizedBox(height: 16),
 
@@ -351,86 +438,24 @@ class VehicleDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdownField({
-    required String label,
-    required String hint,
-    required String? value,
-    required List<String> items,
-    required IconData icon,
-    bool enabled = true,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        DropdownButtonFormField<String>(
-          initialValue: items.contains(value) ? value : null,
-          isExpanded: true,
-          decoration: InputDecoration(
-            prefixIcon: Icon(
-              icon,
-              color: enabled ? AppColors.primary : AppColors.textMuted,
-              size: 20,
-            ),
-            hintText: hint,
-            hintStyle: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 14,
-            ),
-            filled: true,
-            fillColor: enabled ? AppColors.background : const Color(0xFFF1F5F9),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-          ),
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: AppColors.textMuted,
-          ),
-          dropdownColor: AppColors.surface,
-          items: enabled
-              ? items.map((item) {
-                  return DropdownMenuItem<String>(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  );
-                }).toList()
-              : [],
-          onChanged: enabled ? onChanged : null,
-        ),
-      ],
-    );
+  IconData _getVehicleIcon(String name) {
+    switch (name.toLowerCase()) {
+      case 'two_wheeler':
+      case '2 wheeler':
+        return Icons.two_wheeler_rounded;
+      case 'electric_rickshaw':
+      case '3 wheeler':
+      case 'mini 3 wheeler':
+        return Icons.electric_rickshaw_rounded;
+      case 'directions_bus':
+        return Icons.directions_bus_rounded;
+      case 'fire_truck':
+        return Icons.fire_truck_rounded;
+      case 'agriculture':
+        return Icons.agriculture_rounded;
+      case 'local_shipping':
+      default:
+        return Icons.local_shipping_rounded;
+    }
   }
 }

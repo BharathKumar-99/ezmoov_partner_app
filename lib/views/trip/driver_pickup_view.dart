@@ -310,13 +310,15 @@ class _DriverPickupViewState extends State<DriverPickupView> {
           ),
           content: const Text(
             'The customer selected Online Payment (Razorpay). The payment has not been confirmed yet.\n\nPlease ask the customer to complete payment on their phone. The status will automatically update to "Payment Received" once paid.',
-            style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.textSecondary),
+            style: TextStyle(
+                fontSize: 13, height: 1.4, color: AppColors.textSecondary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
               child: const Text('WAIT FOR PAYMENT',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  style: TextStyle(
+                      color: AppColors.primary, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -329,7 +331,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                 _confirmCashPaymentModal();
               },
               child: const Text('RECEIVED CASH INSTEAD',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -382,281 +385,11 @@ class _DriverPickupViewState extends State<DriverPickupView> {
               );
             },
             child: const Text('YES, RECEIVED CASH',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
-    );
-  }
-
-  void _showStartTripOtpModal() {
-    final otpController = TextEditingController();
-    String? otpError;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (modalContext) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final expectedOtp = _booking?.otp;
-
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.lock_clock_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'VERIFY START OTP',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Ask customer for the 4-digit start PIN',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: otpController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 4,
-                      autofocus: true,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 8,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: '••••',
-                        counterText: '',
-                        errorText: otpError,
-                        filled: true,
-                        fillColor: AppColors.background,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(
-                              color: AppColors.primary, width: 2),
-                        ),
-                      ),
-                      onChanged: (_) {
-                        if (otpError != null) {
-                          setModalState(() {
-                            otpError = null;
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    // Proof of Pickup Photo Container
-                    Container(
-                      width: double.infinity,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: _pickupImageFile != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.file(_pickupImageFile!,
-                                  fit: BoxFit.cover),
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.add_a_photo_outlined,
-                                  size: 36,
-                                  color: AppColors.textMuted,
-                                ),
-                                const SizedBox(height: 6),
-                                const Text(
-                                  'Proof of Pickup Photo (MANDATORY)',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.error,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.primary,
-                                        foregroundColor: Colors.white,
-                                        elevation: 0,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      icon: const Icon(Icons.camera_alt,
-                                          size: 14),
-                                      label: const Text('Camera',
-                                          style: TextStyle(fontSize: 12)),
-                                      onPressed: () async {
-                                        final picked =
-                                            await ImagePicker().pickImage(
-                                          source: ImageSource.camera,
-                                          imageQuality: 70,
-                                        );
-                                        if (picked != null) {
-                                          setModalState(() {
-                                            _pickupImageFile =
-                                                File(picked.path);
-                                            otpError = null;
-                                          });
-                                        }
-                                      },
-                                    ),
-                                    const SizedBox(width: 8),
-                                    OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(
-                                            color: AppColors.border),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      icon: const Icon(Icons.photo_library,
-                                          size: 14,
-                                          color: AppColors.textPrimary),
-                                      label: const Text('Gallery',
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.textPrimary)),
-                                      onPressed: () async {
-                                        final picked =
-                                            await ImagePicker().pickImage(
-                                          source: ImageSource.gallery,
-                                          imageQuality: 70,
-                                        );
-                                        if (picked != null) {
-                                          setModalState(() {
-                                            _pickupImageFile =
-                                                File(picked.path);
-                                            otpError = null;
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                    ),
-                    const SizedBox(height: 20),
-                    GradientButton(
-                      text: 'VERIFY & START TRIP',
-                      icon: Icons.play_arrow_rounded,
-                      isLoading: _isUploadingPickup,
-                      onPressed: () async {
-                        final inputOtp = otpController.text.trim();
-                        if (inputOtp.length < 4) {
-                          setModalState(() {
-                            otpError = 'Please enter complete 4-digit OTP';
-                          });
-                          return;
-                        }
-
-                        if (_pickupImageFile == null) {
-                          setModalState(() {
-                            otpError =
-                                'Proof of Pickup photo is MANDATORY before starting trip';
-                          });
-                          return;
-                        }
-
-                        if (expectedOtp != null &&
-                            expectedOtp.isNotEmpty &&
-                            inputOtp != expectedOtp) {
-                          setModalState(() {
-                            otpError =
-                                'Incorrect OTP. Ask customer for start PIN.';
-                          });
-                          return;
-                        }
-
-                        setModalState(() {
-                          _isUploadingPickup = true;
-                        });
-                        try {
-                          await SupabaseService.instance.uploadPickupImage(
-                            bookingId: widget.bookingId,
-                            file: _pickupImageFile!,
-                          );
-                        } catch (e) {
-                          debugPrint('Notice uploading pickup photo: $e');
-                        }
-
-                        if (context.mounted) {
-                          Navigator.of(modalContext).pop();
-                          _updateStatus(
-                            'in_transit',
-                            '🎉 OTP Verified & Pickup Photo Saved! Trip started.',
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
     );
   }
 
@@ -673,11 +406,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
           builder: (context, setModalState) {
             final List<String> reasons = [
               'Customer No-Show at Pickup',
-              'Oversized or Illegal Goods',
+              'Oversized Goods',
               'Vehicle Breakdown',
-              'Unsafe Delivery Location',
               'Customer Requested Cancellation',
-              'Other Operational Issue',
+              'Other Issue',
             ];
 
             return Container(
@@ -1065,6 +797,223 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showCargoPickupPhotoModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          color: AppColors.primary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'CARGO PICKUP PHOTO',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Photo of loaded cargo is MANDATORY to start trip',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.error,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Image Preview Box
+                  Container(
+                    width: double.infinity,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: _pickupImageFile != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.file(_pickupImageFile!, fit: BoxFit.cover),
+                          )
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_a_photo_outlined,
+                                color: AppColors.primary,
+                                size: 42,
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Tap Camera or Gallery below to capture pickup photo',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: AppColors.primary),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          icon: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
+                          label: const Text('Camera'),
+                          onPressed: () async {
+                            final picker = ImagePicker();
+                            final picked = await picker.pickImage(
+                                source: ImageSource.camera, imageQuality: 80);
+                            if (picked != null) {
+                              setModalState(() {
+                                _pickupImageFile = File(picked.path);
+                              });
+                              setState(() {});
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: AppColors.border),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          icon: const Icon(Icons.photo_library_rounded, color: AppColors.textSecondary),
+                          label: const Text('Gallery'),
+                          onPressed: () async {
+                            final picker = ImagePicker();
+                            final picked = await picker.pickImage(
+                                source: ImageSource.gallery, imageQuality: 80);
+                            if (picked != null) {
+                              setModalState(() {
+                                _pickupImageFile = File(picked.path);
+                              });
+                              setState(() {});
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  GradientButton(
+                    text: 'CONFIRM PHOTO & START TRIP',
+                    isLoading: _isUploadingPickup || _isUpdatingStatus,
+                    icon: Icons.play_arrow_rounded,
+                    onPressed: () async {
+                      if (_pickupImageFile == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please capture or select a pickup photo first!'),
+                            backgroundColor: AppColors.error,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+
+                      setModalState(() {
+                        _isUploadingPickup = true;
+                      });
+
+                      try {
+                        final pickupUrl = await SupabaseService.instance.uploadImage(
+                          bucket: 'bookings',
+                          filePath: _pickupImageFile!.path,
+                          fileName: 'pickup_${widget.bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+                        );
+
+                        await SupabaseService.instance.updateBookingPickupUrl(
+                          widget.bookingId,
+                          pickupUrl,
+                        );
+
+                        if (modalContext.mounted) {
+                          Navigator.pop(modalContext);
+                        }
+
+                        await _updateStatus(
+                          'in_transit',
+                          'Cargo pickup photo saved! Trip started.',
+                        );
+                      } catch (e) {
+                        setModalState(() {
+                          _isUploadingPickup = false;
+                        });
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to upload pickup photo: $e'),
+                              backgroundColor: AppColors.error,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
             );
           },
         );
@@ -1616,11 +1565,13 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                     ? 'PAYMENT RECEIVED'
                                     : (currentStatus == 'drop_complete'
                                         ? 'UNLOADED / AWAITING PAYMENT'
-                                        : (currentStatus == 'arrived'
-                                            ? 'ARRIVED AT PICKUP LOCATION'
-                                            : (currentStatus == 'in_transit'
-                                                ? 'TRIP IN TRANSIT TO DROP POINT'
-                                                : 'HEADING TO PICKUP'))),
+                                        : (currentStatus == 'arrived_at_dropoff'
+                                            ? 'ARRIVED AT DROP-OFF LOCATION'
+                                            : (currentStatus == 'arrived'
+                                                ? 'ARRIVED AT PICKUP LOCATION'
+                                                : (currentStatus == 'in_transit'
+                                                    ? 'TRIP IN TRANSIT TO DROP POINT'
+                                                    : 'HEADING TO PICKUP')))),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -1628,11 +1579,13 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                       ? const Color(0xFF15803D)
                                       : (currentStatus == 'drop_complete'
                                           ? const Color(0xFFB45309)
-                                          : (currentStatus == 'arrived'
-                                              ? const Color(0xFFB45309)
-                                              : (currentStatus == 'in_transit'
-                                                  ? const Color(0xFF0369A1)
-                                                  : AppColors.primaryDark))),
+                                          : (currentStatus == 'arrived_at_dropoff'
+                                              ? const Color(0xFF9333EA)
+                                              : (currentStatus == 'arrived'
+                                                  ? const Color(0xFFB45309)
+                                                  : (currentStatus == 'in_transit'
+                                                      ? const Color(0xFF0369A1)
+                                                      : AppColors.primaryDark)))),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -1641,11 +1594,13 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                     ? 'Payment confirmed! Tap below to finalize trip completion.'
                                     : (currentStatus == 'drop_complete'
                                         ? 'Collect cash payment or wait for customer online payment.'
-                                        : (currentStatus == 'arrived'
-                                            ? 'Ask customer for 4-digit OTP to start trip'
-                                            : (currentStatus == 'in_transit'
-                                                ? 'On the way to dropoff destination'
-                                                : 'Follow GPS route to customer location'))),
+                                        : (currentStatus == 'arrived_at_dropoff'
+                                            ? 'Unloading timer active! Submit POD once unloading is complete.'
+                                            : (currentStatus == 'arrived'
+                                                ? 'Loading timer active! Tap START TRIP once loaded.'
+                                                : (currentStatus == 'in_transit'
+                                                    ? 'On the way to dropoff destination'
+                                                    : 'Follow GPS route to customer location')))),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
@@ -1994,17 +1949,27 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       icon: Icons.check_circle_outline_rounded,
                       onPressed: () => _updateStatus(
                         'arrived',
-                        'Customer notified: Driver has arrived at pickup location!',
+                        'Customer notified: Driver arrived at pickup location! Loading timer started.',
                       ),
                     )
                   else if (currentStatus == 'arrived')
                     GradientButton(
-                      text: 'START TRIP (ENTER OTP)',
+                      text: 'TAKE PICKUP PHOTO & START TRIP',
                       isLoading: _isUpdatingStatus,
-                      icon: Icons.lock_clock_rounded,
-                      onPressed: _showStartTripOtpModal,
+                      icon: Icons.camera_alt_rounded,
+                      onPressed: _showCargoPickupPhotoModal,
                     )
                   else if (currentStatus == 'in_transit')
+                    GradientButton(
+                      text: 'REACHED DROP-OFF',
+                      isLoading: _isUpdatingStatus,
+                      icon: Icons.location_on_rounded,
+                      onPressed: () => _updateStatus(
+                        'arrived_at_dropoff',
+                        'Arrived at drop-off location! Unloading timer started.',
+                      ),
+                    )
+                  else if (currentStatus == 'arrived_at_dropoff')
                     GradientButton(
                       text: 'UNLOAD CARGO & SUBMIT POD',
                       isLoading: _isUpdatingStatus,
@@ -2014,7 +1979,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   else if (currentStatus == 'drop_complete')
                     GradientButton(
                       text:
-                          'Received Cash Payment (₹${(_booking?.amount?['total_price'] ?? 0).toStringAsFixed(0)})',
+                          'Received Cash Payment (₹${((_booking?.amount?['total_price'] ?? 0) + (_booking?.waitingCharges ?? 0)).toStringAsFixed(0)})',
                       isLoading: _isUpdatingStatus,
                       icon: Icons.payments_rounded,
                       onPressed: _handleReceivedPaymentClick,

@@ -28,6 +28,61 @@ class _HomeTabState extends State<HomeTab> {
     });
   }
 
+  void _showPassRequiredDialog(BuildContext context, String driverId, double fee) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.warning_amber_rounded, color: Colors.amber.shade900, size: 24),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Daily Pass Required ⚠️',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'You must pay your daily fee (₹${fee.toStringAsFixed(0)}) to activate your 24-hour pass before going online.',
+            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                if (driverId.isNotEmpty) {
+                  context.read<WalletViewModel>().payDailyFee(driverId: driverId, context: context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF09A234),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: const Icon(Icons.flash_on_rounded, size: 16),
+              label: Text('Pay Daily Fee (₹${fee.toStringAsFixed(0)})'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -129,15 +184,18 @@ class _HomeTabState extends State<HomeTab> {
                 builder: (context, walletVm, child) {
                   if (!walletVm.isBlocked) return const SizedBox.shrink();
 
-                  final isFeePending = walletVm.blockReason == 'insufficient_wallet_balance';
+                  final isPassRequired = walletVm.blockReason == 'daily_pass_required';
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 20),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEF2F2),
+                      color: isPassRequired ? const Color(0xFFFFFBEB) : const Color(0xFFFEF2F2),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.red.shade300, width: 1.5),
+                      border: Border.all(
+                        color: isPassRequired ? Colors.amber.shade400 : Colors.red.shade300,
+                        width: 1.5,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,20 +203,20 @@ class _HomeTabState extends State<HomeTab> {
                         Row(
                           children: [
                             Icon(
-                              isFeePending ? Icons.warning_amber_rounded : Icons.block_rounded,
-                              color: Colors.red.shade700,
+                              isPassRequired ? Icons.flash_on_rounded : Icons.block_rounded,
+                              color: isPassRequired ? Colors.amber.shade900 : Colors.red.shade700,
                               size: 22,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                isFeePending
-                                    ? 'Orders Paused: Daily Fee Pending ⚠️'
+                                isPassRequired
+                                    ? '24-Hour Pass Required ⚠️'
                                     : 'Orders Paused for Today ⛔',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.red.shade900,
+                                  color: isPassRequired ? Colors.amber.shade900 : Colors.red.shade900,
                                 ),
                               ),
                             ),
@@ -166,23 +224,31 @@ class _HomeTabState extends State<HomeTab> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          isFeePending
-                              ? 'Your daily vehicle fee (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)}) is pending. Recharge your wallet to start getting ride requests.'
+                          isPassRequired
+                              ? 'Your 24-hour daily pass is expired or unpaid. Pay ₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} to activate your pass and go online for 24 hours.'
                               : 'You rejected 2 order requests today. Order allocation is paused for the remainder of today.',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.red.shade800,
+                            color: isPassRequired ? Colors.amber.shade900 : Colors.red.shade800,
                           ),
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: () {
-                              context.push('/wallet?driverId=${driver?.id ?? ''}');
-                            },
+                            onPressed: isPassRequired
+                                ? (walletVm.isPayingFee
+                                    ? null
+                                    : () {
+                                        if (driver?.id != null) {
+                                          walletVm.payDailyFee(driverId: driver!.id!, context: context);
+                                        }
+                                      })
+                                : () {
+                                    context.push('/wallet?driverId=${driver?.id ?? ''}');
+                                  },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red.shade700,
+                              backgroundColor: isPassRequired ? const Color(0xFF09A234) : Colors.red.shade700,
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -190,12 +256,21 @@ class _HomeTabState extends State<HomeTab> {
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
-                            icon: Icon(
-                              isFeePending ? Icons.account_balance_wallet_rounded : Icons.info_outline_rounded,
-                              size: 18,
-                            ),
+                            icon: isPassRequired
+                                ? (walletVm.isPayingFee
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.flash_on_rounded, size: 18))
+                                : const Icon(Icons.info_outline_rounded, size: 18),
                             label: Text(
-                              isFeePending ? 'Recharge Wallet Now' : 'View Wallet Details',
+                              isPassRequired
+                                  ? (walletVm.isPayingFee
+                                      ? 'Activating Pass...'
+                                      : 'Pay Daily Fee (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)})')
+                                  : 'View Wallet Details',
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ),
@@ -236,16 +311,31 @@ class _HomeTabState extends State<HomeTab> {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: vm.isOnline
-                                      ? AppColors.primary
-                                      : AppColors.textMuted.withValues(alpha: 0.2),
+                                  color: vm.isTogglingOnline
+                                      ? AppColors.primary.withValues(alpha: 0.15)
+                                      : (vm.isOnline
+                                          ? AppColors.primary
+                                          : AppColors.textMuted.withValues(alpha: 0.2)),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(
-                                  vm.isOnline ? Icons.power_settings_new : Icons.power_off_rounded,
-                                  color: vm.isOnline ? Colors.white : AppColors.textMuted,
-                                  size: 24,
-                                ),
+                                child: vm.isTogglingOnline
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: AppColors.primary,
+                                        ),
+                                      )
+                                    : Icon(
+                                        vm.isOnline
+                                            ? Icons.power_settings_new
+                                            : Icons.power_off_rounded,
+                                        color: vm.isOnline
+                                            ? Colors.white
+                                            : AppColors.textMuted,
+                                        size: 24,
+                                      ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -253,20 +343,28 @@ class _HomeTabState extends State<HomeTab> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      vm.isOnline ? l10n.youAreOnlineCaps : l10n.youAreOfflineCaps,
+                                      vm.isTogglingOnline
+                                          ? 'UPDATING STATUS...'
+                                          : (vm.isOnline
+                                              ? l10n.youAreOnlineCaps
+                                              : l10n.youAreOfflineCaps),
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
-                                        color: vm.isOnline ? AppColors.primaryDark : AppColors.textPrimary,
+                                        color: vm.isTogglingOnline || vm.isOnline
+                                            ? AppColors.primaryDark
+                                            : AppColors.textPrimary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      vm.isOnline
-                                          ? l10n.readyToReceiveRideRequests
-                                          : l10n.switchOnlineToStartEarning,
+                                      vm.isTogglingOnline
+                                          ? 'Updating online status...'
+                                          : (vm.isOnline
+                                              ? l10n.readyToReceiveRideRequests
+                                              : l10n.switchOnlineToStartEarning),
                                       style: const TextStyle(
                                         fontSize: 12,
                                         color: AppColors.textSecondary,
@@ -281,13 +379,34 @@ class _HomeTabState extends State<HomeTab> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Switch.adaptive(
-                          value: vm.isOnline,
-                          activeTrackColor: AppColors.primary,
-                          onChanged: (val) {
-                            vm.toggleOnlineStatus(val, context);
-                          },
-                        ),
+                        vm.isTogglingOnline
+                            ? const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10),
+                                child: SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              )
+                            : Switch.adaptive(
+                                value: vm.isOnline,
+                                activeTrackColor: AppColors.primary,
+                                onChanged: (val) {
+                                  final walletVm =
+                                      context.read<WalletViewModel>();
+                                  if (val && !walletVm.isPassActive) {
+                                    _showPassRequiredDialog(
+                                        context,
+                                        driver?.id ?? '',
+                                        walletVm.vehicleDailyFee);
+                                    return;
+                                  }
+                                  vm.toggleOnlineStatus(val, context);
+                                },
+                              ),
                       ],
                     ),
                     if (vm.isOnline) ...[

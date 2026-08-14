@@ -26,6 +26,15 @@ class BookingModel {
   final String? paymentMode;
   final String? service;
   final DateTime? acceptedAt;
+  final DateTime? arrivedAtPickupAt;
+  final DateTime? tripStartedAt;
+  final DateTime? arrivedAtDropoffAt;
+  final DateTime? tripCompletedAt;
+  final int totalWaitMinutes;
+  final int graceTimeMinutes;
+  final int chargeableWaitMinutes;
+  final double waitFeePerMin;
+  final double waitingCharges;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -55,6 +64,15 @@ class BookingModel {
     this.paymentMode,
     this.service,
     this.acceptedAt,
+    this.arrivedAtPickupAt,
+    this.tripStartedAt,
+    this.arrivedAtDropoffAt,
+    this.tripCompletedAt,
+    this.totalWaitMinutes = 0,
+    this.graceTimeMinutes = 15,
+    this.chargeableWaitMinutes = 0,
+    this.waitFeePerMin = 0.0,
+    this.waitingCharges = 0.0,
     this.createdAt,
     this.updatedAt,
   });
@@ -310,6 +328,15 @@ class BookingModel {
       paymentMode: _toString(json['payment_mode']),
       service: _toString(json['service']) ?? _toString(json['services']),
       acceptedAt: _toDateTime(json['accepted_at']),
+      arrivedAtPickupAt: _toDateTime(json['arrived_at_pickup_at']),
+      tripStartedAt: _toDateTime(json['trip_started_at']),
+      arrivedAtDropoffAt: _toDateTime(json['arrived_at_dropoff_at']),
+      tripCompletedAt: _toDateTime(json['trip_completed_at']),
+      totalWaitMinutes: _toInt(json['total_wait_minutes']) ?? 0,
+      graceTimeMinutes: _toInt(json['grace_time_minutes']) ?? 15,
+      chargeableWaitMinutes: _toInt(json['chargeable_wait_minutes']) ?? 0,
+      waitFeePerMin: _toDouble(json['wait_fee_per_min']) ?? 0.0,
+      waitingCharges: _toDouble(json['waiting_charges']) ?? 0.0,
       createdAt: _toDateTime(json['created_at']),
       updatedAt: _toDateTime(json['updated_at']),
     );
@@ -342,6 +369,15 @@ class BookingModel {
       if (paymentMode != null) 'payment_mode': paymentMode,
       if (service != null) 'service': service,
       if (acceptedAt != null) 'accepted_at': acceptedAt!.toIso8601String(),
+      if (arrivedAtPickupAt != null) 'arrived_at_pickup_at': arrivedAtPickupAt!.toIso8601String(),
+      if (tripStartedAt != null) 'trip_started_at': tripStartedAt!.toIso8601String(),
+      if (arrivedAtDropoffAt != null) 'arrived_at_dropoff_at': arrivedAtDropoffAt!.toIso8601String(),
+      if (tripCompletedAt != null) 'trip_completed_at': tripCompletedAt!.toIso8601String(),
+      'total_wait_minutes': totalWaitMinutes,
+      'grace_time_minutes': graceTimeMinutes,
+      'chargeable_wait_minutes': chargeableWaitMinutes,
+      'wait_fee_per_min': waitFeePerMin,
+      'waiting_charges': waitingCharges,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
     };

@@ -259,7 +259,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
--- 7. PL/pgSQL Function: Recharge Driver Wallet & Auto-Deduct Pending Fee
+-- 7. PL/pgSQL Function: Recharge Driver Wallet
 DROP FUNCTION IF EXISTS public.recharge_driver_wallet(UUID, NUMERIC);
 DROP FUNCTION IF EXISTS public.recharge_driver_wallet(TEXT, NUMERIC);
 
@@ -270,105 +270,119 @@ CREATE OR REPLACE FUNCTION public.recharge_driver_wallet(
 RETURNS JSONB AS $$
 DECLARE
     v_new_balance NUMERIC(10, 2);
-    v_today DATE := CURRENT_DATE;
-    v_daily_fee NUMERIC(10, 2) := 100.00;
-    v_fee_deducted BOOLEAN := false;
-    v_rejections INT := 0;
-    v_block_reason TEXT;
-    v_driver_vehicle_type TEXT;
 BEGIN
-    IF p_amount < 0 THEN
+    IF p_amount <= 0 THEN
         RETURN jsonb_build_object('success', false, 'message', 'Invalid recharge amount');
     END IF;
 
     -- Ensure driver wallet row exists
     INSERT INTO public.driver_wallets (driver_id, balance) VALUES (p_driver_id, 0.00) ON CONFLICT (driver_id) DO NOTHING;
 
-    IF p_amount > 0 THEN
-        UPDATE public.driver_wallets
-        SET balance = balance + p_amount, updated_at = now()
-        WHERE driver_id = p_driver_id RETURNING balance INTO v_new_balance;
+    UPDATE public.driver_wallets
+    SET balance = balance + p_amount, updated_at = now()
+    WHERE driver_id = p_driver_id RETURNING balance INTO v_new_balance;
 
-        INSERT INTO public.wallet_transactions (driver_id, amount, type, description)
-        VALUES (p_driver_id, p_amount, 'recharge', 'Wallet Recharge via Razorpay');
+    INSERT INTO public.wallet_transactions (driver_id, amount, type, description)
+    VALUES (p_driver_id, p_amount, 'recharge', 'Wallet Recharge via Razorpay');
 
-        INSERT INTO public.driver_notifications (driver_id, title, message, type)
-        VALUES (
-            p_driver_id,
-            'Wallet Recharged Successfully 💳',
-            '₹' || p_amount || ' added to your wallet. New balance: ₹' || v_new_balance,
-            'wallet_recharge'
+    INSERT INTO public.driver_notifications (driver_id, title, message, type)
+    VALUES (
+        p_driver_id,
+        'Wallet Recharged Successfully 💳',
+        '₹' || p_amount || ' added to your wallet. New balance: ₹' || v_new_balance,
+        'wallet_recharge'
+    );
+
+    RETURN jsonb_build_object('success', true, 'balance', v_new_balance, 'message', 'Wallet recharge processed successfully');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- 7B. PL/pgSQL Function: Pay Driver Daily Fee & Activate 24-Hour Pass
+DROP FUNCTION IF EXISTS public.pay_driver_daily_fee(UUID);
+DROP FUNCTION IF EXISTS public.pay_driver_daily_fee(TEXT);
+
+CREATE OR REPLACE FUNCTION public.pay_driver_daily_fee(
+    p_driver_id UUID
+)
+RETURNS JSONB AS $$
+DECLARE
+    v_balance NUMERIC(10, 2);
+    v_daily_fee NUMERIC(10, 2) := 100.00;
+    v_driver_vehicle_type TEXT;
+    v_pass_expires_at TIMESTAMPTZ;
+    v_today DATE := CURRENT_DATE;
+    v_rejections INT := 0;
+BEGIN
+    -- Ensure driver wallet row exists
+    INSERT INTO public.driver_wallets (driver_id, balance) VALUES (p_driver_id, 0.00) ON CONFLICT (driver_id) DO NOTHING;
+
+    SELECT balance INTO v_balance FROM public.driver_wallets WHERE driver_id = p_driver_id;
+
+    SELECT d.vehicle_type INTO v_driver_vehicle_type FROM public.drivers d WHERE d.id = p_driver_id LIMIT 1;
+    IF v_driver_vehicle_type IS NOT NULL AND v_driver_vehicle_type <> '' THEN
+        SELECT COALESCE(vt.daily_fee, 100.00) INTO v_daily_fee 
+        FROM public.vehicle_types vt 
+        WHERE LOWER(vt.name) = LOWER(v_driver_vehicle_type) 
+           OR LOWER(v_driver_vehicle_type) LIKE '%' || LOWER(vt.name) || '%'
+        LIMIT 1;
+    END IF;
+    IF v_daily_fee IS NULL THEN v_daily_fee := 100.00; END IF;
+
+    IF v_balance < v_daily_fee THEN
+        RETURN jsonb_build_object(
+            'success', false, 
+            'message', 'Insufficient wallet balance. Please recharge your wallet with at least ₹' || v_daily_fee,
+            'required_amount', v_daily_fee,
+            'current_balance', v_balance
         );
-    ELSE
-        SELECT balance INTO v_new_balance FROM public.driver_wallets WHERE driver_id = p_driver_id;
     END IF;
 
-    SELECT fee_deducted, daily_fee, rejections_count, block_reason INTO v_fee_deducted, v_daily_fee, v_rejections, v_block_reason
-    FROM public.driver_daily_status WHERE driver_id = p_driver_id AND status_date = v_today;
+    -- Deduct fee from wallet
+    UPDATE public.driver_wallets 
+    SET balance = balance - v_daily_fee, updated_at = now() 
+    WHERE driver_id = p_driver_id RETURNING balance INTO v_balance;
 
-    IF v_daily_fee IS NULL OR v_daily_fee = 0 THEN
-        SELECT d.vehicle_type INTO v_driver_vehicle_type FROM public.drivers d WHERE d.id = p_driver_id LIMIT 1;
-        
-        IF v_driver_vehicle_type IS NOT NULL AND v_driver_vehicle_type <> '' THEN
-            SELECT COALESCE(vt.daily_fee, 100.00) INTO v_daily_fee 
-            FROM public.vehicle_types vt 
-            WHERE LOWER(vt.name) = LOWER(v_driver_vehicle_type) 
-               OR LOWER(v_driver_vehicle_type) LIKE '%' || LOWER(vt.name) || '%'
-            LIMIT 1;
-        END IF;
+    -- Calculate 24-hour pass expiry
+    v_pass_expires_at := now() + INTERVAL '24 hours';
 
-        IF v_daily_fee IS NULL OR v_daily_fee = 100.00 THEN
-            IF LOWER(v_driver_vehicle_type) LIKE '%2%' OR LOWER(v_driver_vehicle_type) LIKE '%two%' OR LOWER(v_driver_vehicle_type) LIKE '%bike%' THEN
-                v_daily_fee := 100.00;
-            ELSIF LOWER(v_driver_vehicle_type) LIKE '%mini 3%' OR LOWER(v_driver_vehicle_type) LIKE '%3w%' OR LOWER(v_driver_vehicle_type) LIKE '%rickshaw%' OR LOWER(v_driver_vehicle_type) LIKE '%auto%' THEN
-                v_daily_fee := 175.00;
-            ELSIF LOWER(v_driver_vehicle_type) LIKE '%3%' THEN
-                v_daily_fee := 175.00;
-            ELSIF LOWER(v_driver_vehicle_type) LIKE '%7%' OR LOWER(v_driver_vehicle_type) LIKE '%ace%' OR LOWER(v_driver_vehicle_type) LIKE '%tata%' THEN
-                v_daily_fee := 200.00;
-            ELSIF LOWER(v_driver_vehicle_type) LIKE '%8%' THEN
-                v_daily_fee := 250.00;
-            ELSIF LOWER(v_driver_vehicle_type) LIKE '%9%' OR LOWER(v_driver_vehicle_type) LIKE '%10%' THEN
-                v_daily_fee := 270.00;
-            ELSIF LOWER(v_driver_vehicle_type) LIKE '%14%' OR LOWER(v_driver_vehicle_type) LIKE '%16%' OR LOWER(v_driver_vehicle_type) LIKE '%17%' OR LOWER(v_driver_vehicle_type) LIKE '%container%' THEN
-                v_daily_fee := 300.00;
-            END IF;
-        END IF;
+    -- Record transaction log
+    INSERT INTO public.wallet_transactions (driver_id, amount, type, description)
+    VALUES (p_driver_id, -v_daily_fee, 'daily_fee', 'Daily Vehicle Platform Fee (24 Hr Pass)');
 
-        IF v_daily_fee IS NULL THEN v_daily_fee := 100.00; END IF;
-    END IF;
+    -- Get rejections count
+    SELECT rejections_count INTO v_rejections FROM public.driver_daily_status WHERE driver_id = p_driver_id AND status_date = v_today;
 
-    -- Auto-deduct today's daily fee if pending and balance is now sufficient
-    IF (v_fee_deducted IS NULL OR v_fee_deducted = false) AND v_new_balance >= v_daily_fee THEN
-        UPDATE public.driver_wallets SET balance = balance - v_daily_fee, updated_at = now() WHERE driver_id = p_driver_id RETURNING balance INTO v_new_balance;
+    -- Upsert driver daily status
+    INSERT INTO public.driver_daily_status (
+        driver_id, status_date, daily_fee, fee_deducted, pass_expires_at, rejections_count, is_blocked, block_reason
+    ) VALUES (
+        p_driver_id, v_today, v_daily_fee, true, v_pass_expires_at, COALESCE(v_rejections, 0),
+        CASE WHEN COALESCE(v_rejections, 0) >= 2 THEN true ELSE false END,
+        CASE WHEN COALESCE(v_rejections, 0) >= 2 THEN 'exceeded_rejections' ELSE NULL END
+    ) ON CONFLICT (driver_id, status_date) DO UPDATE SET
+        daily_fee = EXCLUDED.daily_fee,
+        fee_deducted = true,
+        pass_expires_at = EXCLUDED.pass_expires_at,
+        is_blocked = CASE WHEN public.driver_daily_status.rejections_count >= 2 THEN true ELSE false END,
+        block_reason = CASE WHEN public.driver_daily_status.rejections_count >= 2 THEN 'exceeded_rejections' ELSE NULL END,
+        updated_at = now();
 
-        INSERT INTO public.wallet_transactions (driver_id, amount, type, description)
-        VALUES (p_driver_id, -v_daily_fee, 'daily_deduction', 'Daily Vehicle Platform Fee (' || v_today || ')');
+    -- Add notification
+    INSERT INTO public.driver_notifications (driver_id, title, message, type)
+    VALUES (
+        p_driver_id,
+        '24-Hour Pass Activated 🟢',
+        '₹' || v_daily_fee || ' paid! Your 24-hour pass is active until ' || to_char(v_pass_expires_at, 'DD Mon HH:MI AM') || '. You can now go online!',
+        'daily_pass_activated'
+    );
 
-        INSERT INTO public.driver_daily_status (
-            driver_id, status_date, daily_fee, fee_deducted, rejections_count, is_blocked, block_reason
-        ) VALUES (
-            p_driver_id, v_today, v_daily_fee, true, COALESCE(v_rejections, 0),
-            CASE WHEN COALESCE(v_rejections, 0) >= 2 THEN true ELSE false END,
-            CASE WHEN COALESCE(v_rejections, 0) >= 2 THEN 'exceeded_rejections' ELSE NULL END
-        ) ON CONFLICT (driver_id, status_date) DO UPDATE SET
-            fee_deducted = true,
-            is_blocked = CASE WHEN public.driver_daily_status.rejections_count >= 2 THEN true ELSE false END,
-            block_reason = CASE WHEN public.driver_daily_status.rejections_count >= 2 THEN 'exceeded_rejections' ELSE NULL END,
-            updated_at = now();
-
-        INSERT INTO public.driver_notifications (driver_id, title, message, type)
-        VALUES (
-            p_driver_id,
-            'Daily Fee Deducted ✅',
-            '₹' || v_daily_fee || ' daily vehicle fee was auto-deducted. You are now active for orders!',
-            'wallet_deduction_success'
-        );
-
-        v_fee_deducted := true;
-    END IF;
-
-    RETURN jsonb_build_object('success', true, 'balance', v_new_balance, 'fee_deducted', COALESCE(v_fee_deducted, false), 'message', 'Wallet recharge processed successfully');
+    RETURN jsonb_build_object(
+        'success', true,
+        'message', 'Daily fee paid successfully! 24-hour pass activated.',
+        'balance', v_balance,
+        'pass_expires_at', v_pass_expires_at
+    );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -542,40 +556,225 @@ CREATE TRIGGER trg_credit_driver_wallet_on_booking_completion
     FOR EACH ROW
     EXECUTE FUNCTION public.credit_driver_wallet_on_booking_completion();
 
+-- 9B. Function to automatically set online drivers offline if 24-hour pass has expired
+DROP FUNCTION IF EXISTS public.check_expired_daily_passes();
+
+CREATE OR REPLACE FUNCTION public.check_expired_daily_passes()
+RETURNS INTEGER AS $$
+DECLARE
+    v_count INTEGER := 0;
+BEGIN
+    UPDATE public.drivers d
+    SET is_online = false, updated_at = now()
+    FROM public.driver_daily_status s
+    WHERE d.id = s.driver_id
+      AND d.is_online = true
+      AND (s.pass_expires_at IS NULL OR s.pass_expires_at <= now());
+    
+    GET DIAGNOSTICS v_count = ROW_COUNT;
+    RETURN v_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Database BEFORE UPDATE Trigger to STRICTLY prevent drivers from going online if pass is expired
+CREATE OR REPLACE FUNCTION public.prevent_online_without_pass()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_pass_expires_at TIMESTAMPTZ;
+    v_is_blocked BOOLEAN := false;
+    v_rejections INTEGER := 0;
+BEGIN
+    IF NEW.is_online = true THEN
+        SELECT pass_expires_at, COALESCE(is_blocked, false), COALESCE(rejections_count, 0)
+        INTO v_pass_expires_at, v_is_blocked, v_rejections
+        FROM public.driver_daily_status
+        WHERE driver_id = NEW.id;
+
+        -- If no daily status record exists, or pass expired, or rejections >= 2, FORCE is_online = false in the DB!
+        IF v_is_blocked = true OR v_rejections >= 2 OR v_pass_expires_at IS NULL OR v_pass_expires_at <= now() THEN
+            NEW.is_online := false;
+            RAISE NOTICE 'Backend Guard: Prevented driver % from going online (Pass expired or unpaid)', NEW.id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_prevent_online_without_pass ON public.drivers;
+
+CREATE TRIGGER trg_prevent_online_without_pass
+BEFORE INSERT OR UPDATE OF is_online ON public.drivers
+FOR EACH ROW
+EXECUTE FUNCTION public.prevent_online_without_pass();
+
+-- Ensure driver_payouts table has all required columns
+ALTER TABLE public.driver_payouts ADD COLUMN IF NOT EXISTS payout_method TEXT DEFAULT 'Bank Transfer';
+ALTER TABLE public.driver_payouts ADD COLUMN IF NOT EXISTS reference_id TEXT;
+ALTER TABLE public.driver_payouts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+-- 9C. PL/pgSQL Function: Withdraw Driver Wallet Funds (Initial Status: 'created')
+DROP FUNCTION IF EXISTS public.withdraw_driver_wallet(UUID, NUMERIC);
+DROP FUNCTION IF EXISTS public.withdraw_driver_wallet(TEXT, NUMERIC);
+
+CREATE OR REPLACE FUNCTION public.withdraw_driver_wallet(
+    p_driver_id UUID,
+    p_amount NUMERIC
+)
+RETURNS JSONB AS $$
+DECLARE
+    v_balance NUMERIC(10, 2);
+    v_new_balance NUMERIC(10, 2);
+    v_payout_id UUID;
+    v_ref_id TEXT;
+BEGIN
+    IF p_amount <= 0 THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Invalid withdrawal amount');
+    END IF;
+
+    -- Ensure driver wallet exists
+    INSERT INTO public.driver_wallets (driver_id, balance) VALUES (p_driver_id, 0.00) ON CONFLICT (driver_id) DO NOTHING;
+
+    SELECT balance INTO v_balance FROM public.driver_wallets WHERE driver_id = p_driver_id;
+
+    IF v_balance < p_amount THEN
+        RETURN jsonb_build_object(
+            'success', false, 
+            'message', 'Insufficient wallet balance for withdrawal (Available: ₹' || v_balance || ')',
+            'balance', v_balance
+        );
+    END IF;
+
+    -- Deduct balance
+    UPDATE public.driver_wallets
+    SET balance = balance - p_amount, updated_at = now()
+    WHERE driver_id = p_driver_id RETURNING balance INTO v_new_balance;
+
+    -- Generate Reference ID
+    v_ref_id := 'WITHDRAW-' || floor(random()*900000 + 100000)::text;
+
+    -- Record payout log with initial status 'created'
+    INSERT INTO public.driver_payouts (driver_id, amount, status, payout_method, reference_id)
+    VALUES (p_driver_id, p_amount, 'created', 'Bank Transfer', v_ref_id)
+    RETURNING id INTO v_payout_id;
+
+    -- Record transaction log
+    INSERT INTO public.wallet_transactions (driver_id, amount, type, description, reference_id)
+    VALUES (p_driver_id, -p_amount, 'withdrawal', 'Wallet Withdrawal to Bank Account', v_payout_id::text);
+
+    -- Send driver notification
+    INSERT INTO public.driver_notifications (driver_id, title, message, type)
+    VALUES (
+        p_driver_id,
+        'Withdrawal Request Created 💸',
+        '₹' || p_amount || ' withdrawal request created. Funds will be credited in 1-2 business days. Ref: ' || v_ref_id,
+        'wallet_withdrawal'
+    );
+
+    RETURN jsonb_build_object(
+        'success', true, 
+        'payout_id', v_payout_id,
+        'status', 'created',
+        'balance', v_new_balance, 
+        'message', '₹' || p_amount || ' withdrawal request created! Money will be credited in 1-2 business days.'
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- 9D. Function to update Payout Progress status ('created' -> 'accepted' -> 'processing' -> 'completed' / 'failed')
+DROP FUNCTION IF EXISTS public.update_payout_status(UUID, TEXT);
+
+CREATE OR REPLACE FUNCTION public.update_payout_status(
+    p_payout_id UUID,
+    p_status TEXT
+)
+RETURNS JSONB AS $$
+DECLARE
+    v_driver_id UUID;
+    v_amount NUMERIC(10, 2);
+    v_old_status TEXT;
+BEGIN
+    SELECT driver_id, amount, status INTO v_driver_id, v_amount, v_old_status 
+    FROM public.driver_payouts 
+    WHERE id = p_payout_id;
+
+    IF v_driver_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Payout record not found');
+    END IF;
+
+    -- Update payout status
+    UPDATE public.driver_payouts 
+    SET status = p_status, updated_at = now() 
+    WHERE id = p_payout_id;
+
+    -- If status updated to 'failed', refund amount back to driver wallet!
+    IF p_status = 'failed' AND v_old_status <> 'failed' THEN
+        UPDATE public.driver_wallets 
+        SET balance = balance + v_amount, updated_at = now() 
+        WHERE driver_id = v_driver_id;
+
+        INSERT INTO public.wallet_transactions (driver_id, amount, type, description, reference_id)
+        VALUES (v_driver_id, v_amount, 'refund', 'Withdrawal Refund (Failed Payout)', p_payout_id::text);
+
+        INSERT INTO public.driver_notifications (driver_id, title, message, type)
+        VALUES (
+            v_driver_id,
+            'Withdrawal Failed & Refunded 🔄',
+            '₹' || v_amount || ' was refunded back to your wallet due to payout failure.',
+            'payout_refund'
+        );
+    ELSIF p_status = 'accepted' THEN
+        INSERT INTO public.driver_notifications (driver_id, title, message, type)
+        VALUES (v_driver_id, 'Withdrawal Accepted 🔵', 'Your ₹' || v_amount || ' withdrawal request has been accepted by admin.', 'payout_accepted');
+    ELSIF p_status = 'processing' THEN
+        INSERT INTO public.driver_notifications (driver_id, title, message, type)
+        VALUES (v_driver_id, 'Withdrawal Processing 🟠', 'Your ₹' || v_amount || ' bank transfer is currently processing.', 'payout_processing');
+    ELSIF p_status = 'completed' THEN
+        INSERT INTO public.driver_notifications (driver_id, title, message, type)
+        VALUES (v_driver_id, 'Withdrawal Completed 🟢', '🎉 ₹' || v_amount || ' has been successfully transferred to your bank account!', 'payout_completed');
+    END IF;
+
+    RETURN jsonb_build_object(
+        'success', true, 
+        'payout_id', p_payout_id, 
+        'status', p_status, 
+        'message', 'Payout status updated to ' || p_status
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 GRANT EXECUTE ON FUNCTION public.process_daily_wallet_deductions TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.recharge_driver_wallet TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.pay_driver_daily_fee TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.withdraw_driver_wallet TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.update_payout_status TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.check_expired_daily_passes TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.record_driver_rejection TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.make_all_drivers_offline TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.make_inactive_drivers_offline TO anon, authenticated, service_role;
 
--- 10. Safe Cron Schedules (Every 5 min Inactive Drivers Offline, 4:50 AM Make Offline & 5:00 AM Wallet Deductions)
+-- 10. Safe Cron Schedules (Every 5 min Auto-Offline Expired Passes & Inactive Drivers)
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+        -- Remove old daily 5 AM auto deduction cron job
+        BEGIN PERFORM cron.unschedule('daily-5am-wallet-deduction'); EXCEPTION WHEN OTHERS THEN NULL; END;
+
+        -- Schedule 5-Minute Cron: Auto-Offline Drivers whose 24-Hour Pass Expired
+        IF NOT EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'every-5min-auto-offline-expired-passes') THEN
+            PERFORM cron.schedule(
+                'every-5min-auto-offline-expired-passes',
+                '*/5 * * * *',
+                'SELECT public.check_expired_daily_passes();'
+            );
+        END IF;
+
         -- Schedule 5-Minute Cron: Auto-Offline Drivers Inactive for > 5 Minutes
         IF NOT EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'every-5min-auto-offline-inactive-drivers') THEN
             PERFORM cron.schedule(
                 'every-5min-auto-offline-inactive-drivers',
                 '*/5 * * * *',
                 'SELECT public.make_inactive_drivers_offline();'
-            );
-        END IF;
-
-        -- Schedule 4:50 AM Cron: Make All Drivers Offline
-        IF NOT EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'daily-450am-make-drivers-offline') THEN
-            PERFORM cron.schedule(
-                'daily-450am-make-drivers-offline',
-                '50 4 * * *',
-                'SELECT public.make_all_drivers_offline();'
-            );
-        END IF;
-
-        -- Schedule 5:00 AM Cron: Process Daily Wallet Deductions
-        IF NOT EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'daily-5am-wallet-deduction') THEN
-            PERFORM cron.schedule(
-                'daily-5am-wallet-deduction',
-                '0 5 * * *',
-                'SELECT public.process_daily_wallet_deductions();'
             );
         END IF;
     END IF;

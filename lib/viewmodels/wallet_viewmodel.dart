@@ -44,6 +44,9 @@ class WalletViewModel extends ChangeNotifier {
   String _lastSettlementDate = 'No payouts';
   String get lastSettlementDate => _lastSettlementDate;
 
+  List<Map<String, dynamic>> _payouts = [];
+  List<Map<String, dynamic>> get payouts => _payouts;
+
   double get pendingSettlement => _wallet?.balance ?? 0.0;
 
   String get nextSettlementDate {
@@ -56,31 +59,29 @@ class WalletViewModel extends ChangeNotifier {
 
   int get platformCommissionPercent => 10;
 
-  /// Driver is blocked if explicitly blocked in daily status, or if 2 rejections reached, or if daily fee is unpaid and wallet balance is below fee
+  bool get isPassActive => _dailyStatus?.isPassActive ?? false;
+  DateTime? get passExpiresAt => _dailyStatus?.passExpiresAt;
+
+  /// Driver is blocked if explicitly blocked in daily status, or if 2 rejections reached, or if 24-hour daily pass is expired/unpaid
   bool get isBlocked {
     if (_dailyStatus?.isBlocked == true) return true;
-    if (_dailyStatus == null || _dailyStatus!.feeDeducted == false) {
-      if ((_wallet?.balance ?? 0.0) < _vehicleDailyFee) {
-        return true;
-      }
-    }
     if ((_dailyStatus?.rejectionsCount ?? 0) >= 2) return true;
+    if (!isPassActive) return true;
     return false;
   }
 
-  /// Specific block reason: 'exceeded_rejections' or 'insufficient_wallet_balance'
+  /// Specific block reason: 'exceeded_rejections' or 'daily_pass_required' or 'insufficient_wallet_balance'
   String? get blockReason {
     if ((_dailyStatus?.rejectionsCount ?? 0) >= 2) {
       return 'exceeded_rejections';
     }
-    if (_dailyStatus?.feeDeducted == false ||
-        (_wallet?.balance ?? 0.0) < _vehicleDailyFee) {
-      return 'insufficient_wallet_balance';
+    if (!isPassActive) {
+      return 'daily_pass_required';
     }
     return _dailyStatus?.blockReason;
   }
 
-  bool get feeDeductedToday => _dailyStatus?.feeDeducted ?? false;
+  bool get feeDeductedToday => isPassActive;
   int get rejectionsToday => _dailyStatus?.rejectionsCount ?? 0;
 
   RealtimeChannel? _walletRealtimeChannel;
@@ -139,6 +140,21 @@ class WalletViewModel extends ChangeNotifier {
             callback: (payload) {
               debugPrint(
                   '⚡ Realtime Daily Status updated: ${payload.newRecord}');
+              fetchWalletData(driverId, showLoading: false);
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'driver_payouts',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'driver_id',
+              value: driverId,
+            ),
+            callback: (payload) {
+              debugPrint(
+                  '⚡ Realtime Payout status updated: ${payload.newRecord}');
               fetchWalletData(driverId, showLoading: false);
             },
           )
@@ -213,6 +229,7 @@ class WalletViewModel extends ChangeNotifier {
 
       // 7. Fetch driver payouts history for REAL settlements
       final payouts = await _supabaseService.getDriverPayouts(driverId);
+      _payouts = payouts;
       _totalSettled = payouts.fold<double>(
         0.0,
         (sum, p) => sum + ((p['amount'] as num?)?.toDouble() ?? 0.0),
@@ -246,7 +263,9 @@ class WalletViewModel extends ChangeNotifier {
       name: name,
       capacity: '',
       capacityKg: 0,
-      estFare: 0,
+      baseFare: 0,
+      dailyFee: 100,
+      isActive: true,
       iconName: 'directions_car',
     );
   }
@@ -285,7 +304,122 @@ class WalletViewModel extends ChangeNotifier {
     return 100.0;
   }
 
-  /// Perform Wallet Recharge via RPC and auto-deduct daily fee if pending
+  bool _isPayingFee = false;
+  bool get isPayingFee => _isPayingFee;
+
+  /// Driver manually pays daily fee to purchase 24-hour pass
+  Future<bool> payDailyFee({
+    required String driverId,
+    required BuildContext context,
+  }) async {
+    if (driverId.isEmpty || _isPayingFee) return false;
+
+    _isPayingFee = true;
+    notifyListeners();
+
+    try {
+      final res = await _supabaseService.payDriverDailyFee(driverId);
+      _isPayingFee = false;
+      notifyListeners();
+
+      final success = res['success'] as bool? ?? false;
+      final message = res['message'] as String? ?? 'Payment complete';
+
+      if (success) {
+        await fetchWalletData(driverId, showLoading: false);
+        if (context.mounted) {
+          _showSnackBar(
+            context,
+            '🎉 24-Hour Pass Activated! You can now go online.',
+            backgroundColor: const Color(0xFF09A234),
+          );
+        }
+        return true;
+      } else {
+        if (context.mounted) {
+          _showSnackBar(
+            context,
+            message,
+            backgroundColor: Colors.red.shade700,
+          );
+        }
+        return false;
+      }
+    } catch (e) {
+      _isPayingFee = false;
+      notifyListeners();
+      if (context.mounted) {
+        _showSnackBar(
+          context,
+          'Error paying daily fee: $e',
+          backgroundColor: Colors.red.shade700,
+        );
+      }
+      return false;
+    }
+  }
+
+  bool _isWithdrawing = false;
+  bool get isWithdrawing => _isWithdrawing;
+
+  /// Perform Wallet Withdrawal via RPC
+  Future<bool> withdrawWallet({
+    required String driverId,
+    required double amount,
+    required BuildContext context,
+  }) async {
+    if (amount <= 0 || driverId.isEmpty || _isWithdrawing) return false;
+
+    _isWithdrawing = true;
+    notifyListeners();
+
+    try {
+      final res = await _supabaseService.withdrawDriverWallet(
+        driverId: driverId,
+        amount: amount,
+      );
+
+      _isWithdrawing = false;
+      notifyListeners();
+
+      final success = res['success'] as bool? ?? false;
+      final message = res['message'] as String? ?? 'Withdrawal processed';
+
+      if (success) {
+        await fetchWalletData(driverId, showLoading: false);
+        if (context.mounted) {
+          _showSnackBar(
+            context,
+            '💸 ₹${amount.toStringAsFixed(0)} withdrawal request submitted! Money will be credited to your bank account in 1 - 2 business days.',
+            backgroundColor: const Color(0xFF09A234),
+          );
+        }
+        return true;
+      } else {
+        if (context.mounted) {
+          _showSnackBar(
+            context,
+            message,
+            backgroundColor: Colors.red.shade700,
+          );
+        }
+        return false;
+      }
+    } catch (e) {
+      _isWithdrawing = false;
+      notifyListeners();
+      if (context.mounted) {
+        _showSnackBar(
+          context,
+          'Error requesting withdrawal: $e',
+          backgroundColor: Colors.red.shade700,
+        );
+      }
+      return false;
+    }
+  }
+
+  /// Perform Wallet Recharge via RPC
   Future<bool> rechargeWallet({
     required String driverId,
     required double amount,
