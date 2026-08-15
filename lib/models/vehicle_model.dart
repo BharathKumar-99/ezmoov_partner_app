@@ -45,15 +45,23 @@ class VehicleModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      if (id != null) 'id': id,
+    final Map<String, dynamic> data = {
       'driver_id': driverId,
       'vehicle_number': vehicleNumber,
       'rc_number': rcNumber,
       'rc_pic_url': rcPicUrl,
-      if (vehicleTypeId != null) 'vehicle_type_id': vehicleTypeId,
-      if (vehicleTypeName != null) 'vehicle_type': vehicleTypeName,
-      if (ownerName != null) 'owner_name': ownerName,
     };
+    if (id != null) data['id'] = id;
+    if (ownerName != null && ownerName!.isNotEmpty) {
+      data['owner_name'] = ownerName;
+    }
+    if (vehicleTypeId != null && vehicleTypeId!.isNotEmpty) {
+      final parsedInt = int.tryParse(vehicleTypeId!);
+      data['vehicle_type_id'] = parsedInt ?? vehicleTypeId;
+    }
+    if (vehicleTypeName != null && vehicleTypeName!.isNotEmpty) {
+      data['vehicle_type'] = vehicleTypeName;
+    }
+    return data;
   }
 }

@@ -47,6 +47,8 @@ class HomeView extends StatelessWidget {
           driverLat: profileVm.latitude,
           driverLng: profileVm.longitude,
           context: context,
+          driverVehicleType: profileVm.driver?.vehicleType ?? profileVm.vehicle?.vehicleType,
+          driverVehicleTypeId: profileVm.vehicle?.vehicleTypeId,
         );
       }
     });

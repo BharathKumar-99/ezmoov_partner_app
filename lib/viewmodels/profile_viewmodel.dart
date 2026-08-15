@@ -169,6 +169,8 @@ class ProfileViewModel extends ChangeNotifier {
                 driverLat: _latitude,
                 driverLng: _longitude,
                 context: context,
+                driverVehicleType: loadedDriver.vehicleType ?? _vehicle?.vehicleType,
+                driverVehicleTypeId: _vehicle?.vehicleTypeId,
               );
             }
           } else if (context != null && context.mounted) {
@@ -184,6 +186,8 @@ class ProfileViewModel extends ChangeNotifier {
                   driverLat: _latitude,
                   driverLng: _longitude,
                   context: context,
+                  driverVehicleType: loadedDriver.vehicleType ?? _vehicle?.vehicleType,
+                  driverVehicleTypeId: _vehicle?.vehicleTypeId,
                 );
               }
             } else {
@@ -278,6 +282,8 @@ class ProfileViewModel extends ChangeNotifier {
                         driverLat: _latitude,
                         driverLng: _longitude,
                         context: context,
+                        driverVehicleType: _driver?.vehicleType ?? _vehicle?.vehicleType,
+                        driverVehicleTypeId: _vehicle?.vehicleTypeId,
                       );
                     }
                   }
@@ -459,6 +465,8 @@ class ProfileViewModel extends ChangeNotifier {
             driverLat: _latitude,
             driverLng: _longitude,
             context: context,
+            driverVehicleType: _driver?.vehicleType ?? _vehicle?.vehicleType,
+            driverVehicleTypeId: _vehicle?.vehicleTypeId,
           );
         }
       } else {

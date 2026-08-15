@@ -8,6 +8,7 @@ import '../core/services/offline_trip_service.dart';
 import '../core/services/notification_service.dart';
 import '../models/booking_model.dart';
 import '../models/bid_model.dart';
+import '../models/vehicle_type_model.dart';
 import '../views/home/widgets/incoming_ride_dialog.dart';
 import '../views/home/widgets/bidding_outstation_dialog.dart';
 
@@ -47,6 +48,89 @@ class RideRequestViewModel extends ChangeNotifier {
 
   final Set<String> _declinedBookingIds = {};
   Set<String> get declinedBookingIds => _declinedBookingIds;
+
+  String? _driverVehicleType;
+  String? _driverVehicleTypeId;
+
+  String? get driverVehicleType => _driverVehicleType;
+  String? get driverVehicleTypeId => _driverVehicleTypeId;
+
+  void setDriverVehicleInfo({String? vehicleType, String? vehicleTypeId}) {
+    if (vehicleType != null && vehicleType.isNotEmpty) {
+      _driverVehicleType = vehicleType;
+    }
+    if (vehicleTypeId != null && vehicleTypeId.isNotEmpty) {
+      _driverVehicleTypeId = vehicleTypeId;
+    }
+  }
+
+  Future<void> _fetchDriverVehicleInfo(String driverId) async {
+    try {
+      final driver = await _supabaseService.getDriverById(driverId);
+      if (driver != null && driver.vehicleType != null) {
+        _driverVehicleType = driver.vehicleType;
+      }
+      final vehicle = await _supabaseService.getVehicleByDriverId(driverId);
+      if (vehicle != null) {
+        if (vehicle.vehicleTypeId != null) {
+          _driverVehicleTypeId = vehicle.vehicleTypeId;
+        }
+        if (_driverVehicleType == null || _driverVehicleType!.isEmpty) {
+          _driverVehicleType = vehicle.vehicleTypeName;
+        }
+      }
+    } catch (e) {
+      debugPrint('Notice fetching driver vehicle info: $e');
+    }
+  }
+
+  /// Check if the booking vehicle type matches the partner's vehicle type
+  bool _isVehicleTypeMatching(BookingModel booking) {
+    final bookingVeh = booking.vehicleTypeId?.trim();
+
+    // If the booking does not specify a vehicle type, allow it for all partners
+    if (bookingVeh == null || bookingVeh.isEmpty) {
+      return true;
+    }
+
+    final dType = _driverVehicleType?.trim() ?? '';
+    final dTypeId = _driverVehicleTypeId?.trim() ?? '';
+
+    // If driver's vehicle type is not loaded yet, allow fallback
+    if (dType.isEmpty && dTypeId.isEmpty) {
+      return true;
+    }
+
+    // 1. Direct match (case-insensitive)
+    if (bookingVeh.toLowerCase() == dType.toLowerCase() ||
+        (dTypeId.isNotEmpty && bookingVeh.toLowerCase() == dTypeId.toLowerCase())) {
+      return true;
+    }
+
+    // 2. Normalized alphanumeric match (e.g., "3 Wheeler" vs "3wheeler" vs "3")
+    final normB = bookingVeh.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+    final normD = dType.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+    final normDId = dTypeId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+
+    if (normB == normD || (normDId.isNotEmpty && normB == normDId)) {
+      return true;
+    }
+
+    // 3. Match using VehicleTypeModel catalog (ID to Name & Name to ID mapping)
+    for (final vt in VehicleTypeModel.defaultVehicleTypes) {
+      final vtId = vt.id.trim();
+      final vtNameNorm = vt.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+
+      final bookingMatchesVt = (bookingVeh == vtId || normB == vtNameNorm);
+      final driverMatchesVt = (dType == vt.name || dTypeId == vtId || normD == vtNameNorm);
+
+      if (bookingMatchesVt && driverMatchesVt) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   /// Explicitly decline a ride request so it is never shown again to this driver
   void declineRide(String bookingId, {String? driverId}) {
@@ -214,11 +298,24 @@ class RideRequestViewModel extends ChangeNotifier {
     required double driverLat,
     required double driverLng,
     required BuildContext context,
+    String? driverVehicleType,
+    String? driverVehicleTypeId,
   }) {
     stopBroadcastListening();
 
+    if (driverVehicleType != null && driverVehicleType.isNotEmpty) {
+      _driverVehicleType = driverVehicleType;
+    }
+    if (driverVehicleTypeId != null && driverVehicleTypeId.isNotEmpty) {
+      _driverVehicleTypeId = driverVehicleTypeId;
+    }
+
+    if (_driverVehicleType == null && _driverVehicleTypeId == null) {
+      _fetchDriverVehicleInfo(driverId);
+    }
+
     debugPrint(
-        '📡 Starting Realtime Broadcast Stream & 3s Polling for driver $driverId at ($driverLat, $driverLng)...');
+        '📡 Starting Realtime Broadcast Stream & 3s Polling for driver $driverId at ($driverLat, $driverLng) [Vehicle: ${_driverVehicleType ?? _driverVehicleTypeId}]...');
 
     // Initial check for active driver trip
     checkActiveDriverTrip(driverId);
@@ -291,6 +388,15 @@ class RideRequestViewModel extends ChangeNotifier {
     for (final booking in bookings) {
       if (booking.status == 'searching' &&
           !_declinedBookingIds.contains(booking.id)) {
+
+        // 1. VEHICLE TYPE MATCHING GUARD:
+        // Do NOT show alert dialog if booking's vehicle type does not match partner's vehicle type!
+        if (!_isVehicleTypeMatching(booking)) {
+          debugPrint(
+              '⏩ Skipping booking #${booking.id}: Booking vehicle type (${booking.vehicleTypeId}) does not match partner vehicle type ($_driverVehicleType / $_driverVehicleTypeId)');
+          continue;
+        }
+
         final dist = calculateDistance(
             driverLat, driverLng, booking.pickupLat, booking.pickupLng);
         debugPrint(
