@@ -28,7 +28,8 @@ class VehicleTypeModel {
   double get estFare => baseFare;
 
   factory VehicleTypeModel.fromJson(Map<String, dynamic> json) {
-    final isAct = (json['is_active'] as bool?) ?? (json['active'] as bool?) ?? true;
+    final isAct =
+        (json['is_active'] as bool?) ?? (json['active'] as bool?) ?? true;
     return VehicleTypeModel(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',

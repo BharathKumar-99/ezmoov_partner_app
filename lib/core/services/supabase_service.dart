@@ -128,6 +128,28 @@ class SupabaseService {
     }
   }
 
+  /// Update Driver Profile (Profile Pic URL, Email, Address)
+  Future<void> updateDriverProfile({
+    required String driverId,
+    String? profilePicUrl,
+    String? email,
+    String? address,
+  }) async {
+    try {
+      final updates = <String, dynamic>{
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      if (profilePicUrl != null) updates['profile_pic_url'] = profilePicUrl;
+      if (email != null) updates['email'] = email;
+      if (address != null) updates['address'] = address;
+
+      await client.from('drivers').update(updates).eq('id', driverId);
+    } catch (e) {
+      debugPrint('Error updating driver profile: $e');
+      rethrow;
+    }
+  }
+
   /// Update Driver Location (JSON map containing lat/lng)
   Future<void> updateDriverLocation(
     String driverId,
@@ -818,15 +840,16 @@ class SupabaseService {
     }
   }
 
-  /// Get driver daily status for current date (fee deduction & rejection count)
+  /// Get driver daily status for current date / latest pass (fee deduction & rejection count)
   Future<DriverDailyStatusModel?> getDriverDailyStatus(String driverId) async {
     try {
-      final todayStr = DateTime.now().toIso8601String().split('T').first;
       final response = await client
           .from('driver_daily_status')
           .select()
           .eq('driver_id', driverId)
-          .eq('status_date', todayStr)
+          .order('status_date', ascending: false)
+          .order('created_at', ascending: false)
+          .limit(1)
           .maybeSingle();
 
       if (response == null) return null;

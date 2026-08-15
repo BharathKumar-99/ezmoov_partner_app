@@ -108,20 +108,26 @@ class DriverDailyStatusModel {
   });
 
   bool get isPassActive =>
-      passExpiresAt != null && passExpiresAt!.isAfter(DateTime.now());
+      (passExpiresAt != null && passExpiresAt!.isAfter(DateTime.now())) || feeDeducted;
+
+  static DateTime? _parseDateTimeToLocal(dynamic val) {
+    if (val == null) return null;
+    final str = val.toString().trim();
+    if (str.isEmpty) return null;
+    final formatted = str.endsWith('Z') || str.contains('+')
+        ? str
+        : '${str.replaceAll(' ', 'T')}Z';
+    return DateTime.tryParse(formatted)?.toLocal() ?? DateTime.tryParse(str)?.toLocal();
+  }
 
   factory DriverDailyStatusModel.fromJson(Map<String, dynamic> json) {
     return DriverDailyStatusModel(
       id: json['id'] as String?,
       driverId: json['driver_id'] as String? ?? '',
-      statusDate: json['status_date'] != null
-          ? DateTime.parse(json['status_date'])
-          : DateTime.now(),
+      statusDate: _parseDateTimeToLocal(json['status_date']) ?? DateTime.now(),
       dailyFee: (json['daily_fee'] as num?)?.toDouble() ?? 100.0,
       feeDeducted: json['fee_deducted'] as bool? ?? false,
-      passExpiresAt: json['pass_expires_at'] != null
-          ? DateTime.parse(json['pass_expires_at'])
-          : null,
+      passExpiresAt: _parseDateTimeToLocal(json['pass_expires_at']),
       rejectionsCount: json['rejections_count'] as int? ?? 0,
       isBlocked: json['is_blocked'] as bool? ?? false,
       blockReason: json['block_reason'] as String?,

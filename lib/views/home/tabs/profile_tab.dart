@@ -141,15 +141,35 @@ class ProfileTab extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                      backgroundImage: (driver?.profilePicUrl != null && driver!.profilePicUrl!.isNotEmpty)
-                          ? NetworkImage(driver.profilePicUrl!)
-                          : null,
-                      child: (driver?.profilePicUrl == null || driver!.profilePicUrl!.isEmpty)
-                          ? const Icon(Icons.person, color: AppColors.primary, size: 40)
-                          : null,
+                    GestureDetector(
+                      onTap: () => context.push('/edit-profile'),
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                            backgroundImage: (driver?.profilePicUrl != null && driver!.profilePicUrl!.isNotEmpty)
+                                ? NetworkImage(driver.profilePicUrl!)
+                                : null,
+                            child: (driver?.profilePicUrl == null || driver!.profilePicUrl!.isEmpty)
+                                ? const Icon(Icons.person, color: AppColors.primary, size: 40)
+                                : null,
+                          ),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.surface, width: 2),
+                              ),
+                              child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 12),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -187,6 +207,18 @@ class ProfileTab extends StatelessWidget {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Edit Profile',
+                      onPressed: () => context.push('/edit-profile'),
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.edit_rounded, color: AppColors.primary, size: 18),
                       ),
                     ),
                   ],

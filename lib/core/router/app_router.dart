@@ -13,6 +13,7 @@ import '../../views/trip/driver_pickup_view.dart';
 import '../../views/bidding/outstation_bidding_status_view.dart';
 import '../../views/support/support_view.dart';
 import '../../views/wallet/wallet_view.dart';
+import '../../views/profile/edit_profile_view.dart';
 
 class AppRouter {
   AppRouter._();
@@ -209,6 +210,10 @@ class AppRouter {
                 '';
             return WalletView(driverId: driverId);
           },
+        ),
+        GoRoute(
+          path: '/edit-profile',
+          builder: (context, state) => const EditProfileView(),
         ),
       ],
     );
