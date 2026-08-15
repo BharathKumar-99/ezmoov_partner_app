@@ -31,7 +31,11 @@ class RazorpayService {
     required String driverPhone,
     required String driverEmail,
   }) {
-    final keyId = dotenv.env['RAZORPAY_KEY_ID'] ?? 'rzp_test_TPGpToo02EEZTT';
+    final keyId = dotenv.env['RAZORPAY_KEY_ID'] ?? '';
+    if (keyId.isEmpty) {
+      debugPrint('⚠️ Warning: RAZORPAY_KEY_ID is missing in .env configuration!');
+      return;
+    }
 
     final cleanDigits = driverPhone.replaceAll(RegExp(r'\D'), '');
     final tenDigits = cleanDigits.length >= 10

@@ -31,14 +31,17 @@ class _EditProfileViewState extends State<EditProfileView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final profileVM = context.read<ProfileViewModel>();
       final driver = profileVM.driver;
       if (driver != null) {
-        _nameController.text = driver.name;
-        _phoneController.text = driver.phone;
-        _emailController.text = driver.email;
-        _addressController.text = driver.address ?? '';
-        _uploadedProfileUrl = driver.profilePicUrl;
+        setState(() {
+          _nameController.text = driver.name;
+          _phoneController.text = driver.phone;
+          _emailController.text = driver.email;
+          _addressController.text = driver.address ?? '';
+          _uploadedProfileUrl = driver.profilePicUrl;
+        });
       }
     });
   }
@@ -55,7 +58,12 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _pickImage(ImageSource source) async {
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(source: source, imageQuality: 80);
+      final picked = await picker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
       if (picked != null) {
         setState(() {
           _selectedImageFile = File(picked.path);
@@ -84,7 +92,8 @@ class _EditProfileViewState extends State<EditProfileView> {
     try {
       final profileVM = context.read<ProfileViewModel>();
       final driverId = profileVM.driver?.id ?? 'driver';
-      final fileName = 'profile_${driverId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final ext = _selectedImageFile!.path.split('.').last;
+      final fileName = 'profile_${driverId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
 
       final publicUrl = await SupabaseService.instance.uploadImage(
         bucket: 'documents',
@@ -92,33 +101,32 @@ class _EditProfileViewState extends State<EditProfileView> {
         fileName: fileName,
       );
 
+      if (!mounted) return;
       setState(() {
         _uploadedProfileUrl = publicUrl;
         _isUploadingImage = false;
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile picture uploaded successfully!'),
-            backgroundColor: Color(0xFF09A234),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile picture uploaded successfully!'),
+          backgroundColor: Color(0xFF09A234),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isUploadingImage = false;
+        _selectedImageFile = null;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error uploading profile picture: $e'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error uploading profile picture: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -229,19 +237,19 @@ class _EditProfileViewState extends State<EditProfileView> {
         address: address,
       );
 
-      if (mounted) {
-        await profileVM.fetchProfile(driverId, context);
+      if (!mounted) return;
+      await profileVM.fetchProfile(driverId, context);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🎉 Profile updated successfully!'),
-            backgroundColor: Color(0xFF09A234),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🎉 Profile updated successfully!'),
+          backgroundColor: Color(0xFF09A234),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
 
-        context.pop();
-      }
+      context.pop();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -321,7 +329,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                     if (_isUploadingImage)
                       Positioned.fill(
                         child: Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Colors.black45,
                             shape: BoxShape.circle,
                           ),
@@ -387,6 +395,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 decoration: InputDecoration(
                   labelText: 'Full Name',
                   prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.textMuted),
+                  suffixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textMuted, size: 18),
                   filled: true,
                   fillColor: AppColors.surface,
                   border: OutlineInputBorder(

@@ -292,8 +292,9 @@ class BookingModel {
     // 2. Try top-level map fields
     if (baseFareCalculated == 0.0) {
       final topLevelFare = extractFromMap(json);
-      if (topLevelFare != null && topLevelFare > 0)
+      if (topLevelFare != null && topLevelFare > 0) {
         baseFareCalculated = topLevelFare;
+      }
     }
 
     return baseFareCalculated + extraDriverChargesSum;

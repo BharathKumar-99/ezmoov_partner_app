@@ -22,25 +22,10 @@ class AppRouter {
     return GoRouter(
       initialLocation: '/home',
       refreshListenable: profileViewModel,
-      redirect: (context, state) async {
+      redirect: (context, state) {
         final location = state.uri.path;
         final authUser = SupabaseService.instance.client.auth.currentUser;
-        var driver = profileViewModel.driver;
-
-        if (driver == null) {
-          final savedSession =
-              await profileViewModel.getSavedSessionPhoneOrId();
-
-          if (savedSession != null && savedSession.isNotEmpty) {
-            driver = await profileViewModel.fetchProfile(savedSession);
-          } else if (authUser != null) {
-            final userPhone = authUser.phone;
-            if (userPhone != null && userPhone.isNotEmpty) {
-              driver = await profileViewModel.fetchProfile(userPhone);
-            }
-            driver ??= await profileViewModel.fetchProfile(authUser.id);
-          }
-        }
+        final driver = profileViewModel.driver;
 
         // 1. Not Logged In Guard
         if (authUser == null && driver == null) {

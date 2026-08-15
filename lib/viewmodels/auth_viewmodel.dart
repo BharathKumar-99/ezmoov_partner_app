@@ -225,7 +225,11 @@ class AuthViewModel extends ChangeNotifier {
         if (!context.mounted) return;
 
         // Sync with central ProfileViewModel
-        Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(driver.id!);
+        if (driver.id != null) {
+          await Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(driver.id!);
+        }
+
+        if (!context.mounted) return;
 
         if (!driver.isVehicleAdded) {
           context.go('/vehicle-details', extra: {'driverId': driver.id});
@@ -247,8 +251,12 @@ class AuthViewModel extends ChangeNotifier {
             FcmService.instance.saveUserFcmToken(createdDriver.id!);
           }
           if (context.mounted) {
-            Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(createdDriver.id!);
-            context.go('/vehicle-details', extra: {'driverId': createdDriver.id});
+            if (createdDriver.id != null) {
+              await Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(createdDriver.id!);
+            }
+            if (context.mounted) {
+              context.go('/vehicle-details', extra: {'driverId': createdDriver.id});
+            }
           }
         } else {
           setLoading(false);

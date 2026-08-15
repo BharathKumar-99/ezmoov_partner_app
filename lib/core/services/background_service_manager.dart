@@ -84,11 +84,15 @@ class BackgroundServiceManager {
       debugPrint('Notice initializing NotificationService in background isolate: $e');
     }
 
+    Timer? periodicTimer;
+
     service.on('stopService').listen((event) {
+      periodicTimer?.cancel();
+      periodicTimer = null;
       service.stopSelf();
     });
 
-    Timer.periodic(const Duration(seconds: 15), (timer) async {
+    periodicTimer = Timer.periodic(const Duration(seconds: 15), (timer) async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
           service.setForegroundNotificationInfo(

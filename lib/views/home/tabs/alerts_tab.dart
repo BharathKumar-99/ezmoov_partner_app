@@ -123,7 +123,14 @@ class _AlertsTabState extends State<AlertsTab> {
               ),
               const SizedBox(height: 16),
 
-              if (allNotifs.isEmpty)
+              if (_isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                )
+              else if (allNotifs.isEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(32),
