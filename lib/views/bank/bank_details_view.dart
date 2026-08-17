@@ -99,14 +99,13 @@ class BankDetailsView extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Add your bank account details for automatic weekly trip payouts.',
+                    'Add your bank account details.',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 28),
-
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -160,7 +159,6 @@ class BankDetailsView extends StatelessWidget {
                           prefixIcon: Icons.qr_code_rounded,
                         ),
                         const SizedBox(height: 24),
-
                         const Text(
                           'Upload Passbook / Cancelled Cheque (Optional)',
                           style: TextStyle(
@@ -180,7 +178,9 @@ class BankDetailsView extends StatelessWidget {
                               color: AppColors.background,
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: vm.passbookPicPath != null ? AppColors.primary : AppColors.border,
+                                color: vm.passbookPicPath != null
+                                    ? AppColors.primary
+                                    : AppColors.border,
                                 width: vm.passbookPicPath != null ? 2 : 1,
                               ),
                             ),
@@ -213,13 +213,13 @@ class BankDetailsView extends StatelessWidget {
                                   ),
                           ),
                         ),
-
                         const SizedBox(height: 32),
                         GradientButton(
                           text: 'Submit Bank Details',
                           isLoading: vm.isLoading,
                           icon: Icons.check_circle_rounded,
-                          onPressed: () => vm.submitBankDetails(context, driverId),
+                          onPressed: () =>
+                              vm.submitBankDetails(context, driverId),
                         ),
                       ],
                     ),

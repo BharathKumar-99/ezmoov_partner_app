@@ -39,7 +39,7 @@ class VehicleViewModel extends ChangeNotifier {
 
   final List<String> cities = ['Hyderabad'];
   final List<String> bodyDetailOptions = [
-    'Tata Ace (750 Kg)',
+    '7 feet (750 Kg)',
     '8 feet (1.2 Ton)',
     '9 feet (1.7 Ton)',
     '10 feet (2 Tons)',
@@ -81,6 +81,12 @@ class VehicleViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void selectCategoryAgain() {
+    _selectedCategory = null;
+    _syncSelectedVehicleType();
+    notifyListeners();
+  }
+
   void selectCity(String city) {
     _selectedCity = city;
     notifyListeners();
@@ -115,7 +121,8 @@ class VehicleViewModel extends ChangeNotifier {
       );
     } else if (_selectedCategory == 'Truck') {
       String targetId = '5'; // default 8ft
-      if (_selectedBodyDetail.contains('Tata Ace') || _selectedBodyDetail.contains('750')) {
+      if (_selectedBodyDetail.contains('Tata Ace') ||
+          _selectedBodyDetail.contains('750')) {
         targetId = '4'; // 4 Wheeler (750 Kgs)
       } else if (_selectedBodyDetail.contains('9')) {
         targetId = '6'; // 9 Ft Vehicle
@@ -128,7 +135,8 @@ class VehicleViewModel extends ChangeNotifier {
         (v) => v.id == targetId,
         orElse: () => VehicleTypeModel.defaultVehicleTypes.firstWhere(
           (v) => v.id == targetId,
-          orElse: () => VehicleTypeModel.defaultVehicleTypes[2], // 4 Wheeler (ID 4)
+          orElse: () =>
+              VehicleTypeModel.defaultVehicleTypes[2], // 4 Wheeler (ID 4)
         ),
       );
     }

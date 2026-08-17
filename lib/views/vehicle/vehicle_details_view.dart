@@ -243,7 +243,8 @@ class VehicleDetailsView extends StatelessWidget {
                         CustomTextField(
                           controller: vm.ownerNameController,
                           label: 'Vehicle Owner Name (Optional)',
-                          hint: 'Enter owner name if vehicle is registered to someone else',
+                          hint:
+                              'Enter owner name if vehicle is registered to someone else',
                           prefixIcon: Icons.person_outline_rounded,
                         ),
                         const SizedBox(height: 18),
@@ -277,53 +278,58 @@ class VehicleDetailsView extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Vehicle RC Photo',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        vm.rcPicPath != null
-                                            ? Icons.cloud_done_rounded
-                                            : Icons.cloud_upload_outlined,
-                                        size: 18,
-                                        color: vm.rcPicPath != null
-                                            ? AppColors.primary
-                                            : AppColors.textMuted,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Vehicle RC Photo',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textPrimary,
                                       ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        vm.rcPicPath != null
-                                            ? 'Uploaded'
-                                            : 'Tap to attach clear photo of RC',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: vm.rcPicPath != null
-                                              ? FontWeight.bold
-                                              : FontWeight.w500,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          vm.rcPicPath != null
+                                              ? Icons.cloud_done_rounded
+                                              : Icons.cloud_upload_outlined,
+                                          size: 18,
                                           color: vm.rcPicPath != null
                                               ? AppColors.primary
-                                              : AppColors.textSecondary,
+                                              : AppColors.textMuted,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            vm.rcPicPath != null
+                                                ? 'Uploaded'
+                                                : 'Tap to attach clear photo of RC',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: vm.rcPicPath != null
+                                                  ? FontWeight.bold
+                                                  : FontWeight.w500,
+                                              color: vm.rcPicPath != null
+                                                  ? AppColors.primary
+                                                  : AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.edit_rounded,
                                     color: AppColors.primary),
-                                onPressed: () =>
-                                    _showImagePicker(context, vm),
+                                onPressed: () => _showImagePicker(context, vm),
                               ),
                             ],
                           ),
@@ -434,8 +440,8 @@ class VehicleDetailsView extends StatelessWidget {
                               color: AppColors.primary.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                  color: AppColors.primary
-                                      .withValues(alpha: 0.3)),
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -466,10 +472,7 @@ class VehicleDetailsView extends StatelessWidget {
                                   icon: const Icon(Icons.edit_rounded,
                                       color: AppColors.primary),
                                   onPressed: () {
-                                    vm.selectCategory(
-                                        vm.selectedCategory == 'Truck'
-                                            ? '3W'
-                                            : 'Truck');
+                                    vm.selectCategoryAgain();
                                   },
                                 ),
                               ],
@@ -493,8 +496,7 @@ class VehicleDetailsView extends StatelessWidget {
                             ),
                             const SizedBox(height: 6),
                             InkWell(
-                              onTap: () =>
-                                  _showBodyDetailsPicker(context, vm),
+                              onTap: () => _showBodyDetailsPicker(context, vm),
                               borderRadius: BorderRadius.circular(14),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -631,8 +633,7 @@ class VehicleDetailsView extends StatelessWidget {
                     text: 'Save & Continue',
                     isLoading: vm.isLoading,
                     icon: Icons.arrow_forward_rounded,
-                    onPressed: () =>
-                        vm.submitVehicleDetails(context, driverId),
+                    onPressed: () => vm.submitVehicleDetails(context, driverId),
                   ),
                 ],
               ),
@@ -684,7 +685,8 @@ class VehicleDetailsView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+                color:
+                    isSelected ? AppColors.primaryDark : AppColors.textPrimary,
               ),
             ),
           ],
@@ -727,7 +729,8 @@ class VehicleDetailsView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+                color:
+                    isSelected ? AppColors.primaryDark : AppColors.textPrimary,
               ),
             ),
           ],

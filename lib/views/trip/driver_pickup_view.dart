@@ -155,6 +155,92 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     }
   }
 
+  Future<void> _callAmbulance() async {
+    final Uri url = Uri.parse('tel:108');
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        await launchUrl(url);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not launch dialer for 108: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showSosConfirmationModal() {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.medical_services_rounded, color: Colors.red, size: 28),
+            ),
+            const SizedBox(width: 10),
+            const Flexible(
+              child: Text(
+                'EMERGENCY SOS',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Call Ambulance Emergency Services (108) from phone dialer?',
+              style: TextStyle(fontSize: 14, height: 1.4, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'This action opens phone dialer with National Emergency Ambulance number 108.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('CANCEL', style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            icon: const Icon(Icons.call_rounded, color: Colors.white, size: 20),
+            label: const Text('CALL AMBULANCE (108)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              _callAmbulance();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _sendSms(String phone) async {
     final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
     if (cleanPhone.isEmpty) {
@@ -1591,6 +1677,23 @@ class _DriverPickupViewState extends State<DriverPickupView> {
           onPressed: () => context.go('/home'),
         ),
         actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              icon: const Icon(Icons.medical_services_rounded, color: Colors.white, size: 16),
+              label: const Text(
+                'SOS (108)',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+              onPressed: _showSosConfirmationModal,
+            ),
+          ),
           IconButton(
             tooltip: 'Cancel Trip',
             icon: const Icon(Icons.cancel_outlined, color: AppColors.error),
@@ -1712,7 +1815,85 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       ],
                     ),
                   ),
-
+                  const SizedBox(height: 12),
+                  // SOS Emergency Banner Button
+                  InkWell(
+                    onTap: _showSosConfirmationModal,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.red.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Colors.white24,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.medical_services_rounded, color: Colors.white, size: 22),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'EMERGENCY SOS',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                Text(
+                                  'Tap to call Ambulance (108) from dialer',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.call, color: Colors.red, size: 14),
+                                SizedBox(width: 4),
+                                Text(
+                                  '108',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // Customer Contact Quick Actions Card (Call / SMS)
