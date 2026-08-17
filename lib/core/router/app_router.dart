@@ -14,6 +14,7 @@ import '../../views/bidding/outstation_bidding_status_view.dart';
 import '../../views/support/support_view.dart';
 import '../../views/wallet/wallet_view.dart';
 import '../../views/profile/edit_profile_view.dart';
+import '../../views/referral/referral_view.dart';
 
 class AppRouter {
   AppRouter._();
@@ -27,8 +28,14 @@ class AppRouter {
         final authUser = SupabaseService.instance.client.auth.currentUser;
         final driver = profileViewModel.driver;
 
-        // 1. Not Logged In Guard
+        // 1. Not Logged In Guard (No Auth Session & No Driver Record)
         if (authUser == null && driver == null) {
+          if (location == '/edit-profile' ||
+              location == '/support' ||
+              location == '/wallet' ||
+              location == '/referral') {
+            return null;
+          }
           if (location == '/login' ||
               location == '/signup' ||
               location == '/otp') {
@@ -199,6 +206,16 @@ class AppRouter {
         GoRoute(
           path: '/edit-profile',
           builder: (context, state) => const EditProfileView(),
+        ),
+        GoRoute(
+          path: '/referral',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final driverId = extra?['driverId'] ??
+                state.uri.queryParameters['driverId'] ??
+                '';
+            return ReferralView(driverId: driverId);
+          },
         ),
       ],
     );

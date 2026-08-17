@@ -20,8 +20,9 @@ class _HomeTabState extends State<HomeTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final profileVm = context.read<ProfileViewModel>();
-      if (profileVm.driver?.id != null) {
+      if (profileVm.driver?.id != null && mounted) {
         context.read<HomeViewModel>().fetchEarnings(profileVm.driver!.id!);
         context.read<WalletViewModel>().fetchWalletData(profileVm.driver!.id!);
       }
@@ -554,6 +555,8 @@ class _HomeTabState extends State<HomeTab> {
                     fare: '₹ ${booking.fare.toStringAsFixed(2)}',
                     time: formattedTime,
                     paymentType: l10n.completed,
+                    hasStops: booking.hasStops,
+                    stopsCount: booking.stopsCount,
                   );
                 }),
             ],
@@ -642,6 +645,8 @@ class _TodayTripCard extends StatelessWidget {
   final String fare;
   final String time;
   final String paymentType;
+  final bool hasStops;
+  final int stopsCount;
 
   const _TodayTripCard({
     required this.tripId,
@@ -650,6 +655,8 @@ class _TodayTripCard extends StatelessWidget {
     required this.fare,
     required this.time,
     required this.paymentType,
+    this.hasStops = false,
+    this.stopsCount = 0,
   });
 
   @override
@@ -669,15 +676,40 @@ class _TodayTripCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  tripId,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        tripId,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (hasStops) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFFF59E0B)),
+                        ),
+                        child: Text(
+                          '+$stopsCount STOPS',
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFB45309),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(width: 8),

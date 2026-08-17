@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -24,9 +25,10 @@ class _WalletViewState extends State<WalletView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final profileVm = context.read<ProfileViewModel>();
       final effectiveDriverId = widget.driverId ?? profileVm.driver?.id ?? '';
-      if (effectiveDriverId.isNotEmpty) {
+      if (effectiveDriverId.isNotEmpty && mounted) {
         context.read<WalletViewModel>().fetchWalletData(effectiveDriverId);
       }
     });
@@ -47,6 +49,7 @@ class _WalletViewState extends State<WalletView> {
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
     debugPrint(
         '💳 Razorpay Payment Success! Payment ID: ${response.paymentId}. Wallet balance update will be processed asynchronously via Edge Function Webhook.');
+    if (!mounted) return;
     final profileVm = context.read<ProfileViewModel>();
     final walletVm = context.read<WalletViewModel>();
     final driverId = widget.driverId ?? profileVm.driver?.id ?? '';
@@ -55,7 +58,7 @@ class _WalletViewState extends State<WalletView> {
     _pendingRechargeAmount = 0.0;
 
     // Refresh wallet UI and schedule a short delayed refresh for when Edge Function webhook completes
-    if (driverId.isNotEmpty) {
+    if (driverId.isNotEmpty && mounted) {
       walletVm.fetchWalletData(driverId, showLoading: false);
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted) {
@@ -76,6 +79,7 @@ class _WalletViewState extends State<WalletView> {
   void _handlePaymentFailure(PaymentFailureResponse response) {
     debugPrint(
         '💳 Razorpay Payment Failed: ${response.code} - ${response.message}');
+    if (!mounted) return;
     final msg = (response.message == null ||
             response.message == 'undefined' ||
             response.message!.trim().isEmpty)
@@ -93,6 +97,23 @@ class _WalletViewState extends State<WalletView> {
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     debugPrint('💳 External Wallet Selected: ${response.walletName}');
+  }
+
+  void _payDailyFeeWithoutWallet(BuildContext context, String driverId) {
+    final walletVm = context.read<WalletViewModel>();
+    final profile = context.read<ProfileViewModel>().driver;
+    final dailyFee = walletVm.vehicleDailyFee;
+
+    _pendingRechargeAmount = dailyFee;
+
+    RazorpayService.instance.openCheckout(
+      amount: dailyFee,
+      driverId: driverId,
+      driverName: profile?.name ?? 'EZMoov Partner',
+      driverPhone: profile?.phone ?? '',
+      driverEmail: profile?.email ?? '',
+      paymentType: 'direct_daily_fee',
+    );
   }
 
   void _showAddMoneyBottomSheet(BuildContext context, String driverId) {
@@ -281,6 +302,33 @@ class _WalletViewState extends State<WalletView> {
                                   letterSpacing: 0.5,
                                 ),
                               ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF09A234),
+                          side: const BorderSide(
+                              color: Color(0xFF09A234), width: 1.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(modalContext).pop();
+                          _payDailyFeeWithoutWallet(context, driverId);
+                        },
+                        icon: const Icon(Icons.flash_on_rounded, size: 20),
+                        label: Text(
+                          'Recharge without Wallet (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)})',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -729,6 +777,38 @@ class _WalletViewState extends State<WalletView> {
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.white.withValues(alpha: 0.15),
+                                    foregroundColor: Colors.white,
+                                    side: const BorderSide(
+                                        color: Colors.white, width: 1),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    _payDailyFeeWithoutWallet(
+                                        context, effectiveDriverId);
+                                  },
+                                  icon: const Icon(Icons.flash_on_rounded,
+                                      size: 18, color: Colors.white),
+                                  label: Text(
+                                    'Recharge without Wallet (Pay ₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} Direct)',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
 
                             const SizedBox(height: 20),
@@ -844,6 +924,89 @@ class _WalletViewState extends State<WalletView> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16),
+
+                      // Refer & Earn Banner Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFE11D48).withValues(alpha: 0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.card_giftcard_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Refer & Earn ₹25',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Invite drivers & get ₹25 cash in your wallet!',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.push('/referral?driverId=${effectiveDriverId ?? ''}');
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFFE11D48),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'Invite',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -947,52 +1110,84 @@ class _WalletViewState extends State<WalletView> {
                           ],
                         ),
 
-                        // Pay Daily Fee Action Button if Pass is Expired/Unpaid
+                        // Pay Daily Fee Action Buttons if Pass is Expired/Unpaid
                         if (!walletVm.isPassActive &&
                             effectiveDriverId != null) ...[
                           const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: walletVm.isPayingFee
-                                  ? null
-                                  : () {
-                                      walletVm.payDailyFee(
-                                        driverId: effectiveDriverId,
-                                        context: context,
-                                      );
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF09A234),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: walletVm.isPayingFee
+                                      ? null
+                                      : () {
+                                          walletVm.payDailyFee(
+                                            driverId: effectiveDriverId,
+                                            context: context,
+                                          );
+                                        },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF09A234),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: walletVm.isPayingFee
+                                      ? const SizedBox(
+                                          width: 14,
+                                          height: 14,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.account_balance_wallet_rounded,
+                                          size: 16),
+                                  label: Text(
+                                    walletVm.isPayingFee
+                                        ? 'Paying...'
+                                        : 'Pay via Wallet',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              icon: walletVm.isPayingFee
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.flash_on_rounded,
-                                      size: 18),
-                              label: Text(
-                                walletVm.isPayingFee
-                                    ? 'Activating Pass...'
-                                    : 'Pay Daily Fee (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)}) - Activate 24 Hr Pass',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    _payDailyFeeWithoutWallet(
+                                        context, effectiveDriverId);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber.shade800,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.flash_on_rounded,
+                                      size: 16),
+                                  label: const Text(
+                                    'Recharge Without Wallet',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
 

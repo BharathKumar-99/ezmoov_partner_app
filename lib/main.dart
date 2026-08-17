@@ -24,6 +24,7 @@ import 'viewmodels/ride_request_viewmodel.dart';
 import 'viewmodels/locale_viewmodel.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'viewmodels/wallet_viewmodel.dart';
+import 'viewmodels/referral_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,6 +71,28 @@ Future<void> main() async {
 
   final profileViewModel = ProfileViewModel();
 
+  // Restore saved driver profile session on app launch before UI renders
+  try {
+    final currentAuthUser = Supabase.instance.client.auth.currentUser;
+    final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
+
+    if (currentAuthUser != null) {
+      await profileViewModel.fetchProfile(currentAuthUser.id);
+    }
+    if (profileViewModel.driver == null &&
+        savedSession != null &&
+        savedSession.isNotEmpty) {
+      await profileViewModel.fetchProfile(savedSession);
+    }
+    if (profileViewModel.driver == null &&
+        currentAuthUser?.phone != null &&
+        currentAuthUser!.phone!.isNotEmpty) {
+      await profileViewModel.fetchProfile(currentAuthUser.phone!);
+    }
+  } catch (e) {
+    debugPrint('Notice restoring session on startup: $e');
+  }
+
   runApp(EzMoovPartnerApp(profileViewModel: profileViewModel));
 }
 
@@ -91,6 +114,7 @@ class EzMoovPartnerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RideRequestViewModel()),
         ChangeNotifierProvider(create: (_) => WalletViewModel()),
+        ChangeNotifierProvider(create: (_) => ReferralViewModel()),
       ],
       child: Consumer<LocaleViewModel>(
         builder: (context, localeVM, child) {

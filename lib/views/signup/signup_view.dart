@@ -77,7 +77,7 @@ class SignupView extends StatelessWidget {
         title: const Text('Driver Registration'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/login'),
         ),
       ),
       body: SafeArea(
@@ -198,6 +198,13 @@ class SignupView extends StatelessWidget {
                           prefixIcon: Icons.phone_android_rounded,
                           keyboardType: TextInputType.phone,
                           limit: 10,
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          controller: vm.signupReferralCodeController,
+                          label: 'Referral Code (Optional)',
+                          hint: 'e.g. EZM9876',
+                          prefixIcon: Icons.confirmation_number_outlined,
                         ),
                         const SizedBox(height: 28),
                         GradientButton(

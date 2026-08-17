@@ -38,7 +38,10 @@ class VehicleTypeModel {
       baseFare: (json['base_fare'] as num?)?.toDouble() ??
           (json['est_fare'] as num?)?.toDouble() ??
           0.0,
-      dailyFee: (json['daily_fee'] as num?)?.toDouble() ?? 100.0,
+      dailyFee: (json['daily_fee'] as num?)?.toDouble() ??
+          (json['dailyfee'] as num?)?.toDouble() ??
+          (json['daily_pass_fee'] as num?)?.toDouble() ??
+          0.0,
       iconName: json['icon_name'] as String? ?? 'local_shipping',
       isActive: isAct,
       active: isAct,
@@ -80,7 +83,7 @@ class VehicleTypeModel {
       isActive: false,
       active: false,
       graceTime: 10,
-      waitTime: 15,
+      waitTime: 2,
     ),
     VehicleTypeModel(
       id: '2',
@@ -92,21 +95,8 @@ class VehicleTypeModel {
       iconName: 'electric_rickshaw',
       isActive: true,
       active: true,
-      graceTime: 15,
-      waitTime: 30,
-    ),
-    VehicleTypeModel(
-      id: '3',
-      name: 'Mini 3 Wheeler',
-      capacity: '90 Kgs',
-      capacityKg: 90,
-      baseFare: 150,
-      dailyFee: 175,
-      iconName: 'electric_rickshaw',
-      isActive: true,
-      active: true,
-      graceTime: 15,
-      waitTime: 30,
+      graceTime: 50,
+      waitTime: 3,
     ),
     VehicleTypeModel(
       id: '4',
@@ -118,8 +108,8 @@ class VehicleTypeModel {
       iconName: 'local_shipping',
       isActive: true,
       active: true,
-      graceTime: 15,
-      waitTime: 45,
+      graceTime: 60,
+      waitTime: 3,
     ),
     VehicleTypeModel(
       id: '5',
@@ -131,8 +121,8 @@ class VehicleTypeModel {
       iconName: 'local_shipping',
       isActive: true,
       active: true,
-      graceTime: 20,
-      waitTime: 60,
+      graceTime: 90,
+      waitTime: 4,
     ),
     VehicleTypeModel(
       id: '6',
@@ -144,8 +134,8 @@ class VehicleTypeModel {
       iconName: 'local_shipping',
       isActive: true,
       active: true,
-      graceTime: 20,
-      waitTime: 60,
+      graceTime: 120,
+      waitTime: 5,
     ),
     VehicleTypeModel(
       id: '7',
@@ -157,8 +147,8 @@ class VehicleTypeModel {
       iconName: 'local_shipping',
       isActive: true,
       active: true,
-      graceTime: 20,
-      waitTime: 60,
+      graceTime: 120,
+      waitTime: 6,
     ),
   ];
 }

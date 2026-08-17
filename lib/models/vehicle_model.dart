@@ -7,6 +7,9 @@ class VehicleModel {
   final String? vehicleTypeId;
   final String? vehicleTypeName;
   final String? ownerName;
+  final String? bodyType;
+  final String? fuelType;
+  final String? cityOfOperation;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -19,6 +22,9 @@ class VehicleModel {
     this.vehicleTypeId,
     this.vehicleTypeName,
     this.ownerName,
+    this.bodyType,
+    this.fuelType,
+    this.cityOfOperation,
     this.createdAt,
     this.updatedAt,
   });
@@ -35,6 +41,9 @@ class VehicleModel {
       vehicleTypeId: json['vehicle_type_id']?.toString(),
       vehicleTypeName: json['vehicle_type'] as String?,
       ownerName: json['owner_name'] as String?,
+      bodyType: json['body_type'] as String?,
+      fuelType: json['fuel_type'] as String?,
+      cityOfOperation: json['city_of_operation'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
@@ -61,6 +70,15 @@ class VehicleModel {
     }
     if (vehicleTypeName != null && vehicleTypeName!.isNotEmpty) {
       data['vehicle_type'] = vehicleTypeName;
+    }
+    if (bodyType != null && bodyType!.isNotEmpty) {
+      data['body_type'] = bodyType;
+    }
+    if (fuelType != null && fuelType!.isNotEmpty) {
+      data['fuel_type'] = fuelType;
+    }
+    if (cityOfOperation != null && cityOfOperation!.isNotEmpty) {
+      data['city_of_operation'] = cityOfOperation;
     }
     return data;
   }

@@ -62,8 +62,8 @@ BEGIN
         SELECT COALESCE(vt.grace_time, 15), COALESCE(vt.waittime, 3.00)
         INTO v_grace_time, v_wait_fee
         FROM public.vehicles v
-        JOIN public.vehicle_types vt ON (v.vehicle_type_id = vt.id::text OR LOWER(v.vehicle_type) = LOWER(vt.name))
-        WHERE v.driver_id = NEW.driver_id
+        JOIN public.vehicle_types vt ON (v.vehicle_type_id::text = vt.id::text OR LOWER(v.vehicle_type) = LOWER(vt.name))
+        WHERE v.driver_id::text = NEW.driver_id::text
         LIMIT 1;
 
         -- Fallback defaults if vehicle query returns null

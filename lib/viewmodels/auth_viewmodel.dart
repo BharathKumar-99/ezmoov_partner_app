@@ -16,6 +16,7 @@ class AuthViewModel extends ChangeNotifier {
   final TextEditingController signupNameController = TextEditingController();
   final TextEditingController signupEmailController = TextEditingController();
   final TextEditingController signupPhoneController = TextEditingController();
+  final TextEditingController signupReferralCodeController = TextEditingController();
   
   String _otpCode = '';
   String get otpCode => _otpCode;
@@ -152,11 +153,14 @@ class AuthViewModel extends ChangeNotifier {
           }
         }
 
+        final referralInput = signupReferralCodeController.text.trim().toUpperCase();
+
         _signupDraftDriver = DriverModel(
           name: name,
           email: email,
           phone: formattedPhone,
           profilePicUrl: profileUrl,
+          referredByCode: referralInput.isNotEmpty ? referralInput : null,
         );
         _isLoginFlow = false;
         setLoading(false);
@@ -249,6 +253,18 @@ class AuthViewModel extends ChangeNotifier {
           setLoading(false);
           if (createdDriver.id != null) {
             FcmService.instance.saveUserFcmToken(createdDriver.id!);
+
+            // Auto-generate referral code for new driver
+            await _supabaseService.ensureDriverReferralCode(createdDriver);
+
+            // Redeem inviter's referral code if provided
+            if (_signupDraftDriver!.referredByCode != null &&
+                _signupDraftDriver!.referredByCode!.isNotEmpty) {
+              await _supabaseService.applyReferralCode(
+                driverId: createdDriver.id!,
+                referralCode: _signupDraftDriver!.referredByCode!,
+              );
+            }
           }
           if (context.mounted) {
             if (createdDriver.id != null) {

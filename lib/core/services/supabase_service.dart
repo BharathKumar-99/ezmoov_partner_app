@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/driver_model.dart';
@@ -193,7 +194,8 @@ class SupabaseService {
   }
 
   /// Save Vehicle details & update driver vehicle status, address and owner_name
-  Future<VehicleModel> saveVehicle(VehicleModel vehicle, {String? address}) async {
+  Future<VehicleModel> saveVehicle(VehicleModel vehicle,
+      {String? address}) async {
     try {
       final vehicleData = vehicle.toJson();
       if (vehicle.id == null) {
@@ -214,11 +216,15 @@ class SupabaseService {
       if (vehicle.ownerName != null && vehicle.ownerName!.isNotEmpty) {
         updateData['owner_name'] = vehicle.ownerName;
       }
-      if (vehicle.vehicleTypeName != null && vehicle.vehicleTypeName!.isNotEmpty) {
+      if (vehicle.vehicleTypeName != null &&
+          vehicle.vehicleTypeName!.isNotEmpty) {
         updateData['vehicle_type'] = vehicle.vehicleTypeName;
       }
 
-      await client.from('drivers').update(updateData).eq('id', vehicle.driverId);
+      await client
+          .from('drivers')
+          .update(updateData)
+          .eq('id', vehicle.driverId);
 
       return VehicleModel.fromJson(response);
     } catch (e) {
@@ -424,29 +430,132 @@ class SupabaseService {
   }
 
   /// Get booking details by ID
-  Future<BookingModel?> getBookingById(String bookingId) async {
+  Future<BookingModel?> getBookingById(String bookingId, {int? bookingIdx}) async {
     try {
-      final response = await client
-          .from('bookings')
-          .select()
-          .eq('id', bookingId)
-          .maybeSingle();
+      if (bookingIdx != null) {
+        final res = await client
+            .from('bookings')
+            .select()
+            .eq('idx', bookingIdx)
+            .maybeSingle();
+        if (res != null) return BookingModel.fromJson(res);
+      }
 
-      if (response == null) return null;
-      return BookingModel.fromJson(response);
+      final parsedInt = int.tryParse(bookingId.trim());
+      if (parsedInt != null) {
+        try {
+          final res = await client
+              .from('bookings')
+              .select()
+              .eq('id', parsedInt)
+              .maybeSingle();
+          if (res != null) return BookingModel.fromJson(res);
+        } catch (_) {}
+        try {
+          final res = await client
+              .from('bookings')
+              .select()
+              .eq('idx', parsedInt)
+              .maybeSingle();
+          if (res != null) return BookingModel.fromJson(res);
+        } catch (_) {}
+      }
+
+      try {
+        final res = await client
+            .from('bookings')
+            .select()
+            .eq('id', bookingId.trim())
+            .maybeSingle();
+        if (res != null) return BookingModel.fromJson(res);
+      } catch (err) {
+        if (err.toString().contains('42883') || err.toString().contains('operator')) {
+          final digitsOnly = bookingId.replaceAll(RegExp(r'\D'), '');
+          final extractedInt = int.tryParse(digitsOnly);
+          if (extractedInt != null) {
+            try {
+              final res = await client
+                  .from('bookings')
+                  .select()
+                  .eq('id', extractedInt)
+                  .maybeSingle();
+              if (res != null) return BookingModel.fromJson(res);
+            } catch (_) {}
+            try {
+              final res = await client
+                  .from('bookings')
+                  .select()
+                  .eq('idx', extractedInt)
+                  .maybeSingle();
+              if (res != null) return BookingModel.fromJson(res);
+            } catch (_) {}
+          }
+        }
+      }
+
+      return null;
     } catch (e) {
       debugPrint('Error getting booking by id: $e');
       return null;
     }
   }
 
-  /// Update booking status in Supabase (e.g., 'arrived', 'in_transit', 'completed', 'cancelled')
-  Future<void> updateBookingStatus(String bookingId, String status) async {
+  /// Universal robust helper to update booking columns without Postgrest type mismatches (e.g. integer = text 42883)
+  Future<void> _updateBookingField({
+    required String bookingId,
+    required Map<String, dynamic> updateData,
+    int? bookingIdx,
+  }) async {
+    if (bookingIdx != null) {
+      await client.from('bookings').update(updateData).eq('idx', bookingIdx);
+      return;
+    }
+
+    final parsedInt = int.tryParse(bookingId.trim());
+    if (parsedInt != null) {
+      try {
+        await client.from('bookings').update(updateData).eq('id', parsedInt);
+        return;
+      } catch (_) {}
+      try {
+        await client.from('bookings').update(updateData).eq('idx', parsedInt);
+        return;
+      } catch (_) {}
+    }
+
     try {
-      await client.from('bookings').update({
-        'status': status,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', bookingId);
+      await client.from('bookings').update(updateData).eq('id', bookingId.trim());
+      return;
+    } catch (err) {
+      if (err.toString().contains('42883') || err.toString().contains('operator')) {
+        final digitsOnly = bookingId.replaceAll(RegExp(r'\D'), '');
+        final extractedInt = int.tryParse(digitsOnly);
+        if (extractedInt != null) {
+          try {
+            await client.from('bookings').update(updateData).eq('id', extractedInt);
+            return;
+          } catch (_) {}
+          try {
+            await client.from('bookings').update(updateData).eq('idx', extractedInt);
+            return;
+          } catch (_) {}
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// Update booking status in Supabase (e.g., 'arrived', 'in_transit', 'completed', 'cancelled')
+  Future<void> updateBookingStatus(String bookingId, String status, {int? bookingIdx}) async {
+    try {
+      await _updateBookingField(
+        bookingId: bookingId,
+        bookingIdx: bookingIdx,
+        updateData: {
+          'status': status,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
     } catch (e) {
       debugPrint('Error updating booking status: $e');
       rethrow;
@@ -454,12 +563,16 @@ class SupabaseService {
   }
 
   /// Update booking pickup photo URL
-  Future<void> updateBookingPickupUrl(String bookingId, String pickupUrl) async {
+  Future<void> updateBookingPickupUrl(String bookingId, String pickupUrl, {int? bookingIdx}) async {
     try {
-      await client.from('bookings').update({
-        'pickup_url': pickupUrl,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', bookingId);
+      await _updateBookingField(
+        bookingId: bookingId,
+        bookingIdx: bookingIdx,
+        updateData: {
+          'pickup_url': pickupUrl,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
     } catch (e) {
       debugPrint('Error updating booking pickup url: $e');
       rethrow;
@@ -472,9 +585,11 @@ class SupabaseService {
     required String driverId,
   }) async {
     try {
+      final dynamic targetBookingId =
+          int.tryParse(bookingId.trim()) ?? bookingId.trim();
       final response = await client.rpc(
         'accept_booking_request',
-        params: {'p_booking_id': bookingId, 'p_driver_id': driverId},
+        params: {'p_booking_id': targetBookingId, 'p_driver_id': driverId},
       );
       if (response is Map) {
         return Map<String, dynamic>.from(response);
@@ -538,7 +653,8 @@ class SupabaseService {
           await client.storage.from('documents').upload(
                 storagePath,
                 file,
-                fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+                fileOptions:
+                    const FileOptions(cacheControl: '3600', upsert: true),
               );
           return client.storage.from('documents').getPublicUrl(storagePath);
         } catch (fallbackErr) {
@@ -589,13 +705,18 @@ class SupabaseService {
   Future<void> cancelBookingWithReason({
     required String bookingId,
     required String reason,
+    int? bookingIdx,
   }) async {
     try {
-      await client.from('bookings').update({
-        'status': 'cancelled',
-        'cancellation_reason': reason,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', bookingId);
+      await _updateBookingField(
+        bookingId: bookingId,
+        bookingIdx: bookingIdx,
+        updateData: {
+          'status': 'cancelled',
+          'cancellation_reason': reason,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
     } catch (e) {
       debugPrint('Error cancelling booking with reason: $e');
       rethrow;
@@ -606,6 +727,7 @@ class SupabaseService {
   Future<String> uploadPickupImage({
     required String bookingId,
     required File file,
+    int? bookingIdx,
   }) async {
     try {
       final fileName =
@@ -621,10 +743,14 @@ class SupabaseService {
       final publicUrl =
           client.storage.from('documents').getPublicUrl(storagePath);
 
-      await client.from('bookings').update({
-        'pickup_url': publicUrl,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', bookingId);
+      await _updateBookingField(
+        bookingId: bookingId,
+        bookingIdx: bookingIdx,
+        updateData: {
+          'pickup_url': publicUrl,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
 
       return publicUrl;
     } catch (e) {
@@ -637,6 +763,7 @@ class SupabaseService {
   Future<String> uploadPodImage({
     required String bookingId,
     required File file,
+    int? bookingIdx,
   }) async {
     try {
       final fileName =
@@ -652,10 +779,14 @@ class SupabaseService {
       final publicUrl =
           client.storage.from('documents').getPublicUrl(storagePath);
 
-      await client.from('bookings').update({
-        'pod_url': publicUrl,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', bookingId);
+      await _updateBookingField(
+        bookingId: bookingId,
+        bookingIdx: bookingIdx,
+        updateData: {
+          'pod_url': publicUrl,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
 
       return publicUrl;
     } catch (e) {
@@ -668,9 +799,10 @@ class SupabaseService {
   Future<void> saveDriverCharges({
     required String bookingId,
     required Map<String, dynamic> driverCharges,
+    int? bookingIdx,
   }) async {
     try {
-      final currentBooking = await getBookingById(bookingId);
+      final currentBooking = await getBookingById(bookingId, bookingIdx: bookingIdx);
       Map<String, dynamic> amountMap = {};
 
       if (currentBooking?.amount != null) {
@@ -681,11 +813,14 @@ class SupabaseService {
       amountMap['driver_charges'] = driverCharges;
       amountMap['total_price'] += driverCharges.values.reduce((a, b) => a + b);
 
-      // Save updated amount map to public.bookings
-      await client.from('bookings').update({
-        'amount': amountMap,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', bookingId);
+      await _updateBookingField(
+        bookingId: bookingId,
+        bookingIdx: bookingIdx,
+        updateData: {
+          'amount': amountMap,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
 
       debugPrint(
           '✅ Successfully saved driver_charges to booking #$bookingId: $amountMap');
@@ -966,6 +1101,210 @@ class SupabaseService {
     } catch (e) {
       debugPrint('Notice fetching driver notifications: $e');
       return [];
+    }
+  }
+
+  /// Ensure driver has a unique random alphanumeric referral code generated and stored in database
+  Future<String> ensureDriverReferralCode(DriverModel driver) async {
+    if (driver.referralCode != null && driver.referralCode!.isNotEmpty) {
+      return driver.referralCode!;
+    }
+    if (driver.id == null || driver.id!.isEmpty) return '';
+
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final random = math.Random();
+
+    for (int attempt = 0; attempt < 5; attempt++) {
+      final randomSuffix = String.fromCharCodes(
+        Iterable.generate(
+          4,
+          (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+        ),
+      );
+      final generatedCode = 'EZM$randomSuffix';
+
+      try {
+        await client
+            .from('drivers')
+            .update({'referral_code': generatedCode}).eq('id', driver.id!);
+
+        return generatedCode;
+      } catch (e) {
+        debugPrint(
+            'Collision on referral code $generatedCode, retrying... ($e)');
+      }
+    }
+    return '';
+  }
+
+  /// Redeem / Apply a Referral Code for a Driver
+  Future<Map<String, dynamic>> applyReferralCode({
+    required String driverId,
+    required String referralCode,
+  }) async {
+    try {
+      final cleanCode = referralCode.trim().toUpperCase();
+      if (cleanCode.isEmpty) {
+        return {'success': false, 'message': 'Please enter a referral code'};
+      }
+
+      final currentDriver = await getDriverById(driverId);
+      if (currentDriver == null) {
+        return {'success': false, 'message': 'Driver profile not found'};
+      }
+
+      if (currentDriver.referredByCode != null &&
+          currentDriver.referredByCode!.isNotEmpty) {
+        return {
+          'success': false,
+          'message': 'You have already redeemed a referral code'
+        };
+      }
+
+      if (currentDriver.referralCode?.toUpperCase() == cleanCode) {
+        return {
+          'success': false,
+          'message': 'You cannot use your own referral code'
+        };
+      }
+
+      final referrerResp = await client
+          .from('drivers')
+          .select()
+          .ilike('referral_code', cleanCode)
+          .maybeSingle();
+
+      if (referrerResp == null) {
+        return {
+          'success': false,
+          'message': 'Invalid referral code. Please check and try again.'
+        };
+      }
+
+      final referrerId = referrerResp['id']?.toString() ?? '';
+      if (referrerId == driverId) {
+        return {
+          'success': false,
+          'message': 'You cannot use your own referral code'
+        };
+      }
+
+      // 1. Update referred_by_code in drivers table (This automatically fires Postgres Trigger #1)
+      await client
+          .from('drivers')
+          .update({'referred_by_code': cleanCode}).eq('id', driverId);
+
+      const rewardAmount = 25.0;
+      final isVerified = currentDriver.isFullyVerified;
+
+      // 2. Ensure referral record exists in referrals table
+      final existingRef = await client
+          .from('referrals')
+          .select()
+          .eq('referred_driver_id', driverId)
+          .maybeSingle();
+
+      if (existingRef == null) {
+        try {
+          await client.from('referrals').insert({
+            'referrer_driver_id': referrerId,
+            'referred_driver_id': driverId,
+            'referral_code': cleanCode,
+            'status': isVerified ? 'completed' : 'pending',
+            'reward_amount': rewardAmount,
+            if (isVerified) 'completed_at': DateTime.now().toIso8601String(),
+          });
+        } catch (err) {
+          debugPrint('Notice: referrals row inserted via DB trigger: $err');
+        }
+      }
+
+      // 3. If driver is already verified, credit referrer's wallet immediately
+      if (isVerified) {
+        final wallet = await getDriverWallet(referrerId);
+        if (wallet != null) {
+          final newBalance = wallet.balance + rewardAmount;
+          await client.from('driver_wallets').update({
+            'balance': newBalance,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('driver_id', referrerId);
+        } else {
+          await client.from('driver_wallets').insert({
+            'driver_id': referrerId,
+            'balance': rewardAmount,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          });
+        }
+
+        // Record transaction log for Referrer
+        try {
+          await client.from('wallet_transactions').insert({
+            'driver_id': referrerId,
+            'type': 'referral_bonus',
+            'amount': rewardAmount,
+            'description':
+                'Referral Bonus for inviting partner (${currentDriver.name})',
+            'created_at': DateTime.now().toIso8601String(),
+          });
+        } catch (_) {}
+      }
+
+      return {
+        'success': true,
+        'message': isVerified
+            ? '🎉 Referral Code applied! ₹25 bonus rewarded.'
+            : '🎉 Referral Code applied! Bonus will be rewarded once driver is verified.'
+      };
+    } catch (e) {
+      debugPrint('Error applying referral code: $e');
+      return {'success': false, 'message': 'Failed to apply referral code: $e'};
+    }
+  }
+
+  /// Get list of referred partners for driver
+  Future<List<Map<String, dynamic>>> getDriverReferrals(String driverId) async {
+    try {
+      // Explicitly specify foreign key constraint !referred_driver_id to resolve PostgREST ambiguity
+      final response = await client
+          .from('referrals')
+          .select(
+              '*, referred_driver:drivers!referred_driver_id(name, phone, is_verified)')
+          .eq('referrer_driver_id', driverId)
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('Notice fetching driver referrals joined query: $e');
+      // Fallback query if joined relation fails
+      try {
+        final rawRefs = await client
+            .from('referrals')
+            .select()
+            .eq('referrer_driver_id', driverId)
+            .order('created_at', ascending: false);
+
+        final resultList = <Map<String, dynamic>>[];
+        for (final ref in rawRefs) {
+          final refMap = Map<String, dynamic>.from(ref);
+          final referredId = refMap['referred_driver_id']?.toString() ?? '';
+          if (referredId.isNotEmpty) {
+            final drv = await getDriverById(referredId);
+            if (drv != null) {
+              refMap['referred_driver'] = {
+                'name': drv.name,
+                'phone': drv.phone,
+                'is_verified': drv.isFullyVerified,
+              };
+            }
+          }
+          resultList.add(refMap);
+        }
+        return resultList;
+      } catch (err) {
+        debugPrint('Fallback fetching referrals failed: $err');
+        return [];
+      }
     }
   }
 }

@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/supabase_service.dart';
 import '../../models/booking_model.dart';
+import '../../models/intermediate_stop_model.dart';
 import '../../viewmodels/ride_request_viewmodel.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../viewmodels/home_viewmodel.dart';
@@ -49,7 +50,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (!mounted) return;
       final updatedBooking =
-          await SupabaseService.instance.getBookingById(widget.bookingId);
+          await SupabaseService.instance.getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
       if (!mounted) return;
       if (updatedBooking != null) {
         if (updatedBooking.status == 'cancelled') {
@@ -81,7 +82,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
   Future<void> _loadBookingDetails() async {
     final booking =
-        await SupabaseService.instance.getBookingById(widget.bookingId);
+        await SupabaseService.instance.getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
     if (mounted) {
       if (booking?.status == 'cancelled') {
         context.read<RideRequestViewModel>().clearActiveDriverTrip();
@@ -190,11 +191,22 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     required double lat,
     required double lng,
     required String fallbackAddress,
+    List<IntermediateStopModel>? waypoints,
   }) async {
     Uri url;
     if (lat != 0.0 && lng != 0.0) {
+      String waypointsParam = '';
+      if (waypoints != null && waypoints.isNotEmpty) {
+        final validWaypoints = waypoints
+            .where((w) => w.latitude != 0.0 && w.longitude != 0.0)
+            .map((w) => '${w.latitude},${w.longitude}')
+            .join('|');
+        if (validWaypoints.isNotEmpty) {
+          waypointsParam = '&waypoints=${Uri.encodeComponent(validWaypoints)}';
+        }
+      }
       url = Uri.parse(
-          'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving');
+          'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng$waypointsParam&travelmode=driving');
     } else if (fallbackAddress.isNotEmpty) {
       final encoded = Uri.encodeComponent(fallbackAddress);
       url = Uri.parse(
@@ -228,6 +240,91 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     }
   }
 
+  void _showFareBreakdownModal() {
+    final booking = _booking;
+    if (booking == null) return;
+
+    final amountMap = booking.amount ?? {};
+    final baseFare = (amountMap['base_fare'] ?? booking.baseFare ?? 0.0).toDouble();
+    final distanceCharges = (amountMap['distance_charges'] ?? booking.distanceCharges ?? 0.0).toDouble();
+    final stopsCharge = (amountMap['stops_charge'] ?? booking.stopsCharge ?? (booking.stopsCount * 25.0)).toDouble();
+    final totalPrice = (amountMap['total_price'] ?? booking.fare ?? 0.0).toDouble();
+
+    final calcBaseFare = baseFare > 0
+        ? baseFare
+        : (totalPrice > 0 ? (totalPrice - distanceCharges - stopsCharge) : 0.0);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'TRIP FARE BREAKDOWN',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _FareItemRow(label: 'Base Fare (Includes 1st KM)', amount: calcBaseFare > 0 ? calcBaseFare : 0.0),
+              const SizedBox(height: 10),
+              _FareItemRow(label: 'Distance Charges (beyond 1 KM)', amount: distanceCharges),
+              const SizedBox(height: 10),
+              _FareItemRow(
+                label: 'Stops Charge (${booking.stopsCount} stop${booking.stopsCount != 1 ? 's' : ''} @ ₹25 each)',
+                amount: stopsCharge,
+                isHighlight: booking.hasStops,
+              ),
+              const SizedBox(height: 10),
+              const _FareItemRow(label: 'Taxes & GST', amount: 0.0, isZero: true),
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Trip Fare', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  Text('₹ ${totalPrice.toStringAsFixed(2)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () => Navigator.pop(modalContext),
+                  child: const Text('CLOSE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _updateStatus(String newStatus, String successMessage) async {
     if (_isUpdatingStatus) return;
 
@@ -237,9 +334,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
     try {
       await SupabaseService.instance
-          .updateBookingStatus(widget.bookingId, newStatus);
+          .updateBookingStatus(widget.bookingId, newStatus, bookingIdx: _booking?.idx);
       final reloadedBooking =
-          await SupabaseService.instance.getBookingById(widget.bookingId);
+          await SupabaseService.instance.getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
 
       if (mounted) {
         setState(() {
@@ -986,6 +1083,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         await SupabaseService.instance.updateBookingPickupUrl(
                           widget.bookingId,
                           pickupUrl,
+                          bookingIdx: _booking?.idx,
                         );
 
                         if (modalContext.mounted) {
@@ -1306,12 +1404,14 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           await SupabaseService.instance.saveDriverCharges(
                             bookingId: widget.bookingId,
                             driverCharges: _driverExtraCharges,
+                            bookingIdx: _booking?.idx,
                           );
                         }
 
                         await SupabaseService.instance.uploadPodImage(
                           bookingId: widget.bookingId,
                           file: _podImageFile!,
+                          bookingIdx: _booking?.idx,
                         );
                       } catch (e) {
                         debugPrint('Notice uploading POD photo/charges: $e');
@@ -1850,7 +1950,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                         const SizedBox(height: 16),
 
-                        // Route (Pickup & Drop) with dedicated GMaps buttons
+                        // Route Timeline (Pickup, Intermediate Stops, Drop) with dedicated GMaps buttons
                         Row(
                           children: [
                             const Icon(Icons.circle,
@@ -1877,6 +1977,63 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             ),
                           ],
                         ),
+
+                        // Intermediate Stops Loop
+                        if (_booking != null && _booking!.hasStops)
+                          ..._booking!.effectiveIntermediateStops.asMap().entries.map((entry) {
+                            final idx = entry.key + 1;
+                            final stop = entry.value;
+                            return Column(
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(left: 5, top: 2, bottom: 2),
+                                  height: 20,
+                                  width: 2,
+                                  color: Colors.amber.shade700,
+                                ),
+                                Row(
+                                  children: [
+                                    Icon(Icons.stop_circle_outlined,
+                                        color: Colors.amber.shade800, size: 14),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'STOP $idx (+₹25)',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.amber.shade900,
+                                            ),
+                                          ),
+                                          Text(
+                                            stop.address.isNotEmpty
+                                                ? stop.address
+                                                : 'Intermediate Stop $idx',
+                                            style: const TextStyle(
+                                                fontSize: 13, fontWeight: FontWeight.w600),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Navigate to Stop $idx in GMaps',
+                                      icon: const Icon(Icons.directions_outlined,
+                                          color: Color(0xFFD97706)),
+                                      onPressed: () => _openGoogleMaps(
+                                        lat: stop.latitude,
+                                        lng: stop.longitude,
+                                        fallbackAddress: stop.address,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }),
+
                         Container(
                           margin:
                               const EdgeInsets.only(left: 5, top: 2, bottom: 2),
@@ -1918,16 +2075,37 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'Total Delivery Fare:',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.textSecondary),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Total Delivery Fare:',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textSecondary),
+                                  ),
+                                  InkWell(
+                                    onTap: _showFareBreakdownModal,
+                                    child: const Row(
+                                      children: [
+                                        Text(
+                                          'View Fare Breakdown',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        Icon(Icons.chevron_right_rounded, size: 14, color: AppColors.primary),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                               Text(
-                                '₹ ${_booking!.amount?['total_price'].toStringAsFixed(2)}',
+                                '₹ ${(_booking!.amount?['total_price'] ?? _booking!.fare ?? 0.0).toStringAsFixed(2)}',
                                 style: const TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryDark,
                                 ),
@@ -2051,6 +2229,49 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                 ],
               ),
             ),
+    );
+  }
+}
+
+class _FareItemRow extends StatelessWidget {
+  final String label;
+  final double amount;
+  final bool isHighlight;
+  final bool isZero;
+
+  const _FareItemRow({
+    required this.label,
+    required this.amount,
+    this.isHighlight = false,
+    this.isZero = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: isHighlight ? const Color(0xFFB45309) : AppColors.textSecondary,
+              fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
+        ),
+        Text(
+          isZero ? '₹ 0.00' : '₹ ${amount.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isHighlight
+                ? const Color(0xFFD97706)
+                : (isZero ? AppColors.textMuted : AppColors.textPrimary),
+          ),
+        ),
+      ],
     );
   }
 }

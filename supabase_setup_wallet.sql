@@ -516,18 +516,18 @@ BEGIN
         IF v_final_earning > 0 THEN
             -- Ensure driver wallet exists
             INSERT INTO public.driver_wallets (driver_id, balance) 
-            VALUES (NEW.driver_id, 0.00) 
+            VALUES (NEW.driver_id::uuid, 0.00) 
             ON CONFLICT (driver_id) DO NOTHING;
 
             -- Credit full trip fare directly to driver wallet
             UPDATE public.driver_wallets
             SET balance = balance + v_final_earning, updated_at = now()
-            WHERE driver_id = NEW.driver_id;
+            WHERE driver_id::text = NEW.driver_id::text;
 
             -- Record credit transaction in wallet_transactions
             INSERT INTO public.wallet_transactions (driver_id, amount, type, description, reference_id)
             VALUES (
-                NEW.driver_id, 
+                NEW.driver_id::uuid, 
                 v_final_earning, 
                 'earning_credit', 
                 'Trip Earning Credit (' || COALESCE(NEW.pickup_address, 'Booking #' || SUBSTRING(NEW.id::text, 1, 8)) || ')',
@@ -537,7 +537,7 @@ BEGIN
             -- Add earnings notification to driver
             INSERT INTO public.driver_notifications (driver_id, title, message, type)
             VALUES (
-                NEW.driver_id,
+                NEW.driver_id::uuid,
                 'Trip Earnings Credited 💰',
                 '₹' || v_final_earning || ' earned from completed trip has been credited to your wallet.',
                 'wallet_credit'

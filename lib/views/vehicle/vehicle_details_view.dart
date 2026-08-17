@@ -1,9 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../models/vehicle_type_model.dart';
 import '../../viewmodels/vehicle_viewmodel.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/gradient_button.dart';
@@ -74,6 +73,114 @@ class VehicleDetailsView extends StatelessWidget {
     );
   }
 
+  void _showBodyDetailsPicker(BuildContext context, VehicleViewModel vm) {
+    String tempSelection = vm.selectedBodyDetail;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.border,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Select Vehicle Body Details',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...vm.bodyDetailOptions.map((option) {
+                    final isSelected = tempSelection == option;
+                    return InkWell(
+                      onTap: () {
+                        setModalState(() {
+                          tempSelection = option;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: 0.08)
+                              : AppColors.background,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.border,
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              option,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? AppColors.primaryDark
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 24),
+                  GradientButton(
+                    text: 'Continue',
+                    onPressed: () {
+                      vm.selectBodyDetail(tempSelection);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,32 +188,22 @@ class VehicleDetailsView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Vehicle Details'),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.headset_mic_outlined),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: SafeArea(
         child: Consumer<VehicleViewModel>(
           builder: (context, vm, child) {
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Vehicle Registration',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Select vehicle catalog specifications and provide registration details.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                  // Form Card Container
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -124,310 +221,418 @@ class VehicleDetailsView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'VEHICLE SPECIFICATIONS',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textMuted,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 1. Vehicle Type Dropdown
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Vehicle Type',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            DropdownButtonFormField<VehicleTypeModel>(
-                              initialValue: vm.selectedVehicleType,
-                              isExpanded: true,
-                              itemHeight: 58.0,
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(
-                                  Icons.local_shipping_rounded,
-                                  color: AppColors.primary,
-                                  size: 20,
-                                ),
-                                hintText: 'Select Vehicle Type',
-                                hintStyle: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 14,
-                                ),
-                                filled: true,
-                                fillColor: AppColors.background,
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: AppColors.border),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: AppColors.border),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(
-                                      color: AppColors.primary, width: 2),
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: AppColors.textMuted,
-                              ),
-                              dropdownColor: AppColors.surface,
-                              selectedItemBuilder: (BuildContext context) {
-                                return vm.vehicleTypes.map<Widget>((vType) {
-                                  return Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '${vType.name} (${vType.capacity})',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList();
-                              },
-                              items: vm.vehicleTypes.map((vType) {
-                                return DropdownMenuItem<VehicleTypeModel>(
-                                  value: vType,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 2),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary.withValues(alpha: 0.1),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(
-                                            _getVehicleIcon(vType.iconName.isEmpty ? vType.name : vType.iconName),
-                                            color: AppColors.primary,
-                                            size: 18,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '${vType.name} (${vType.capacity})',
-                                                style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.textPrimary,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                'Base: ₹${vType.baseFare.toStringAsFixed(0)} • Daily Fee: ₹${vType.dailyFee.toStringAsFixed(0)} / 24h',
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  color: AppColors.textSecondary,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (val) => vm.selectVehicleType(val),
-                            ),
-                          ],
-                        ),
-
-                        // Selected Vehicle Type info badge
-                        if (vm.selectedVehicleType != null) ...[
-                          const SizedBox(height: 18),
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      vm.selectedVehicleType!.name,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Payload: ${vm.selectedVehicleType!.capacity}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      'Base Fare: ₹${vm.selectedVehicleType!.baseFare.toStringAsFixed(0)}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryDark,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Daily Fee: ₹${vm.selectedVehicleType!.dailyFee.toStringAsFixed(0)} / 24 hrs',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-
-                        const SizedBox(height: 24),
-                        const Divider(height: 1),
-                        const SizedBox(height: 24),
-
-                        // Driver Full Address
+                        // 1. Full Operational Address
                         CustomTextField(
                           controller: vm.addressController,
-                          label: 'Full Operational Address',
+                          label: 'Full Operational Address *',
                           hint: 'House No, Street, City, State - Pincode',
                           prefixIcon: Icons.home_work_rounded,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
-                        // Registration Number
+                        // 2. Vehicle Registration Number
                         CustomTextField(
                           controller: vm.vehicleNumberController,
-                          label: 'Vehicle Registration Number',
-                          hint: 'TS 01 AB 1234',
+                          label: 'Vehicle Registration Number *',
+                          hint: 'TS10FD8547',
                           prefixIcon: Icons.directions_car_filled_rounded,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
-                        // Vehicle Owner Name (Optional)
+                        // 3. Vehicle Owner Name (Optional)
                         CustomTextField(
                           controller: vm.ownerNameController,
                           label: 'Vehicle Owner Name (Optional)',
                           hint: 'Enter owner name if vehicle is registered to someone else',
                           prefixIcon: Icons.person_outline_rounded,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
-                        // TC / Permit / RC Number
+                        // 4. TC / RC Permit Number
                         CustomTextField(
                           controller: vm.rcNumberController,
-                          label: 'TC / RC Permit Number',
+                          label: 'TC / RC Permit Number *',
                           hint: 'TC9876543210',
                           prefixIcon: Icons.badge_outlined,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 18),
 
+                        // 5. Upload RC Image Container Card
                         const Text(
-                          'Upload Registration Certificate (RC) Photo',
+                          'Upload RC Picture *',
                           style: TextStyle(
-                            color: AppColors.textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 10),
-
-                        InkWell(
-                          onTap: () => _showImagePicker(context, vm),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            width: double.infinity,
-                            height: 140,
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: vm.rcPicPath != null
-                                    ? AppColors.primary
-                                    : AppColors.border,
-                                width: vm.rcPicPath != null ? 2 : 1,
-                              ),
-                            ),
-                            child: vm.rcPicPath != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(13),
-                                    child: Image.file(
-                                      File(vm.rcPicPath!),
-                                      fit: BoxFit.cover,
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Vehicle RC Photo',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary,
                                     ),
-                                  )
-                                : const Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
                                     children: [
                                       Icon(
-                                        Icons.add_a_photo_outlined,
-                                        color: AppColors.primary,
-                                        size: 36,
+                                        vm.rcPicPath != null
+                                            ? Icons.cloud_done_rounded
+                                            : Icons.cloud_upload_outlined,
+                                        size: 18,
+                                        color: vm.rcPicPath != null
+                                            ? AppColors.primary
+                                            : AppColors.textMuted,
                                       ),
-                                      SizedBox(height: 8),
+                                      const SizedBox(width: 6),
                                       Text(
-                                        'Tap to attach clear photo of RC',
+                                        vm.rcPicPath != null
+                                            ? 'Uploaded'
+                                            : 'Tap to attach clear photo of RC',
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.w500,
+                                          fontWeight: vm.rcPicPath != null
+                                              ? FontWeight.bold
+                                              : FontWeight.w500,
+                                          color: vm.rcPicPath != null
+                                              ? AppColors.primary
+                                              : AppColors.textSecondary,
                                         ),
                                       ),
                                     ],
                                   ),
+                                ],
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit_rounded,
+                                    color: AppColors.primary),
+                                onPressed: () =>
+                                    _showImagePicker(context, vm),
+                              ),
+                            ],
                           ),
                         ),
+                        const SizedBox(height: 18),
 
-                        const SizedBox(height: 32),
-                        GradientButton(
-                          text: 'Save & Continue',
-                          isLoading: vm.isLoading,
-                          icon: Icons.arrow_forward_rounded,
-                          onPressed: () =>
-                              vm.submitVehicleDetails(context, driverId),
+                        // 6. Select the City of Operation (Only Hyderabad)
+                        const Text(
+                          'Select the city of operation',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          initialValue: 'Hyderabad',
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(
+                              Icons.location_city_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                            filled: true,
+                            fillColor: AppColors.background,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide:
+                                  const BorderSide(color: AppColors.border),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide:
+                                  const BorderSide(color: AppColors.border),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                  color: AppColors.primary, width: 2),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: AppColors.textMuted,
+                          ),
+                          dropdownColor: AppColors.surface,
+                          items: const [
+                            DropdownMenuItem<String>(
+                              value: 'Hyderabad',
+                              child: Text(
+                                'Hyderabad',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) vm.selectCity(val);
+                          },
+                        ),
+                        const SizedBox(height: 18),
+
+                        // 7. Select Vehicle Type (Truck & 3W)
+                        const Text(
+                          'Select Vehicle Type',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        if (vm.selectedCategory == null) ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildCategoryCard(
+                                  title: 'Truck',
+                                  icon: Icons.local_shipping_rounded,
+                                  isSelected: false,
+                                  onTap: () => vm.selectCategory('Truck'),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildCategoryCard(
+                                  title: '3W',
+                                  icon: Icons.electric_rickshaw_rounded,
+                                  isSelected: false,
+                                  onTap: () => vm.selectCategory('3W'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      vm.selectedCategory == 'Truck'
+                                          ? Icons.local_shipping_rounded
+                                          : Icons.electric_rickshaw_rounded,
+                                      color: AppColors.primary,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      vm.selectedCategory == 'Truck'
+                                          ? 'Truck'
+                                          : '3W',
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_rounded,
+                                      color: AppColors.primary),
+                                  onPressed: () {
+                                    vm.selectCategory(
+                                        vm.selectedCategory == 'Truck'
+                                            ? '3W'
+                                            : 'Truck');
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        // Additional fields when vehicle category is selected
+                        if (vm.selectedCategory != null) ...[
+                          const SizedBox(height: 18),
+
+                          // 8. Vehicle Body Details (For Truck)
+                          if (vm.selectedCategory == 'Truck') ...[
+                            const Text(
+                              'Select Vehicle Body Details',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            InkWell(
+                              onTap: () =>
+                                  _showBodyDetailsPicker(context, vm),
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: AppColors.background,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: AppColors.border),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      vm.selectedBodyDetail,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const Icon(Icons.edit_rounded,
+                                        color: AppColors.primary),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                          ],
+
+                          // 9. Vehicle Body Type Selection (Open / Closed)
+                          const Text(
+                            'Select the vehicle body type',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildBodyTypeCard(
+                                  title: 'Open',
+                                  icon: FontAwesomeIcons.truckPickup,
+                                  isSelected: vm.selectedBodyType == 'Open',
+                                  onTap: () => vm.selectBodyType('Open'),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildBodyTypeCard(
+                                  title: 'Closed',
+                                  icon: FontAwesomeIcons.truck,
+                                  isSelected: vm.selectedBodyType == 'Closed',
+                                  onTap: () => vm.selectBodyType('Closed'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+
+                          // 10. Vehicle Fuel Type Selection Dropdown
+                          const Text(
+                            'Select the vehicle fuel type',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            initialValue: vm.selectedFuelType,
+                            isExpanded: true,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(
+                                Icons.local_gas_station_rounded,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
+                              filled: true,
+                              fillColor: AppColors.background,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 14),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide:
+                                    const BorderSide(color: AppColors.border),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide:
+                                    const BorderSide(color: AppColors.border),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primary, width: 2),
+                              ),
+                            ),
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.textMuted,
+                            ),
+                            dropdownColor: AppColors.surface,
+                            items: vm.fuelTypes.map((fuel) {
+                              return DropdownMenuItem<String>(
+                                value: fuel,
+                                child: Text(
+                                  fuel,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              if (val != null) vm.selectFuelType(val);
+                            },
+                          ),
+                        ],
                       ],
                     ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Gradient Submit Button
+                  GradientButton(
+                    text: 'Save & Continue',
+                    isLoading: vm.isLoading,
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: () =>
+                        vm.submitVehicleDetails(context, driverId),
                   ),
                 ],
               ),
@@ -438,24 +643,96 @@ class VehicleDetailsView extends StatelessWidget {
     );
   }
 
-  IconData _getVehicleIcon(String name) {
-    switch (name.toLowerCase()) {
-      case 'two_wheeler':
-      case '2 wheeler':
-        return Icons.two_wheeler_rounded;
-      case 'electric_rickshaw':
-      case '3 wheeler':
-      case 'mini 3 wheeler':
-        return Icons.electric_rickshaw_rounded;
-      case 'directions_bus':
-        return Icons.directions_bus_rounded;
-      case 'fire_truck':
-        return Icons.fire_truck_rounded;
-      case 'agriculture':
-        return Icons.agriculture_rounded;
-      case 'local_shipping':
-      default:
-        return Icons.local_shipping_rounded;
-    }
+  Widget _buildCategoryCard({
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 32,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBodyTypeCard({
+    required String title,
+    required dynamic icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            FaIcon(
+              icon,
+              size: 24,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

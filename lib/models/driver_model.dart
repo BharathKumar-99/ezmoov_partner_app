@@ -22,6 +22,8 @@ class DriverModel {
   final DateTime? updatedAt;
 
   final String? address;
+  final String? referralCode;
+  final String? referredByCode;
 
   DriverModel({
     this.id,
@@ -32,6 +34,8 @@ class DriverModel {
     this.selfieWithVehicleUrl,
     this.ownerName,
     this.address,
+    this.referralCode,
+    this.referredByCode,
     this.vehicleType,
     this.vehicleNumber,
     this.isOnline = false,
@@ -84,6 +88,8 @@ class DriverModel {
       selfieWithVehicleUrl: json['selfie_with_vehicle_url'] as String?,
       ownerName: json['owner_name'] as String?,
       address: json['address'] as String?,
+      referralCode: json['referral_code'] as String?,
+      referredByCode: json['referred_by_code'] as String?,
       vehicleType: json['vehicle_type'] as String?,
       vehicleNumber: json['vehicle_number'] as String?,
       isOnline: json['is_online'] as bool? ?? false,
@@ -115,6 +121,8 @@ class DriverModel {
       'selfie_with_vehicle_url': selfieWithVehicleUrl,
       'owner_name': ownerName,
       if (address != null) 'address': address,
+      if (referralCode != null) 'referral_code': referralCode,
+      if (referredByCode != null) 'referred_by_code': referredByCode,
       if (vehicleType != null) 'vehicle_type': vehicleType,
       if (vehicleNumber != null) 'vehicle_number': vehicleNumber,
       'is_online': isOnline,
@@ -139,6 +147,8 @@ class DriverModel {
     String? selfieWithVehicleUrl,
     String? ownerName,
     String? address,
+    String? referralCode,
+    String? referredByCode,
     String? vehicleType,
     String? vehicleNumber,
     bool? isOnline,
@@ -163,6 +173,8 @@ class DriverModel {
       selfieWithVehicleUrl: selfieWithVehicleUrl ?? this.selfieWithVehicleUrl,
       ownerName: ownerName ?? this.ownerName,
       address: address ?? this.address,
+      referralCode: referralCode ?? this.referralCode,
+      referredByCode: referredByCode ?? this.referredByCode,
       vehicleType: vehicleType ?? this.vehicleType,
       vehicleNumber: vehicleNumber ?? this.vehicleNumber,
       isOnline: isOnline ?? this.isOnline,

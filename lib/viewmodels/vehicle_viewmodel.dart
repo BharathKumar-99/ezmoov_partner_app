@@ -22,6 +22,31 @@ class VehicleViewModel extends ChangeNotifier {
   VehicleTypeModel? _selectedVehicleType;
   VehicleTypeModel? get selectedVehicleType => _selectedVehicleType;
 
+  String? _selectedCategory;
+  String? get selectedCategory => _selectedCategory;
+
+  String _selectedCity = 'Hyderabad';
+  String get selectedCity => _selectedCity;
+
+  String _selectedBodyDetail = '8 feet (1.2 Ton)';
+  String get selectedBodyDetail => _selectedBodyDetail;
+
+  String _selectedBodyType = 'Open';
+  String get selectedBodyType => _selectedBodyType;
+
+  String _selectedFuelType = 'Petrol';
+  String get selectedFuelType => _selectedFuelType;
+
+  final List<String> cities = ['Hyderabad'];
+  final List<String> bodyDetailOptions = [
+    'Tata Ace (750 Kg)',
+    '8 feet (1.2 Ton)',
+    '9 feet (1.7 Ton)',
+    '10 feet (2 Tons)',
+  ];
+  final List<String> bodyTypes = ['Open', 'Closed'];
+  final List<String> fuelTypes = ['Petrol', 'CNG', 'EV', 'Diesel'];
+
   String? _rcPicPath;
   String? get rcPicPath => _rcPicPath;
 
@@ -40,17 +65,73 @@ class VehicleViewModel extends ChangeNotifier {
       final list = await _supabaseService.fetchVehicleTypes();
       _vehicleTypes =
           list.isNotEmpty ? list : VehicleTypeModel.defaultVehicleTypes;
+      _syncSelectedVehicleType();
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading vehicle types: $e');
       _vehicleTypes = VehicleTypeModel.defaultVehicleTypes;
+      _syncSelectedVehicleType();
       notifyListeners();
     }
+  }
+
+  void selectCategory(String category) {
+    _selectedCategory = category;
+    _syncSelectedVehicleType();
+    notifyListeners();
+  }
+
+  void selectCity(String city) {
+    _selectedCity = city;
+    notifyListeners();
+  }
+
+  void selectBodyDetail(String detail) {
+    _selectedBodyDetail = detail;
+    _syncSelectedVehicleType();
+    notifyListeners();
+  }
+
+  void selectBodyType(String bodyType) {
+    _selectedBodyType = bodyType;
+    notifyListeners();
+  }
+
+  void selectFuelType(String fuelType) {
+    _selectedFuelType = fuelType;
+    notifyListeners();
   }
 
   void selectVehicleType(VehicleTypeModel? type) {
     _selectedVehicleType = type;
     notifyListeners();
+  }
+
+  void _syncSelectedVehicleType() {
+    if (_selectedCategory == '3W') {
+      _selectedVehicleType = _vehicleTypes.firstWhere(
+        (v) => v.id == '2' || v.name.toLowerCase().contains('3 wheeler'),
+        orElse: () => VehicleTypeModel.defaultVehicleTypes[1], // 3 Wheeler
+      );
+    } else if (_selectedCategory == 'Truck') {
+      String targetId = '5'; // default 8ft
+      if (_selectedBodyDetail.contains('Tata Ace') || _selectedBodyDetail.contains('750')) {
+        targetId = '4'; // 4 Wheeler (750 Kgs)
+      } else if (_selectedBodyDetail.contains('9')) {
+        targetId = '6'; // 9 Ft Vehicle
+      } else if (_selectedBodyDetail.contains('10')) {
+        targetId = '7'; // 10 Ft Vehicle
+      } else {
+        targetId = '5'; // 8 Ft Vehicle
+      }
+      _selectedVehicleType = _vehicleTypes.firstWhere(
+        (v) => v.id == targetId,
+        orElse: () => VehicleTypeModel.defaultVehicleTypes.firstWhere(
+          (v) => v.id == targetId,
+          orElse: () => VehicleTypeModel.defaultVehicleTypes[2], // 4 Wheeler (ID 4)
+        ),
+      );
+    }
   }
 
   void setLoading(bool value) {
@@ -84,16 +165,11 @@ class VehicleViewModel extends ChangeNotifier {
     final address = addressController.text.trim();
     final ownerName = ownerNameController.text.trim();
 
-    if (_selectedVehicleType == null) {
+    final effectiveAddress = address.isNotEmpty ? address : _selectedCity;
+
+    if (_selectedCategory == null && _selectedVehicleType == null) {
       if (context.mounted) {
         _showSnackBar(context, 'Please select a vehicle type');
-      }
-      return;
-    }
-
-    if (address.isEmpty) {
-      if (context.mounted) {
-        _showSnackBar(context, 'Please enter complete driver address');
       }
       return;
     }
@@ -137,9 +213,12 @@ class VehicleViewModel extends ChangeNotifier {
         vehicleTypeId: _selectedVehicleType?.id,
         vehicleTypeName: _selectedVehicleType?.name,
         ownerName: ownerName.isNotEmpty ? ownerName : null,
+        bodyType: _selectedBodyType,
+        fuelType: _selectedFuelType,
+        cityOfOperation: _selectedCity,
       );
 
-      await _supabaseService.saveVehicle(vehicle, address: address);
+      await _supabaseService.saveVehicle(vehicle, address: effectiveAddress);
 
       setLoading(false);
       if (context.mounted) {

@@ -280,6 +280,18 @@ class ProfileTab extends StatelessWidget {
               const SizedBox(height: 12),
 
               _ProfileTile(
+                icon: Icons.card_giftcard_rounded,
+                iconColor: const Color(0xFFE11D48),
+                title: 'Refer & Earn ₹25 Bonus',
+                subtitle: 'Invite partner drivers & get ₹25 for every referral',
+                onTap: () {
+                  context.push('/referral?driverId=${driver?.id ?? ''}');
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              _ProfileTile(
                 icon: Icons.account_balance_rounded,
                 iconColor: const Color(0xFFD97706),
                 title: bank?.bankName ?? l10n.bankAccount,

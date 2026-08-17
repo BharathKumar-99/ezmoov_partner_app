@@ -147,6 +147,78 @@ serve(async (req) => {
         );
       }
 
+      // CASE 2.5: DIRECT DAILY FEE PAYMENT / RECHARGE WITHOUT WALLET (No Wallet Credit or Wallet Deduction)
+      if (
+        notes.type === "direct_daily_fee" ||
+        notes.type === "pay_daily_fee_direct" ||
+        notes.type === "recharge_without_wallet" ||
+        notes.type === "direct_daily_platform_fee"
+      ) {
+        if (!driverId) {
+          console.error("Missing driver_id in payment notes for direct daily fee payment:", notes);
+          return new Response(
+            JSON.stringify({ error: "Missing driver_id in payment notes" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        console.log(`Processing Direct Daily Fee Payment (No Wallet) for driver ${driverId}, amount: ₹${amountInRupees}`);
+        const todayStr = new Date().toISOString().split("T")[0];
+
+        // 1. Fetch existing driver_daily_status record for today
+        const { data: dailyStatus } = await supabase
+          .from("driver_daily_status")
+          .select("*")
+          .eq("driver_id", driverId)
+          .eq("status_date", todayStr)
+          .maybeSingle();
+
+        const dailyFee = amountInRupees || dailyStatus?.daily_fee || 100.0;
+
+        // 2. Mark driver_daily_status fee_deducted = true (Activates 24 hr pass)
+        const { error: dailyErr } = await supabase
+          .from("driver_daily_status")
+          .upsert({
+            driver_id: driverId,
+            status_date: todayStr,
+            daily_fee: dailyFee,
+            fee_deducted: true,
+            is_blocked: (dailyStatus?.rejections_count || 0) >= 2,
+            block_reason: (dailyStatus?.rejections_count || 0) >= 2 ? "exceeded_rejections" : null,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "driver_id,status_date" });
+
+        if (dailyErr) {
+          console.error("Error updating driver_daily_status via direct fee payment:", dailyErr);
+          return new Response(JSON.stringify({ error: dailyErr.message }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // 3. Add single transaction entry to wallet_transactions table:
+        // type: "daily_deduction", description: "Daily Vehicle Platform Fee (YYYY-MM-DD)"
+        // Note: Skips adding money to wallet, skips deducting from wallet balance
+        await supabase.from("wallet_transactions").insert({
+          driver_id: driverId,
+          amount: -dailyFee,
+          type: "daily_deduction",
+          description: `Daily Vehicle Platform Fee (${todayStr})`,
+          created_at: new Date().toISOString(),
+        });
+
+        console.log(`Direct Daily Fee Payment successful via Webhook for driver ${driverId}`);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Direct daily fee payment processed successfully via webhook",
+            driver_id: driverId,
+            daily_fee: dailyFee,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // CASE 2: DRIVER WALLET RECHARGE (Partner App)
       if (driverId || notes.type === "wallet_recharge" || notes.type === "driver_wallet_recharge") {
         if (!driverId) {

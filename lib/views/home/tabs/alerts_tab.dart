@@ -22,11 +22,13 @@ class _AlertsTabState extends State<AlertsTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _loadNotifications();
     });
   }
 
   Future<void> _loadNotifications() async {
+    if (!mounted) return;
     final profileVm = context.read<ProfileViewModel>();
     final driverId = profileVm.driver?.id;
     if (driverId != null && driverId.isNotEmpty) {

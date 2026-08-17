@@ -36,9 +36,10 @@ class IncomingRideDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<RideRequestViewModel>(
       builder: (context, vm, child) {
+        final activeBooking = vm.activeBroadcastBooking ?? booking;
         final customerDisplayName =
-            (booking.customerName != null && booking.customerName!.isNotEmpty)
-                ? booking.customerName!
+            (activeBooking.customerName != null && activeBooking.customerName!.isNotEmpty)
+                ? activeBooking.customerName!
                 : 'Customer Delivery Request';
 
         return Container(
@@ -136,15 +137,15 @@ class IncomingRideDialog extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 3),
-                        if (booking.customerPhone != null &&
-                            booking.customerPhone!.isNotEmpty)
+                        if (activeBooking.customerPhone != null &&
+                            activeBooking.customerPhone!.isNotEmpty)
                           Row(
                             children: [
                               const Icon(Icons.phone_outlined,
                                   size: 13, color: AppColors.primary),
                               const SizedBox(width: 4),
                               Text(
-                                booking.customerPhone!,
+                                activeBooking.customerPhone!,
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -167,9 +168,9 @@ class IncomingRideDialog extends StatelessWidget {
                   const SizedBox(width: 8),
                   Builder(
                     builder: (context) {
-                      final displayFare = booking.fare > 0
-                          ? booking.fare
-                          : BookingModel.extractFare(booking.toJson());
+                      final displayFare = activeBooking.fare > 0
+                          ? activeBooking.fare
+                          : BookingModel.extractFare(activeBooking.toJson());
                       return Text(
                         displayFare > 0
                             ? '₹ ${displayFare.toStringAsFixed(2)}'
@@ -188,7 +189,36 @@ class IncomingRideDialog extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Route Container (Pickup & Drop)
+              // Multi-Stops Badge Indicator
+              if (activeBooking.hasStops) ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFF59E0B)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.alt_route_rounded, size: 18, color: Color(0xFFD97706)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${activeBooking.stopsCount} Intermediate Stop${activeBooking.stopsCount > 1 ? 's' : ''} (+₹${activeBooking.stopsCharge > 0 ? activeBooking.stopsCharge.toStringAsFixed(0) : (activeBooking.stopsCount * 25)})',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFB45309),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Route Container (Pickup, Intermediate Stops, Drop)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -198,6 +228,7 @@ class IncomingRideDialog extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
+                    // Pickup Address
                     Row(
                       children: [
                         const Icon(Icons.circle,
@@ -217,8 +248,8 @@ class IncomingRideDialog extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                booking.pickupAddress.isNotEmpty
-                                    ? booking.pickupAddress
+                                activeBooking.pickupAddress.isNotEmpty
+                                    ? activeBooking.pickupAddress
                                     : 'Pickup Address',
                                 style: const TextStyle(
                                   fontSize: 13,
@@ -233,12 +264,67 @@ class IncomingRideDialog extends StatelessWidget {
                         ),
                       ],
                     ),
+
+                    // Intermediate Stops Timeline Loop
+                    if (activeBooking.hasStops)
+                      ...activeBooking.effectiveIntermediateStops.asMap().entries.map((entry) {
+                        final idx = entry.key + 1;
+                        final stop = entry.value;
+                        return Column(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(left: 5, top: 4, bottom: 4),
+                              height: 16,
+                              width: 2,
+                              color: Colors.amber.shade700,
+                            ),
+                            Row(
+                              children: [
+                                Icon(Icons.stop_circle_outlined,
+                                    color: Colors.amber.shade800, size: 14),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'STOP $idx ADDRESS (+₹25)',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.amber.shade900,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        stop.address.isNotEmpty
+                                            ? stop.address
+                                            : 'Stop $idx Location',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      }),
+
                     Container(
                       margin: const EdgeInsets.only(left: 5, top: 4, bottom: 4),
                       height: 16,
                       width: 2,
                       color: AppColors.divider,
                     ),
+
+                    // Drop Address
                     Row(
                       children: [
                         const Icon(Icons.location_on_rounded,
@@ -249,7 +335,7 @@ class IncomingRideDialog extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'DROP ADDRESS',
+                                'FINAL DROP ADDRESS',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -258,8 +344,8 @@ class IncomingRideDialog extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                booking.dropAddress.isNotEmpty
-                                    ? booking.dropAddress
+                                activeBooking.dropAddress.isNotEmpty
+                                    ? activeBooking.dropAddress
                                     : 'Drop Address',
                                 style: const TextStyle(
                                   fontSize: 13,

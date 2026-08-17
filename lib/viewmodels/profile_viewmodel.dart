@@ -260,7 +260,6 @@ class ProfileViewModel extends ChangeNotifier {
             ),
             callback: (payload) {
               final newRecord = payload.newRecord;
-              debugPrint('⚡ Realtime Driver record update received: $newRecord');
 
               if (newRecord.containsKey('is_online')) {
                 final newIsOnline = newRecord['is_online'] as bool? ?? false;
@@ -557,9 +556,6 @@ class ProfileViewModel extends ChangeNotifier {
             _driver!.id!,
             _latitude,
             _longitude,
-          );
-          debugPrint(
-            '📍 Updated driver GPS location to: ($_latitude, $_longitude) [$intervalSec s]',
           );
 
           notifyListeners();

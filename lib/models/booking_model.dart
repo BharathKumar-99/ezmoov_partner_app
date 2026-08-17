@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'intermediate_stop_model.dart';
 
 class BookingModel {
   final int? idx;
@@ -35,6 +36,14 @@ class BookingModel {
   final int chargeableWaitMinutes;
   final double waitFeePerMin;
   final double waitingCharges;
+
+  // Intermediate stops & updated fare breakdown fields
+  final List<IntermediateStopModel> intermediateStops;
+  final double stopsCharge;
+  final double baseFare;
+  final double distanceCharges;
+  final double taxesAndGst;
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -73,9 +82,36 @@ class BookingModel {
     this.chargeableWaitMinutes = 0,
     this.waitFeePerMin = 0.0,
     this.waitingCharges = 0.0,
+    this.intermediateStops = const [],
+    this.stopsCharge = 0.0,
+    this.baseFare = 0.0,
+    this.distanceCharges = 0.0,
+    this.taxesAndGst = 0.0,
     this.createdAt,
     this.updatedAt,
   });
+
+  int get stopsCount => intermediateStops.isNotEmpty
+      ? intermediateStops.length
+      : (stopsCharge > 0 ? (stopsCharge / 25.0).round() : 0);
+
+  bool get hasStops => intermediateStops.isNotEmpty || stopsCharge > 0;
+
+  List<IntermediateStopModel> get effectiveIntermediateStops {
+    if (intermediateStops.isNotEmpty) return intermediateStops;
+    if (stopsCharge > 0) {
+      final count = (stopsCharge / 25.0).round();
+      return List.generate(
+        count,
+        (i) => IntermediateStopModel(
+          latitude: 0.0,
+          longitude: 0.0,
+          address: 'Intermediate Stop ${i + 1}',
+        ),
+      );
+    }
+    return [];
+  }
 
   /// Dynamic fare getter computed from amount JSON
   double get fare => extractFare(toJson());
@@ -113,33 +149,6 @@ class BookingModel {
     final str = val.toString().trim();
     if (str.isEmpty) return null;
     return DateTime.tryParse(str);
-  }
-
-  static Map<String, dynamic>? _parseAmount(dynamic rawAmount) {
-    if (rawAmount == null) return null;
-    if (rawAmount is Map) {
-      return Map<String, dynamic>.from(rawAmount);
-    }
-    if (rawAmount is num) {
-      return {'total_amount': rawAmount.toDouble()};
-    }
-    if (rawAmount is String) {
-      final trimmed = rawAmount.trim();
-      if (trimmed.startsWith('{')) {
-        try {
-          final decoded = jsonDecode(trimmed);
-          if (decoded is Map) {
-            return Map<String, dynamic>.from(decoded);
-          }
-        } catch (_) {}
-      } else {
-        final dbl = double.tryParse(trimmed);
-        if (dbl != null) {
-          return {'total_amount': dbl};
-        }
-      }
-    }
-    return null;
   }
 
   static double extractFare(Map<String, dynamic> json) {
@@ -301,7 +310,103 @@ class BookingModel {
   }
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
-    final parsedAmount = _parseAmount(json['amount']);
+    Map<String, dynamic>? amountMap;
+    final rawAmountObj = json['amount'];
+    if (rawAmountObj is Map) {
+      amountMap = Map<String, dynamic>.from(rawAmountObj);
+    } else if (rawAmountObj is String && rawAmountObj.trim().startsWith('{')) {
+      try {
+        final decoded = jsonDecode(rawAmountObj.trim());
+        if (decoded is Map) {
+          amountMap = Map<String, dynamic>.from(decoded);
+        }
+      } catch (_) {}
+    }
+
+    // Parse intermediate_stops from top-level or amount JSON
+    List<IntermediateStopModel> stopsList = [];
+
+    dynamic decodeJson(dynamic input) {
+      if (input == null) return null;
+      if (input is String) {
+        var str = input.trim();
+        if ((str.startsWith('"') && str.endsWith('"')) ||
+            (str.startsWith("'") && str.endsWith("'"))) {
+          try {
+            final unescaped = jsonDecode(str);
+            return decodeJson(unescaped);
+          } catch (_) {}
+        }
+        if ((str.startsWith('[') && str.endsWith(']')) ||
+            (str.startsWith('{') && str.endsWith('}'))) {
+          try {
+            final decoded = jsonDecode(str);
+            return decodeJson(decoded);
+          } catch (_) {}
+        }
+      }
+      return input;
+    }
+
+    dynamic rawStops = json['intermediate_stops'] ??
+        json['intermediateStops'] ??
+        json['stops'] ??
+        json['stops_list'] ??
+        json['route_stops'] ??
+        json['waypoints'] ??
+        (amountMap != null
+            ? (amountMap['intermediate_stops'] ??
+                amountMap['intermediateStops'] ??
+                amountMap['stops'] ??
+                amountMap['stops_list'] ??
+                amountMap['route_stops'] ??
+                amountMap['waypoints'])
+            : null);
+
+    rawStops = decodeJson(rawStops);
+
+    if (rawStops is Map) {
+      if (rawStops.containsKey('stops')) {
+        rawStops = decodeJson(rawStops['stops']);
+      } else if (rawStops.containsKey('intermediate_stops')) {
+        rawStops = decodeJson(rawStops['intermediate_stops']);
+      } else if (rawStops.containsKey('items')) {
+        rawStops = decodeJson(rawStops['items']);
+      } else {
+        rawStops = rawStops.values.toList();
+      }
+    }
+
+    if (rawStops is List) {
+      for (final rawItem in rawStops) {
+        final item = decodeJson(rawItem);
+        if (item is Map) {
+          stopsList.add(
+              IntermediateStopModel.fromJson(Map<String, dynamic>.from(item)));
+        }
+      }
+    }
+
+    // Parse stops charge
+    double parsedStopsCharge = 0.0;
+    if (amountMap != null && amountMap['stops_charge'] != null) {
+      parsedStopsCharge = _toDouble(amountMap['stops_charge']) ?? 0.0;
+    } else if (json['stops_charge'] != null) {
+      parsedStopsCharge = _toDouble(json['stops_charge']) ?? 0.0;
+    } else if (stopsList.isNotEmpty) {
+      parsedStopsCharge = stopsList.length * 25.0;
+    }
+
+    // Parse base fare & distance charges
+    double parsedBaseFare = 0.0;
+    double parsedDistanceCharges = 0.0;
+    if (amountMap != null) {
+      parsedBaseFare =
+          _toDouble(amountMap['base_fare'] ?? amountMap['base_charge']) ?? 0.0;
+      parsedDistanceCharges = _toDouble(
+              amountMap['distance_charges'] ?? amountMap['distance_charge']) ??
+          0.0;
+    }
 
     return BookingModel(
       idx: _toInt(json['idx']),
@@ -316,7 +421,10 @@ class BookingModel {
       dropLat: _toDouble(json['drop_lat']) ?? 0.0,
       dropLng: _toDouble(json['drop_lng']) ?? 0.0,
       status: _toString(json['status']) ?? 'searching',
-      amount: parsedAmount,
+      amount: amountMap ??
+          (rawAmountObj is Map
+              ? Map<String, dynamic>.from(rawAmountObj)
+              : {'total_price': _toDouble(rawAmountObj) ?? 0.0}),
       vehicleTypeId: _toString(json['vehicle_type_id']),
       driverId: _toString(json['driver_id']),
       driverName: _toString(json['driver_name']),
@@ -338,6 +446,11 @@ class BookingModel {
       chargeableWaitMinutes: _toInt(json['chargeable_wait_minutes']) ?? 0,
       waitFeePerMin: _toDouble(json['wait_fee_per_min']) ?? 0.0,
       waitingCharges: _toDouble(json['waiting_charges']) ?? 0.0,
+      intermediateStops: stopsList,
+      stopsCharge: parsedStopsCharge,
+      baseFare: parsedBaseFare,
+      distanceCharges: parsedDistanceCharges,
+      taxesAndGst: 0.0,
       createdAt: _toDateTime(json['created_at']),
       updatedAt: _toDateTime(json['updated_at']),
     );
@@ -370,15 +483,25 @@ class BookingModel {
       if (paymentMode != null) 'payment_mode': paymentMode,
       if (service != null) 'service': service,
       if (acceptedAt != null) 'accepted_at': acceptedAt!.toIso8601String(),
-      if (arrivedAtPickupAt != null) 'arrived_at_pickup_at': arrivedAtPickupAt!.toIso8601String(),
-      if (tripStartedAt != null) 'trip_started_at': tripStartedAt!.toIso8601String(),
-      if (arrivedAtDropoffAt != null) 'arrived_at_dropoff_at': arrivedAtDropoffAt!.toIso8601String(),
-      if (tripCompletedAt != null) 'trip_completed_at': tripCompletedAt!.toIso8601String(),
+      if (arrivedAtPickupAt != null)
+        'arrived_at_pickup_at': arrivedAtPickupAt!.toIso8601String(),
+      if (tripStartedAt != null)
+        'trip_started_at': tripStartedAt!.toIso8601String(),
+      if (arrivedAtDropoffAt != null)
+        'arrived_at_dropoff_at': arrivedAtDropoffAt!.toIso8601String(),
+      if (tripCompletedAt != null)
+        'trip_completed_at': tripCompletedAt!.toIso8601String(),
       'total_wait_minutes': totalWaitMinutes,
       'grace_time_minutes': graceTimeMinutes,
       'chargeable_wait_minutes': chargeableWaitMinutes,
       'wait_fee_per_min': waitFeePerMin,
       'waiting_charges': waitingCharges,
+      if (intermediateStops.isNotEmpty)
+        'intermediate_stops': intermediateStops.map((s) => s.toJson()).toList(),
+      'stops_charge': stopsCharge,
+      'base_fare': baseFare,
+      'distance_charges': distanceCharges,
+      'taxes_&_gst': taxesAndGst,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
     };
@@ -410,6 +533,10 @@ class BookingModel {
     String? paymentMode,
     String? service,
     DateTime? acceptedAt,
+    List<IntermediateStopModel>? intermediateStops,
+    double? stopsCharge,
+    double? baseFare,
+    double? distanceCharges,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -439,6 +566,11 @@ class BookingModel {
       paymentMode: paymentMode ?? this.paymentMode,
       service: service ?? this.service,
       acceptedAt: acceptedAt ?? this.acceptedAt,
+      intermediateStops: intermediateStops ?? this.intermediateStops,
+      stopsCharge: stopsCharge ?? this.stopsCharge,
+      baseFare: baseFare ?? this.baseFare,
+      distanceCharges: distanceCharges ?? this.distanceCharges,
+      taxesAndGst: 0.0,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

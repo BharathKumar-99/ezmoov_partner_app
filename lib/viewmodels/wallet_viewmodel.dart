@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -84,10 +85,10 @@ class WalletViewModel extends ChangeNotifier {
   bool get feeDeductedToday => isPassActive;
   int get rejectionsToday => _dailyStatus?.rejectionsCount ?? 0;
 
-  RealtimeChannel? _walletRealtimeChannel;
+  final List<RealtimeChannel> _realtimeChannels = [];
   String? _subscribedDriverId;
 
-  /// Subscribe to Realtime postgres changes on driver_wallets, wallet_transactions, and driver_daily_status
+  /// Subscribe to Realtime postgres changes using a dedicated channel for EACH table
   void subscribeToRealtimeWallet(String driverId) {
     if (driverId.isEmpty || _subscribedDriverId == driverId) return;
 
@@ -96,8 +97,10 @@ class WalletViewModel extends ChangeNotifier {
 
     try {
       debugPrint(
-          '⚡ Subscribing to Supabase Realtime for Driver Wallet: $driverId');
-      _walletRealtimeChannel = _supabaseService.client
+          '⚡ Subscribing to Supabase Realtime dedicated channels for Driver: $driverId');
+
+      // 1. Driver Wallets Channel
+      final walletChan = _supabaseService.client
           .channel('public:wallet_updates:$driverId')
           .onPostgresChanges(
             event: PostgresChangeEvent.all,
@@ -113,9 +116,15 @@ class WalletViewModel extends ChangeNotifier {
                   '⚡ Realtime Wallet balance update received: ${payload.newRecord}');
               fetchWalletData(driverId, showLoading: false);
             },
-          )
+          );
+      walletChan.subscribe();
+      _realtimeChannels.add(walletChan);
+
+      // 2. Wallet Transactions Channel
+      final txChan = _supabaseService.client
+          .channel('public:transactions_updates:$driverId')
           .onPostgresChanges(
-            event: PostgresChangeEvent.insert,
+            event: PostgresChangeEvent.all,
             schema: 'public',
             table: 'wallet_transactions',
             filter: PostgresChangeFilter(
@@ -127,7 +136,13 @@ class WalletViewModel extends ChangeNotifier {
               debugPrint('⚡ Realtime Transaction added: ${payload.newRecord}');
               fetchWalletData(driverId, showLoading: false);
             },
-          )
+          );
+      txChan.subscribe();
+      _realtimeChannels.add(txChan);
+
+      // 3. Driver Daily Status Channel
+      final dailyStatusChan = _supabaseService.client
+          .channel('public:daily_status_updates:$driverId')
           .onPostgresChanges(
             event: PostgresChangeEvent.all,
             schema: 'public',
@@ -142,7 +157,13 @@ class WalletViewModel extends ChangeNotifier {
                   '⚡ Realtime Daily Status updated: ${payload.newRecord}');
               fetchWalletData(driverId, showLoading: false);
             },
-          )
+          );
+      dailyStatusChan.subscribe();
+      _realtimeChannels.add(dailyStatusChan);
+
+      // 4. Driver Payouts Channel
+      final payoutsChan = _supabaseService.client
+          .channel('public:payouts_updates:$driverId')
           .onPostgresChanges(
             event: PostgresChangeEvent.all,
             schema: 'public',
@@ -157,19 +178,20 @@ class WalletViewModel extends ChangeNotifier {
                   '⚡ Realtime Payout status updated: ${payload.newRecord}');
               fetchWalletData(driverId, showLoading: false);
             },
-          )
-          .subscribe();
+          );
+      payoutsChan.subscribe();
+      _realtimeChannels.add(payoutsChan);
     } catch (e) {
-      debugPrint('Notice establishing realtime wallet subscription: $e');
+      debugPrint('Notice establishing realtime wallet subscriptions: $e');
     }
   }
 
   void unsubscribeRealtimeWallet() {
-    if (_walletRealtimeChannel != null) {
-      _supabaseService.client.removeChannel(_walletRealtimeChannel!);
-      _walletRealtimeChannel = null;
-      _subscribedDriverId = null;
+    for (final chan in _realtimeChannels) {
+      _supabaseService.client.removeChannel(chan);
     }
+    _realtimeChannels.clear();
+    _subscribedDriverId = null;
   }
 
   /// Fetch full wallet information, transactions, daily status, and vehicle fee using REAL DB records
@@ -186,21 +208,39 @@ class WalletViewModel extends ChangeNotifier {
     subscribeToRealtimeWallet(driverId);
 
     try {
-      // 1. Fetch vehicle daily fee based on driver's registered vehicle
+      // 1. Fetch vehicle daily fee strictly from server vehicleTypes DB records
       final vehicle = await _supabaseService.getVehicleByDriverId(driverId);
       final vehicleTypes = await _supabaseService.fetchVehicleTypes();
 
       if (vehicle != null) {
-        _vehicleTypeName = vehicle.vehicleType ?? '2 Wheeler';
-        final matchedType = vehicleTypes.firstWhere(
-          (vt) =>
-              vt.id == vehicle.vehicleTypeId ||
-              vt.name.toLowerCase() == _vehicleTypeName.toLowerCase(),
-          orElse: () => _getFallbackVehicleType(_vehicleTypeName),
-        );
-        _vehicleDailyFee = _getDailyFeeForVehicleType(matchedType.name);
+        _vehicleTypeName = vehicle.vehicleType ?? '';
+        VehicleTypeModel? matchedType;
+
+        for (final vt in vehicleTypes) {
+          if (vt.id == vehicle.vehicleTypeId ||
+              (vt.name.isNotEmpty &&
+                  vt.name.toLowerCase() == _vehicleTypeName.toLowerCase())) {
+            matchedType = vt;
+            break;
+          }
+        }
+
+        if (matchedType == null && _vehicleTypeName.isNotEmpty) {
+          for (final vt in vehicleTypes) {
+            if (vt.name.toLowerCase().contains(_vehicleTypeName.toLowerCase()) ||
+                _vehicleTypeName.toLowerCase().contains(vt.name.toLowerCase())) {
+              matchedType = vt;
+              break;
+            }
+          }
+        }
+
+        matchedType ??= vehicleTypes.isNotEmpty ? vehicleTypes.first : null;
+        _vehicleDailyFee = matchedType?.dailyFee ?? 0.0;
+      } else if (vehicleTypes.isNotEmpty) {
+        _vehicleDailyFee = vehicleTypes.first.dailyFee;
       } else {
-        _vehicleDailyFee = 100.0;
+        _vehicleDailyFee = 0.0;
       }
 
       // 2. Fetch driver wallet balance
@@ -257,52 +297,7 @@ class WalletViewModel extends ChangeNotifier {
     }
   }
 
-  VehicleTypeModel _getFallbackVehicleType(String name) {
-    return VehicleTypeModel(
-      id: 'default',
-      name: name,
-      capacity: '',
-      capacityKg: 0,
-      baseFare: 0,
-      dailyFee: 100,
-      isActive: true,
-      iconName: 'directions_car',
-    );
-  }
 
-  /// Exact vehicle daily fee mapping as specified by user
-  double _getDailyFeeForVehicleType(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('2') ||
-        lower.contains('two') ||
-        lower.contains('bike')) {
-      return 100.0;
-    } else if (lower.contains('mini 3w') ||
-        lower.contains('3 wheel') ||
-        lower.contains('3w') ||
-        lower.contains('rickshaw')) {
-      return 175.0;
-    } else if (lower.contains('7ft') ||
-        lower.contains('7 feet') ||
-        lower.contains('tata ace') ||
-        lower.contains('ace')) {
-      return 200.0;
-    } else if (lower.contains('8ft') ||
-        lower.contains('8 feet') ||
-        lower.contains('pickup 8')) {
-      return 250.0;
-    } else if (lower.contains('9') ||
-        lower.contains('10') ||
-        lower.contains('9-10ft')) {
-      return 270.0;
-    } else if (lower.contains('14') ||
-        lower.contains('16') ||
-        lower.contains('17') ||
-        lower.contains('container')) {
-      return 300.0;
-    }
-    return 100.0;
-  }
 
   bool _isPayingFee = false;
   bool get isPayingFee => _isPayingFee;

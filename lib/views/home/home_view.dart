@@ -28,6 +28,7 @@ class HomeView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
       final profileVm = context.read<ProfileViewModel>();
       final rideVm = context.read<RideRequestViewModel>();
 
@@ -35,13 +36,15 @@ class HomeView extends StatelessWidget {
           ? driverId
           : (profileVm.driver?.id ?? '');
 
-      if (effectiveDriverId.isNotEmpty) {
+      if (effectiveDriverId.isNotEmpty && context.mounted) {
         rideVm.restoreActiveTripOnLaunch(effectiveDriverId, context);
       }
 
       if (driverId.isNotEmpty && (profileVm.driver == null || profileVm.driver!.id != driverId)) {
-        profileVm.fetchProfile(driverId, context);
-      } else if (profileVm.driver != null && profileVm.isOnline) {
+        if (context.mounted) {
+          profileVm.fetchProfile(driverId, context);
+        }
+      } else if (profileVm.driver != null && profileVm.isOnline && context.mounted) {
         rideVm.startBroadcastListening(
           driverId: profileVm.driver!.id!,
           driverLat: profileVm.latitude,

@@ -30,6 +30,7 @@ class RazorpayService {
     required String driverName,
     required String driverPhone,
     required String driverEmail,
+    String paymentType = 'wallet_recharge',
   }) {
     final keyId = dotenv.env['RAZORPAY_KEY_ID'] ?? '';
     if (keyId.isEmpty) {
@@ -42,13 +43,17 @@ class RazorpayService {
         ? cleanDigits.substring(cleanDigits.length - 10)
         : cleanDigits;
 
+    final descriptionText = paymentType == 'direct_daily_fee'
+        ? 'Daily Vehicle Platform Fee ₹${amount.toStringAsFixed(0)}'
+        : 'Wallet Recharge ₹${amount.toStringAsFixed(0)}';
+
     var options = {
       'key': keyId,
       'amount': (amount * 100).toInt(), // amount in paise
       'name': 'EZMoov',
-      'description': 'Wallet Recharge ₹${amount.toStringAsFixed(0)}',
+      'description': descriptionText,
       'notes': {
-        'type': 'wallet_recharge',
+        'type': paymentType,
         'driver_id': driverId,
         'amount': amount.toString(),
       },
