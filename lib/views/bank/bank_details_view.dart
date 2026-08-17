@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../viewmodels/bank_details_viewmodel.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/gradient_button.dart';
@@ -75,10 +76,11 @@ class BankDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Bank Details'),
+        title: Text(l10n.bankAccount),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -89,18 +91,18 @@ class BankDetailsView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Partner Payout Bank Account',
-                    style: TextStyle(
+                  Text(
+                    l10n.partnerPayoutBankAccount,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Add your bank account details.',
-                    style: TextStyle(
+                  Text(
+                    l10n.addBankAccountDetails,
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -125,21 +127,21 @@ class BankDetailsView extends StatelessWidget {
                       children: [
                         CustomTextField(
                           controller: vm.accountHolderController,
-                          label: 'Account Holder Name',
+                          label: l10n.accountHolderName,
                           hint: 'As per bank account',
                           prefixIcon: Icons.person_outline_rounded,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: vm.bankNameController,
-                          label: 'Bank Name',
+                          label: l10n.bankName,
                           hint: 'HDFC Bank, SBI, ICICI, etc.',
                           prefixIcon: Icons.account_balance_rounded,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: vm.accountNumberController,
-                          label: 'Account Number',
+                          label: l10n.accountNumber,
                           hint: 'Enter bank account number',
                           prefixIcon: Icons.numbers_rounded,
                           keyboardType: TextInputType.number,
@@ -147,21 +149,21 @@ class BankDetailsView extends StatelessWidget {
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: vm.ifscCodeController,
-                          label: 'IFSC Code',
+                          label: l10n.ifscCode,
                           hint: 'HDFC0001234',
                           prefixIcon: Icons.domain_rounded,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: vm.upiIdController,
-                          label: 'UPI ID (Optional)',
+                          label: l10n.upiIdOptional,
                           hint: 'driver@upi',
                           prefixIcon: Icons.qr_code_rounded,
                         ),
                         const SizedBox(height: 24),
-                        const Text(
-                          'Upload Passbook / Cancelled Cheque (Optional)',
-                          style: TextStyle(
+                        Text(
+                          l10n.uploadPassbook,
+                          style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -192,18 +194,18 @@ class BankDetailsView extends StatelessWidget {
                                       fit: BoxFit.cover,
                                     ),
                                   )
-                                : const Column(
+                                : Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.add_a_photo_outlined,
                                         color: AppColors.primary,
                                         size: 32,
                                       ),
-                                      SizedBox(height: 6),
+                                      const SizedBox(height: 6),
                                       Text(
-                                        'Tap to attach photo of passbook or cheque',
-                                        style: TextStyle(
+                                        l10n.tapToAttachPassbook,
+                                        style: const TextStyle(
                                           fontSize: 13,
                                           color: AppColors.textSecondary,
                                           fontWeight: FontWeight.w500,
@@ -215,7 +217,7 @@ class BankDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 32),
                         GradientButton(
-                          text: 'Submit Bank Details',
+                          text: l10n.submitBankDetails,
                           isLoading: vm.isLoading,
                           icon: Icons.check_circle_rounded,
                           onPressed: () =>

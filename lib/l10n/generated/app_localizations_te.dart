@@ -68,7 +68,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get vehicleDetailsVerified => 'వాహన వివరాలు ధృవీకరించబడ్డాయి';
 
   @override
-  String get driverCertificates => 'డ్రైవర్ సర్టిఫికెట్లు';
+  String get driverCertificates => 'డ్రైవర్ సర్టిఫికేట్లు';
 
   @override
   String get certificatesSubtitle =>
@@ -361,4 +361,386 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get verificationInProgressMsg =>
       'మీ డ్రైవర్ పత్రాలు అడ్మిన్ పరిశీలనలో ఉన్నాయి.';
+
+  @override
+  String get vehicleDetails => 'వాహన వివరాలు';
+
+  @override
+  String get vehicleOwnerName => 'వాహన యజమాని పేరు (ఐచ్ఛికం)';
+
+  @override
+  String get vehicleOwnerHint =>
+      'వాహనం వేరొకరి పేరిట నమోదు చేయబడితే యజమాని పేరు నమోదు చేయండి';
+
+  @override
+  String get uploadRcPicture => 'ఆర్సీ ఫోటోను అప్‌లోడ్ చేయండి *';
+
+  @override
+  String get vehicleRcPhoto => 'వాహన ఆర్సీ ఫోటో';
+
+  @override
+  String get uploaded => 'అప్‌లోడ్ చేయబడింది';
+
+  @override
+  String get tapToAttachRc => 'ఆర్సీ స్పష్టమైన ఫోటోను జోడించడానికి నొక్కండి';
+
+  @override
+  String get selectCityOfOperation => 'ఆపరేషన్ నగరాన్ని ఎంచుకోండి';
+
+  @override
+  String get selectVehicleType => 'వాహన రకాన్ని ఎంచుకోండి';
+
+  @override
+  String get selectVehicleBodyDetails => 'వాహన బాడీ వివరాలను ఎంచుకోండి';
+
+  @override
+  String get selectVehicleBodyType => 'వాహన బాడీ రకాన్ని ఎంచుకోండి';
+
+  @override
+  String get openBody => 'ఓపెన్';
+
+  @override
+  String get closedBody => 'క్లోజ్డ్';
+
+  @override
+  String get selectVehicleFuelType => 'వాహన ఇంధన రకాన్ని ఎంచుకోండి';
+
+  @override
+  String get saveAndContinue => 'సేవ్ చేసి కొనసాగించండి';
+
+  @override
+  String get partnerPayoutBankAccount => 'పార్టనర్ పేఅవుట్ బ్యాంక్ ఖాతా';
+
+  @override
+  String get addBankAccountDetails => 'మీ బ్యాంక్ ఖాతా వివరాలను జోడించండి.';
+
+  @override
+  String get accountHolderName => 'ఖాతాదారుని పేరు *';
+
+  @override
+  String get bankName => 'బ్యాంక్ పేరు *';
+
+  @override
+  String get accountNumber => 'ఖాతా సంఖ్య *';
+
+  @override
+  String get ifscCode => 'ఐఎఫ్‌ఎస్‌సీ కోడ్ *';
+
+  @override
+  String get upiIdOptional => 'యూపీఐ ఐడీ (ఐచ్ఛికం)';
+
+  @override
+  String get uploadPassbook =>
+      'పాస్‌బుక్ / రద్దు చేసిన చెక్ అప్‌లోడ్ చేయండి (ఐచ్ఛికం)';
+
+  @override
+  String get passbookPhoto => 'పాస్‌బుక్ / చెక్ ఫోటో';
+
+  @override
+  String get tapToAttachPassbook =>
+      'పాస్‌బుక్/చెక్ స్పష్టమైన ఫోటోను జోడించడానికి నొక్కండి';
+
+  @override
+  String get submitBankDetails => 'బ్యాంక్ వివరాలను సమర్పించండి';
+
+  @override
+  String get loginDescription =>
+      'స్వాగతం! కొనసాగడానికి మీ నమోదిత మొబైల్ సంఖ్యను నమోదు చేయండి.';
+
+  @override
+  String get mobileNumber => 'మొబైల్ సంఖ్య';
+
+  @override
+  String get continueText => 'కొనసాగించండి';
+
+  @override
+  String get driverRegistration => 'డ్రైవర్ నమోదు';
+
+  @override
+  String get joinEzmoovFleet => 'EZMoov ఫ్లీట్‌లో చేరండి';
+
+  @override
+  String get createYourPartnerProfile =>
+      'ట్రిప్‌లు తీసుకోవడం ప్రారంభించడానికి మీ భాగస్వామి ప్రొఫైల్‌ను సృష్టించండి.';
+
+  @override
+  String get fullName => 'పూర్తి పేరు';
+
+  @override
+  String get emailAddress => 'ఇమెయిల్ చిరునామా';
+
+  @override
+  String get referralCodeOptional => 'రెఫరల్ కోడ్ (ఐచ్ఛికం)';
+
+  @override
+  String get signUpAndContinue => 'సైన్ అప్ చేసి కొనసాగించండి';
+
+  @override
+  String get alreadyHaveAccount => 'ఇప్పటికే ఖాతా ఉందా? ';
+
+  @override
+  String get dontHaveAccount => 'పార్టనర్ ఖాతా లేదా? ';
+
+  @override
+  String get signUp => 'సైన్ అప్';
+
+  @override
+  String get login => 'లాగిన్';
+
+  @override
+  String get otpVerification => 'ఓటిపి ధృవీకరణ';
+
+  @override
+  String get enterVerificationCode => 'ధృవీకరణ కోడ్‌ను నమోదు చేయండి';
+
+  @override
+  String get weHaveSentOtpTo => 'మేము ఈ సంఖ్యకు 6-అంకెల ఓటిపి కోడ్‌ను పంపాము: ';
+
+  @override
+  String get verifyAndContinue => 'ధృవీకరించి కొనసాగించండి';
+
+  @override
+  String get didntReceiveCode => 'కోడ్ రాలేదా? ';
+
+  @override
+  String get resendOtp => 'ఓటిపిని మళ్ళీ పంపండి';
+
+  @override
+  String get fullOperationalAddress => 'పూర్తి నిర్వహణ చిరునామా *';
+
+  @override
+  String get tcRcPermitNumber => 'టిసి / ఆర్సి పర్మిట్ సంఖ్య *';
+
+  @override
+  String get truck => 'ట్రక్';
+
+  @override
+  String get threeWheeler => '3W';
+
+  @override
+  String get vehiclePermit => 'వాహన పర్మిట్';
+
+  @override
+  String get uploadVehiclePermit => 'వాహన పర్మిట్‌ను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get documentVerification => 'పత్రాల ధృవీకరణ';
+
+  @override
+  String get uploadRequiredDocumentsSubtitle =>
+      'ధృవీకరణ కోసం అవసరమైన పత్రాలను అప్‌లోड చేయండి';
+
+  @override
+  String get aadhaarCard => 'ఆధార్ కార్డ్';
+
+  @override
+  String get uploadAadhaarCard => 'ఆధార్ కార్డ్‌ను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get drivingLicense => 'డ్రైవింగ్ లైసెన్స్';
+
+  @override
+  String get uploadDrivingLicense => 'డ్రైవింగ్ లైసెన్స్‌ను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get vehicleRc => 'వాహన ఆర్‌సి';
+
+  @override
+  String get uploadVehicleRc => 'వాహన ఆర్‌సిని అప్‌లోడ్ చేయండి';
+
+  @override
+  String get panCard => 'పాన్ కార్డ్';
+
+  @override
+  String get uploadPanCard => 'పాన్ కార్డ్‌ను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get vehicleInsurance => 'వాహన బీమా';
+
+  @override
+  String get uploadVehicleInsurance => 'వాహన బీమాను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get pucCertificate => 'పియుసి సర్టిఫికేట్';
+
+  @override
+  String get uploadPucCertificate => 'పియుసి సర్టిఫికేట్‌ను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get fitnessCertificate => 'ఫిట్‌నెస్ సర్టిఫికేట్';
+
+  @override
+  String get uploadFitnessCertificate =>
+      'ఫిట్‌నెస్ సర్టిఫికేట్‌ను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get policeClearanceCertificate => 'పోలీస్ క్లియరెన్స్ సర్టిఫికేట్';
+
+  @override
+  String get uploadPoliceClearance =>
+      'పోలీస్ క్లియరెన్స్ సర్టిఫికేట్‌ను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get selfieWithVehicle => 'వాహనంతో సెల్ఫీ';
+
+  @override
+  String get uploadSelfieWithVehicle => 'వాహనంతో సెల్ఫీ అప్‌లోడ్ చేయండి';
+
+  @override
+  String get autoVerifiedDigilocker =>
+      'డిజిలాకర్ ఏపిఐ ద్వారా ఆటో-ధృవీకరించబడింది';
+
+  @override
+  String get autoVerifiedApi => 'ఏపిఐ ద్వారా ఆటో-ధృవీకరించబడింది';
+
+  @override
+  String get autoVerifiedVahan => 'వాహన్ ఏపిఐ ద్వారా ఆటో-ధృవీకరించబడింది';
+
+  @override
+  String get certificateUpload => 'సర్టిఫికేట్ అప్‌లోడ్';
+
+  @override
+  String get officialCitizenPortal => 'అధికారిక రాష్ట్ర పౌర పోర్టల్';
+
+  @override
+  String get selfieWithVehicleSubtitle =>
+      'వాహనంతో నిలబడిన డ్రైవర్ యొక్క స్పష్టమైన ఫోటో';
+
+  @override
+  String get submitDocuments => 'పత్రాలను సమర్పించండి';
+
+  @override
+  String get attached => 'జోడించబడింది';
+
+  @override
+  String get required => 'తప్పనిసరి';
+
+  @override
+  String get changeDocument => 'పత్రం మార్చండి';
+
+  @override
+  String get takePhotoCamera => 'కెమెరాతో ఫోటో తీయండి';
+
+  @override
+  String get chooseFromGallery => 'గ్యాలరీ నుండి ఎంచుకోండి';
+
+  @override
+  String get accountVerification => 'ఖాతా ధృవీకరణ';
+
+  @override
+  String get verificationUnderReview => 'ధృవీకరణ పరిశీలనలో ఉంది';
+
+  @override
+  String get verificationUnderReviewDesc =>
+      'మీ వాహనం మరియు పత్రాల సమర్పణలు అందుకోబడ్డాయి. మా ధృవీకరణ బృందం ఆమోదించిన తర్వాత డ్రైవర్ హోమ్ డాష్‌బోర్డ్‌కి యాక్సెస్ అన్‌లాక్ చేయబడుతుంది.';
+
+  @override
+  String get mobilePhoneAndIdentity => 'మొబైల్ ఫోన్ & గుర్తింపు';
+
+  @override
+  String get phoneOtpVerified => 'ఫోన్ ఓటిపి ధృవీకరించబడింది';
+
+  @override
+  String get vehicleRegistrationAndRc => 'వాహన రిజిస్ట్రేషన్ & ఆర్‌సి';
+
+  @override
+  String get vehicleVerifiedByAdmin => 'అడ్మిన్ ద్వారా వాహనం ధృవీకరించబడింది';
+
+  @override
+  String get rcSubmittedReviewing =>
+      'ఆర్‌సి ఫోటో సమర్పించబడింది - పరిశీలనలో ఉంది';
+
+  @override
+  String get certificatesVerifiedByAdmin =>
+      'అడ్మిన్ ద్వారా సర్టిఫికేట్లు ధృవీకరించబడ్డాయి';
+
+  @override
+  String get certificatesSubmittedReviewing =>
+      'పియుసి, పర్మిట్, ఫిట్‌నెస్, పిసిసి సమర్పించబడ్డాయి - పరిశీలనలో ఉన్నాయి';
+
+  @override
+  String get bankAccountPayouts => 'బ్యాంక్ ఖాతా చెల్లింపులు';
+
+  @override
+  String get bankAccountVerified => 'బ్యాంక్ ఖాతా ధృవీకరించబడింది';
+
+  @override
+  String get bankDetailsSubmittedReviewing =>
+      'బ్యాంక్ వివరాలు సమర్పించబడ్డాయి - పరిశీలనలో ఉన్నాయి';
+
+  @override
+  String get checkVerificationStatus => 'ధృవీకరణ స్థితిని తనిఖీ చేయండి';
+
+  @override
+  String get logOutAndExit => 'లాగ్ అవుట్ & నిష్క్రమించండి';
+
+  @override
+  String get verificationApprovedMsg =>
+      '🎉 ధృవీకరణ ఆమోదించబడింది! EZMoov ఫ్లీట్‌కి స్వాగతం.';
+
+  @override
+  String get verificationStillPendingMsg =>
+      'ధృవీకరణ ఇంకా అడ్మిన్ పరిశీలనలో ఉంది. దయచేసి కాసేపటి తర్వాత మళ్ళీ తనిఖీ చేయండి.';
+
+  @override
+  String get emergencySos => 'అత్యవసర ఎస్ఓఎస్';
+
+  @override
+  String get callAmbulance108 => 'అంబులెన్స్ (108) కి కాల్ చేయండి';
+
+  @override
+  String get sosButtonText => 'ఎస్ఓఎస్ (108)';
+
+  @override
+  String get tapToCallAmbulance => 'డయల్ చేయడానికి నొక్కండి అంబులెన్స్ (108)';
+
+  @override
+  String get cancelTrip => 'ట్రిప్‌ను రద్దు చేయండి';
+
+  @override
+  String get confirmCashPayment => 'నగదు చెల్లింపును నిర్ధారించండి';
+
+  @override
+  String get yesReceivedCash => 'అవును, నగదు అందింది';
+
+  @override
+  String get cargoPickupPhoto => 'కార్గో పికప్ ఫోటో';
+
+  @override
+  String get cargoPhotoMandatory =>
+      'ట్రిప్ ప్రారంభించడానికి లోడ్ చేసిన సరుకుల ఫోటో తప్పనిసరి';
+
+  @override
+  String get proofOfDelivery => 'డెలివరీ రుజువు (పిఓడి)';
+
+  @override
+  String get startTrip => 'ట్రిప్ ప్రారంభించండి';
+
+  @override
+  String get completeTrip => 'ట్రిప్ పూర్తి చేయండి';
+
+  @override
+  String get referAndEarnPartnerBonus => 'రెఫర్ చేసి పార్టనర్ బోనస్ పొందండి';
+
+  @override
+  String get yourReferralCode => 'మీ రెఫరల్ కోడ్';
+
+  @override
+  String get copyCode => 'కోడ్‌ను కాపీ చేయండి';
+
+  @override
+  String get codeCopied => 'రెఫరల్ కోడ్ క్లిప్‌బోర్డ్‌కి కాపీ చేయబడింది!';
+
+  @override
+  String get shareCodeWithDrivers =>
+      'సహచర డ్రైవర్లతో మీ కోడ్‌ను భాగస్వామ్యం చేయండి మరియు వారు మొదటి 5 ట్రిప్‌లను పూర్తి చేసినప్పుడు బోనస్ పొందండి.';
+
+  @override
+  String get redeemReferralCode => 'రెఫరల్ కోడ్‌ను ఉపయోగించండి';
+
+  @override
+  String get haveReferralCode => 'రెఫరల్ కోడ్ ఉందా?';
+
+  @override
+  String get applyCode => 'కోడ్‌ను వర్తింపజేయండి';
 }

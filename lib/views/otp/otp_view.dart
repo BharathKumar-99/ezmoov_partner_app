@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
+import '../../widgets/language_selector_button.dart';
 
 class OtpView extends StatefulWidget {
   final String phone;
@@ -32,6 +34,8 @@ class _OtpViewState extends State<OtpView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     final defaultPinTheme = PinTheme(
       width: 50,
       height: 56,
@@ -56,11 +60,19 @@ class _OtpViewState extends State<OtpView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('OTP Verification'),
+        title: Text(l10n.otpVerification),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => context.pop(),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Center(
+              child: LanguageSelectorButton(isCompact: true),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Consumer<AuthViewModel>(
@@ -71,9 +83,9 @@ class _OtpViewState extends State<OtpView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  const Text(
-                    'Enter Verification Code',
-                    style: TextStyle(
+                  Text(
+                    l10n.enterVerificationCode,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -82,7 +94,7 @@ class _OtpViewState extends State<OtpView> {
                   const SizedBox(height: 8),
                   RichText(
                     text: TextSpan(
-                      text: 'We have sent a 6-digit OTP code to ',
+                      text: l10n.weHaveSentOtpTo,
                       style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
@@ -119,7 +131,7 @@ class _OtpViewState extends State<OtpView> {
                   const SizedBox(height: 36),
 
                   GradientButton(
-                    text: 'Verify & Continue',
+                    text: l10n.verifyAndContinue,
                     isLoading: vm.isLoading,
                     icon: Icons.check_circle_outline_rounded,
                     onPressed: () {
@@ -133,9 +145,9 @@ class _OtpViewState extends State<OtpView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Didn't receive code? ",
-                        style: TextStyle(
+                      Text(
+                        l10n.didntReceiveCode,
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 14,
                         ),
@@ -146,9 +158,9 @@ class _OtpViewState extends State<OtpView> {
                             vm.sendOtpToPhone(widget.phone);
                           }
                         },
-                        child: const Text(
-                          'Resend OTP',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.resendOtp,
+                          style: const TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,

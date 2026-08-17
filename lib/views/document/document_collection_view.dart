@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../viewmodels/document_viewmodel.dart';
 import '../../widgets/document_upload_card.dart';
 import '../../widgets/gradient_button.dart';
+import '../../widgets/language_selector_button.dart';
 
 class DocumentCollectionView extends StatelessWidget {
   final String driverId;
@@ -15,14 +17,23 @@ class DocumentCollectionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text('Document Verification'),
+        title: Text(l10n.documentVerification),
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         automaticallyImplyLeading: false,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Center(
+              child: LanguageSelectorButton(isCompact: true),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Consumer<DocumentViewModel>(
@@ -32,18 +43,18 @@ class DocumentCollectionView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Document Verification',
-                    style: TextStyle(
+                  Text(
+                    l10n.documentVerification,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Upload required documentation for verification',
-                    style: TextStyle(
+                  Text(
+                    l10n.uploadRequiredDocumentsSubtitle,
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -52,9 +63,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 1. Aadhaar Card
                   DocumentUploadCard(
-                    title: 'Aadhaar Card',
-                    subtitle: 'Auto-Verified via DigiLocker API',
-                    buttonText: 'Upload Aadhaar Card',
+                    title: l10n.aadhaarCard,
+                    buttonText: l10n.uploadAadhaarCard,
                     iconData: Icons.credit_card_rounded,
                     imagePath: vm.aadhaarPath,
                     onImageSelected: (source) =>
@@ -63,9 +73,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 2. Driving License
                   DocumentUploadCard(
-                    title: 'Driving License',
-                    subtitle: 'Auto-Verified via API',
-                    buttonText: 'Upload Driving License',
+                    title: l10n.drivingLicense,
+                    buttonText: l10n.uploadDrivingLicense,
                     iconData: Icons.badge_rounded,
                     imagePath: vm.drivingLicensePath,
                     onImageSelected: (source) =>
@@ -74,9 +83,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 3. Vehicle RC
                   DocumentUploadCard(
-                    title: 'Vehicle RC',
-                    subtitle: 'Auto-verified via vahan API',
-                    buttonText: 'Upload Vehicle RC',
+                    title: l10n.vehicleRc,
+                    buttonText: l10n.uploadVehicleRc,
                     iconData: Icons.directions_car_rounded,
                     imagePath: vm.vehicleRcPath,
                     onImageSelected: (source) =>
@@ -85,9 +93,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 4. PAN Card
                   DocumentUploadCard(
-                    title: 'PAN Card',
-                    subtitle: 'Auto-verified via API',
-                    buttonText: 'Upload PAN Card',
+                    title: l10n.panCard,
+                    buttonText: l10n.uploadPanCard,
                     iconData: Icons.payment_rounded,
                     imagePath: vm.panCardPath,
                     onImageSelected: (source) =>
@@ -96,9 +103,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 5. Vehicle Insurance
                   DocumentUploadCard(
-                    title: 'Vehicle Insurance',
-                    subtitle: 'Certificate upload',
-                    buttonText: 'Upload Vehicle Insurance',
+                    title: l10n.vehicleInsurance,
+                    buttonText: l10n.uploadVehicleInsurance,
                     iconData: Icons.shield_outlined,
                     imagePath: vm.insurancePath,
                     onImageSelected: (source) =>
@@ -107,9 +113,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 6. PUC Certificate
                   DocumentUploadCard(
-                    title: 'PUC Certificate',
-                    subtitle: 'Certificate upload',
-                    buttonText: 'Upload PUC Certificate',
+                    title: l10n.pucCertificate,
+                    buttonText: l10n.uploadPucCertificate,
                     iconData: Icons.assignment_outlined,
                     imagePath: vm.pucPath,
                     onImageSelected: (source) =>
@@ -118,9 +123,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 7. Vehicle Permit
                   DocumentUploadCard(
-                    title: 'Vehicle Permit',
-                    subtitle: 'Auto-Verified via Digilocker API',
-                    buttonText: 'Upload Vehicle Permit',
+                    title: l10n.vehiclePermit,
+                    buttonText: l10n.uploadVehiclePermit,
                     iconData: Icons.verified_user_outlined,
                     imagePath: vm.permitPath,
                     onImageSelected: (source) =>
@@ -129,9 +133,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 8. Fitness Certificate
                   DocumentUploadCard(
-                    title: 'Fitness Certificate',
-                    subtitle: 'Auto-Verified via Digilocker API',
-                    buttonText: 'Upload Fitness Certificate',
+                    title: l10n.fitnessCertificate,
+                    buttonText: l10n.uploadFitnessCertificate,
                     iconData: Icons.health_and_safety_outlined,
                     imagePath: vm.fitnessPath,
                     onImageSelected: (source) =>
@@ -140,9 +143,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 9. Police Clearance Certificate
                   DocumentUploadCard(
-                    title: 'Police Clearance Certificate',
-                    subtitle: 'Official state citizen portal',
-                    buttonText: 'Upload Police Clearence Certificate',
+                    title: l10n.policeClearanceCertificate,
+                    buttonText: l10n.uploadPoliceClearance,
                     iconData: Icons.verified_outlined,
                     imagePath: vm.policeClearancePath,
                     onImageSelected: (source) =>
@@ -151,9 +153,8 @@ class DocumentCollectionView extends StatelessWidget {
 
                   // 10. Selfie with Vehicle
                   DocumentUploadCard(
-                    title: 'Selfie with Vehicle',
-                    subtitle: 'Clear photo of driver standing with vehicle',
-                    buttonText: 'Upload Selfie with Vehicle',
+                    title: l10n.selfieWithVehicle,
+                    buttonText: l10n.uploadSelfieWithVehicle,
                     iconData: Icons.camera_front_rounded,
                     imagePath: vm.selfieWithVehiclePath,
                     onImageSelected: (source) =>
@@ -163,7 +164,7 @@ class DocumentCollectionView extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   GradientButton(
-                    text: 'Submit Documents (${vm.uploadedCount}/10)',
+                    text: '${l10n.submitDocuments} (${vm.uploadedCount}/10)',
                     isLoading: vm.isLoading,
                     icon: Icons.cloud_upload_rounded,
                     onPressed: () => vm.submitDocuments(context, driverId),

@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
 import '../../../viewmodels/home_viewmodel.dart';
 import '../../../viewmodels/wallet_viewmodel.dart';
+import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class HomeTab extends StatefulWidget {
@@ -180,6 +181,103 @@ class _HomeTabState extends State<HomeTab> {
               ),
 
               const SizedBox(height: 24),
+
+              // ONGOING ACTIVE TRIP RESUME BANNER CARD
+              Builder(
+                builder: (context) {
+                  final activeTrip = context.watch<RideRequestViewModel>().activeDriverTrip;
+                  if (activeTrip == null) return const SizedBox.shrink();
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    child: InkWell(
+                      onTap: () {
+                        context.go('/driver/pickup/${activeTrip.id}');
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.navigation_rounded,
+                                  color: AppColors.primary, size: 24),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'TRIP IN PROGRESS 🚗',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.amber.shade400,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    activeTrip.dropAddress.isNotEmpty
+                                        ? activeTrip.dropAddress
+                                        : 'Active Booking Route',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ),
+                              onPressed: () {
+                                context.go('/driver/pickup/${activeTrip.id}');
+                              },
+                              child: const Text('RESUME TRIP',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
 
               Consumer<WalletViewModel>(
                 builder: (context, walletVm, child) {

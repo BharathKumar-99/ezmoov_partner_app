@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/supabase_service.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../models/driver_model.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
+import '../../widgets/language_selector_button.dart';
 
 class VerificationPendingView extends StatefulWidget {
   final String driverId;
@@ -56,10 +58,11 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
 
       if (!mounted) return;
 
+      final l10n = AppLocalizations.of(context)!;
       if (driver != null && driver.isFullyVerified) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('🎉 Verification Approved! Welcome to EZMoov Fleet.'),
+            content: Text(l10n.verificationApprovedMsg),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -69,7 +72,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Verification still pending admin review. Please check back shortly.'),
+            content: Text(l10n.verificationStillPendingMsg),
             backgroundColor: Colors.black87,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -93,6 +96,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final driver = _driver;
     final isVehicleVerified = driver?.isVehicleVerified ?? false;
     final isDocsVerified = driver?.isDocumentsVerified ?? false;
@@ -101,9 +105,12 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Account Verification'),
+        title: Text(l10n.accountVerification),
         automaticallyImplyLeading: false,
         actions: [
+          const Center(
+            child: LanguageSelectorButton(isCompact: true),
+          ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.error),
             onPressed: () => Provider.of<ProfileViewModel>(context, listen: false).clearProfileAndLogout(context),
@@ -138,9 +145,9 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
               ),
 
               const SizedBox(height: 24),
-              const Text(
-                'Verification Under Review',
-                style: TextStyle(
+              Text(
+                l10n.verificationUnderReview,
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -148,10 +155,10 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Your vehicle and document submissions have been received. Access to the driver home dashboard will be unlocked once approved by our verification team.',
+              Text(
+                l10n.verificationUnderReviewDesc,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
                   height: 1.4,
@@ -176,29 +183,29 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
                 ),
                 child: Column(
                   children: [
-                    const _CheckStep(
-                      title: 'Mobile Phone & Identity',
-                      subtitle: 'Phone OTP Verified',
+                    _CheckStep(
+                      title: l10n.mobilePhoneAndIdentity,
+                      subtitle: l10n.phoneOtpVerified,
                       isDone: true,
                     ),
                     const Divider(color: AppColors.divider, height: 24),
                     _CheckStep(
-                      title: 'Vehicle Registration & RC',
-                      subtitle: isVehicleVerified ? 'Vehicle Verified by Admin' : 'RC Photo Submitted - Reviewing',
+                      title: l10n.vehicleRegistrationAndRc,
+                      subtitle: isVehicleVerified ? l10n.vehicleVerifiedByAdmin : l10n.rcSubmittedReviewing,
                       isDone: isVehicleVerified,
                       isPending: !isVehicleVerified,
                     ),
                     const Divider(color: AppColors.divider, height: 24),
                     _CheckStep(
-                      title: 'Driver Certificates',
-                      subtitle: isDocsVerified ? 'Certificates Verified by Admin' : 'PUC, Permit, Fitness, PCC Submitted - Reviewing',
+                      title: l10n.driverCertificates,
+                      subtitle: isDocsVerified ? l10n.certificatesVerifiedByAdmin : l10n.certificatesSubmittedReviewing,
                       isDone: isDocsVerified,
                       isPending: !isDocsVerified,
                     ),
                     const Divider(color: AppColors.divider, height: 24),
                     _CheckStep(
-                      title: 'Bank Account Payouts',
-                      subtitle: isBankVerified ? 'Bank Account Verified' : 'Bank Details Submitted - Reviewing',
+                      title: l10n.bankAccountPayouts,
+                      subtitle: isBankVerified ? l10n.bankAccountVerified : l10n.bankDetailsSubmittedReviewing,
                       isDone: isBankVerified,
                       isPending: !isBankVerified,
                     ),
@@ -209,7 +216,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
               const SizedBox(height: 32),
 
               GradientButton(
-                text: 'Check Verification Status',
+                text: l10n.checkVerificationStatus,
                 isLoading: _isChecking,
                 icon: Icons.refresh_rounded,
                 onPressed: _checkVerificationStatus,
@@ -220,9 +227,9 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
               TextButton.icon(
                 onPressed: () => Provider.of<ProfileViewModel>(context, listen: false).clearProfileAndLogout(context),
                 icon: const Icon(Icons.logout_rounded, size: 18, color: AppColors.textSecondary),
-                label: const Text(
-                  'Log Out & Exit',
-                  style: TextStyle(color: AppColors.textSecondary),
+                label: Text(
+                  l10n.logOutAndExit,
+                  style: const TextStyle(color: AppColors.textSecondary),
                 ),
               ),
             ],

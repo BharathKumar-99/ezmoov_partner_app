@@ -20,13 +20,50 @@ class ActiveTripFloatingCard extends StatelessWidget {
     final isDropComplete = status == 'drop_complete';
     final isAmountPaid = status == 'amount_paid';
 
-    final statusText = isAmountPaid
-        ? 'PAYMENT CONFIRMED'
-        : (isDropComplete
-            ? 'UNLOADED / AWAITING PAYMENT'
-            : (isTransit
-                ? 'IN TRANSIT TO DROPOFF'
-                : (isArrived ? 'ARRIVED AT PICKUP' : 'HEADING TO PICKUP')));
+    String statusText;
+    Color statusBgColor;
+    IconData statusIcon;
+
+    if (status.startsWith('stop_')) {
+      final parts = status.split('_');
+      if (parts.length >= 3) {
+        final stopNum = parts[1];
+        final isReached = parts[2] == 'reached';
+        statusText = isReached ? 'REACHED STOP $stopNum' : 'COMPLETED STOP $stopNum';
+        statusBgColor = isReached ? Colors.amber.shade800 : const Color(0xFF10B981);
+        statusIcon = isReached ? Icons.nature_people_rounded : Icons.check_circle_rounded;
+      } else {
+        statusText = 'AT INTERMEDIATE STOP';
+        statusBgColor = Colors.amber.shade800;
+        statusIcon = Icons.stop_circle_outlined;
+      }
+    } else {
+      statusText = isAmountPaid
+          ? 'PAYMENT CONFIRMED'
+          : (isDropComplete
+              ? 'UNLOADED / AWAITING PAYMENT'
+              : (isTransit
+                  ? 'IN TRANSIT TO DROPOFF'
+                  : (isArrived ? 'ARRIVED AT PICKUP' : 'HEADING TO PICKUP')));
+
+      statusBgColor = isAmountPaid
+          ? const Color(0xFF10B981)
+          : (isDropComplete
+              ? const Color(0xFFF59E0B)
+              : (isTransit
+                  ? const Color(0xFF0284C7)
+                  : (isArrived ? const Color(0xFFD97706) : AppColors.primary)));
+
+      statusIcon = isAmountPaid
+          ? Icons.check_circle_rounded
+          : (isDropComplete
+              ? Icons.payments_rounded
+              : (isTransit
+                  ? Icons.local_shipping_rounded
+                  : (isArrived
+                      ? Icons.location_city_rounded
+                      : Icons.navigation_rounded)));
+    }
 
     final targetAddress = (isTransit || isDropComplete || isAmountPaid)
         ? (booking.dropAddress.isNotEmpty
@@ -35,14 +72,6 @@ class ActiveTripFloatingCard extends StatelessWidget {
         : (booking.pickupAddress.isNotEmpty
             ? booking.pickupAddress
             : 'Pickup Location');
-
-    final statusBgColor = isAmountPaid
-        ? const Color(0xFF10B981)
-        : (isDropComplete
-            ? const Color(0xFFF59E0B)
-            : (isTransit
-                ? const Color(0xFF0284C7)
-                : (isArrived ? const Color(0xFFD97706) : AppColors.primary)));
 
     return Material(
       color: Colors.transparent,
@@ -78,15 +107,7 @@ class ActiveTripFloatingCard extends StatelessWidget {
                   border: Border.all(color: statusBgColor, width: 1.5),
                 ),
                 child: Icon(
-                  isAmountPaid
-                      ? Icons.check_circle_rounded
-                      : (isDropComplete
-                          ? Icons.payments_rounded
-                          : (isTransit
-                              ? Icons.local_shipping_rounded
-                              : (isArrived
-                                  ? Icons.location_city_rounded
-                                  : Icons.navigation_rounded))),
+                  statusIcon,
                   color: statusBgColor,
                   size: 22,
                 ),

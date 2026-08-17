@@ -3,9 +3,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../viewmodels/vehicle_viewmodel.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/gradient_button.dart';
+import '../../widgets/language_selector_button.dart';
 
 class VehicleDetailsView extends StatelessWidget {
   final String driverId;
@@ -183,15 +185,18 @@ class VehicleDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Vehicle Details'),
+        title: Text(l10n.vehicleDetails),
         automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.headset_mic_outlined),
-            onPressed: () {},
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: Center(
+              child: LanguageSelectorButton(isCompact: true),
+            ),
           ),
         ],
       ),
@@ -224,7 +229,7 @@ class VehicleDetailsView extends StatelessWidget {
                         // 1. Full Operational Address
                         CustomTextField(
                           controller: vm.addressController,
-                          label: 'Full Operational Address *',
+                          label: l10n.fullOperationalAddress,
                           hint: 'House No, Street, City, State - Pincode',
                           prefixIcon: Icons.home_work_rounded,
                         ),
@@ -233,7 +238,7 @@ class VehicleDetailsView extends StatelessWidget {
                         // 2. Vehicle Registration Number
                         CustomTextField(
                           controller: vm.vehicleNumberController,
-                          label: 'Vehicle Registration Number *',
+                          label: l10n.vehicleRegistration,
                           hint: 'TS10FD8547',
                           prefixIcon: Icons.directions_car_filled_rounded,
                         ),
@@ -242,9 +247,8 @@ class VehicleDetailsView extends StatelessWidget {
                         // 3. Vehicle Owner Name (Optional)
                         CustomTextField(
                           controller: vm.ownerNameController,
-                          label: 'Vehicle Owner Name (Optional)',
-                          hint:
-                              'Enter owner name if vehicle is registered to someone else',
+                          label: l10n.vehicleOwnerName,
+                          hint: l10n.vehicleOwnerHint,
                           prefixIcon: Icons.person_outline_rounded,
                         ),
                         const SizedBox(height: 18),
@@ -252,94 +256,114 @@ class VehicleDetailsView extends StatelessWidget {
                         // 4. TC / RC Permit Number
                         CustomTextField(
                           controller: vm.rcNumberController,
-                          label: 'TC / RC Permit Number *',
+                          label: l10n.tcRcPermitNumber,
                           hint: 'TC9876543210',
                           prefixIcon: Icons.badge_outlined,
                         ),
                         const SizedBox(height: 18),
 
                         // 5. Upload RC Image Container Card
-                        const Text(
-                          'Upload RC Picture *',
-                          style: TextStyle(
+                        Text(
+                          l10n.uploadRcPicture,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: AppColors.background,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Vehicle RC Photo',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          vm.rcPicPath != null
-                                              ? Icons.cloud_done_rounded
-                                              : Icons.cloud_upload_outlined,
-                                          size: 18,
-                                          color: vm.rcPicPath != null
-                                              ? AppColors.primary
-                                              : AppColors.textMuted,
+                        InkWell(
+                          onTap: () => _showImagePicker(context, vm),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: vm.rcPicPath != null
+                                  ? AppColors.primary.withValues(alpha: 0.05)
+                                  : AppColors.background,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: vm.rcPicPath != null
+                                    ? AppColors.primary
+                                    : AppColors.border,
+                                width: vm.rcPicPath != null ? 1.5 : 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.vehicleRcPhoto,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textPrimary,
                                         ),
-                                        const SizedBox(width: 6),
-                                        Expanded(
-                                          child: Text(
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(
                                             vm.rcPicPath != null
-                                                ? 'Uploaded'
-                                                : 'Tap to attach clear photo of RC',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: vm.rcPicPath != null
-                                                  ? FontWeight.bold
-                                                  : FontWeight.w500,
-                                              color: vm.rcPicPath != null
-                                                  ? AppColors.primary
-                                                  : AppColors.textSecondary,
+                                                ? Icons.cloud_done_rounded
+                                                : Icons.cloud_upload_outlined,
+                                            size: 18,
+                                            color: vm.rcPicPath != null
+                                                ? AppColors.primary
+                                                : AppColors.textMuted,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Expanded(
+                                            child: Text(
+                                              vm.rcPicPath != null
+                                                  ? l10n.uploaded
+                                                  : l10n.tapToAttachRc,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: vm.rcPicPath != null
+                                                    ? FontWeight.bold
+                                                    : FontWeight.w500,
+                                                color: vm.rcPicPath != null
+                                                    ? AppColors.primary
+                                                    : AppColors.textSecondary,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit_rounded,
-                                    color: AppColors.primary),
-                                onPressed: () => _showImagePicker(context, vm),
-                              ),
-                            ],
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    vm.rcPicPath != null
+                                        ? Icons.edit_rounded
+                                        : Icons.add_a_photo_rounded,
+                                    color: AppColors.primary,
+                                    size: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 18),
 
                         // 6. Select the City of Operation (Only Hyderabad)
-                        const Text(
-                          'Select the city of operation',
-                          style: TextStyle(
+                        Text(
+                          l10n.selectCityOfOperation,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
@@ -393,29 +417,26 @@ class VehicleDetailsView extends StatelessWidget {
                               ),
                             ),
                           ],
-                          onChanged: (val) {
-                            if (val != null) vm.selectCity(val);
-                          },
+                          onChanged: (val) {},
                         ),
                         const SizedBox(height: 18),
 
-                        // 7. Select Vehicle Type (Truck & 3W)
-                        const Text(
-                          'Select Vehicle Type',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
+                        // 7. Vehicle Category Selection
                         if (vm.selectedCategory == null) ...[
+                          Text(
+                            l10n.selectVehicleType,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
                               Expanded(
                                 child: _buildCategoryCard(
-                                  title: 'Truck',
+                                  title: l10n.truck,
                                   icon: Icons.local_shipping_rounded,
                                   isSelected: false,
                                   onTap: () => vm.selectCategory('Truck'),
@@ -424,7 +445,7 @@ class VehicleDetailsView extends StatelessWidget {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _buildCategoryCard(
-                                  title: '3W',
+                                  title: l10n.threeWheeler,
                                   icon: Icons.electric_rickshaw_rounded,
                                   isSelected: false,
                                   onTap: () => vm.selectCategory('3W'),
@@ -433,6 +454,15 @@ class VehicleDetailsView extends StatelessWidget {
                             ],
                           ),
                         ] else ...[
+                          Text(
+                            l10n.selectVehicleType,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 12),
@@ -458,8 +488,8 @@ class VehicleDetailsView extends StatelessWidget {
                                     const SizedBox(width: 10),
                                     Text(
                                       vm.selectedCategory == 'Truck'
-                                          ? 'Truck'
-                                          : '3W',
+                                          ? l10n.truck
+                                          : l10n.threeWheeler,
                                       style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -486,9 +516,9 @@ class VehicleDetailsView extends StatelessWidget {
 
                           // 8. Vehicle Body Details (For Truck)
                           if (vm.selectedCategory == 'Truck') ...[
-                            const Text(
-                              'Select Vehicle Body Details',
-                              style: TextStyle(
+                            Text(
+                              l10n.selectVehicleBodyDetails,
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textPrimary,
@@ -528,9 +558,9 @@ class VehicleDetailsView extends StatelessWidget {
                           ],
 
                           // 9. Vehicle Body Type Selection (Open / Closed)
-                          const Text(
-                            'Select the vehicle body type',
-                            style: TextStyle(
+                          Text(
+                            l10n.selectVehicleBodyType,
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
@@ -541,7 +571,7 @@ class VehicleDetailsView extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: _buildBodyTypeCard(
-                                  title: 'Open',
+                                  title: l10n.openBody,
                                   icon: FontAwesomeIcons.truckPickup,
                                   isSelected: vm.selectedBodyType == 'Open',
                                   onTap: () => vm.selectBodyType('Open'),
@@ -550,7 +580,7 @@ class VehicleDetailsView extends StatelessWidget {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _buildBodyTypeCard(
-                                  title: 'Closed',
+                                  title: l10n.closedBody,
                                   icon: FontAwesomeIcons.truck,
                                   isSelected: vm.selectedBodyType == 'Closed',
                                   onTap: () => vm.selectBodyType('Closed'),
@@ -561,9 +591,9 @@ class VehicleDetailsView extends StatelessWidget {
                           const SizedBox(height: 18),
 
                           // 10. Vehicle Fuel Type Selection Dropdown
-                          const Text(
-                            'Select the vehicle fuel type',
-                            style: TextStyle(
+                          Text(
+                            l10n.selectVehicleFuelType,
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
@@ -630,7 +660,7 @@ class VehicleDetailsView extends StatelessWidget {
 
                   // Gradient Submit Button
                   GradientButton(
-                    text: 'Save & Continue',
+                    text: l10n.saveAndContinue,
                     isLoading: vm.isLoading,
                     icon: Icons.arrow_forward_rounded,
                     onPressed: () => vm.submitVehicleDetails(context, driverId),

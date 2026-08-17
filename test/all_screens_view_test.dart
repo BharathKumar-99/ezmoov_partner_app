@@ -14,6 +14,7 @@ import 'package:ezmoov_partner_app/viewmodels/bank_details_viewmodel.dart';
 import 'package:ezmoov_partner_app/viewmodels/wallet_viewmodel.dart';
 import 'package:ezmoov_partner_app/viewmodels/profile_viewmodel.dart';
 import 'package:ezmoov_partner_app/viewmodels/referral_viewmodel.dart';
+import 'package:ezmoov_partner_app/viewmodels/locale_viewmodel.dart';
 import 'package:ezmoov_partner_app/l10n/generated/app_localizations.dart';
 
 Widget createTestApp(Widget home) {
@@ -25,6 +26,7 @@ Widget createTestApp(Widget home) {
       ChangeNotifierProvider(create: (_) => WalletViewModel()),
       ChangeNotifierProvider(create: (_) => ProfileViewModel()),
       ChangeNotifierProvider(create: (_) => ReferralViewModel()),
+      ChangeNotifierProvider(create: (_) => LocaleViewModel()),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,

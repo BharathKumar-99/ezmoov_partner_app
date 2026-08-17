@@ -735,6 +735,732 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your driver documentation is under admin review.'**
   String get verificationInProgressMsg;
+
+  /// No description provided for @vehicleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Details'**
+  String get vehicleDetails;
+
+  /// No description provided for @vehicleOwnerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Owner Name (Optional)'**
+  String get vehicleOwnerName;
+
+  /// No description provided for @vehicleOwnerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter owner name if vehicle is registered to someone else'**
+  String get vehicleOwnerHint;
+
+  /// No description provided for @uploadRcPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload RC Picture *'**
+  String get uploadRcPicture;
+
+  /// No description provided for @vehicleRcPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle RC Photo'**
+  String get vehicleRcPhoto;
+
+  /// No description provided for @uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded'**
+  String get uploaded;
+
+  /// No description provided for @tapToAttachRc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to attach clear photo of RC'**
+  String get tapToAttachRc;
+
+  /// No description provided for @selectCityOfOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the city of operation'**
+  String get selectCityOfOperation;
+
+  /// No description provided for @selectVehicleType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Vehicle Type'**
+  String get selectVehicleType;
+
+  /// No description provided for @selectVehicleBodyDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Vehicle Body Details'**
+  String get selectVehicleBodyDetails;
+
+  /// No description provided for @selectVehicleBodyType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the vehicle body type'**
+  String get selectVehicleBodyType;
+
+  /// No description provided for @openBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openBody;
+
+  /// No description provided for @closedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get closedBody;
+
+  /// No description provided for @selectVehicleFuelType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the vehicle fuel type'**
+  String get selectVehicleFuelType;
+
+  /// No description provided for @saveAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Continue'**
+  String get saveAndContinue;
+
+  /// No description provided for @partnerPayoutBankAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner Payout Bank Account'**
+  String get partnerPayoutBankAccount;
+
+  /// No description provided for @addBankAccountDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your bank account details.'**
+  String get addBankAccountDetails;
+
+  /// No description provided for @accountHolderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Holder Name *'**
+  String get accountHolderName;
+
+  /// No description provided for @bankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Name *'**
+  String get bankName;
+
+  /// No description provided for @accountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number *'**
+  String get accountNumber;
+
+  /// No description provided for @ifscCode.
+  ///
+  /// In en, this message translates to:
+  /// **'IFSC Code *'**
+  String get ifscCode;
+
+  /// No description provided for @upiIdOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'UPI ID (Optional)'**
+  String get upiIdOptional;
+
+  /// No description provided for @uploadPassbook.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Passbook / Cancelled Cheque (Optional)'**
+  String get uploadPassbook;
+
+  /// No description provided for @passbookPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Passbook / Cheque Photo'**
+  String get passbookPhoto;
+
+  /// No description provided for @tapToAttachPassbook.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to attach clear photo of passbook/cheque'**
+  String get tapToAttachPassbook;
+
+  /// No description provided for @submitBankDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Bank Details'**
+  String get submitBankDetails;
+
+  /// No description provided for @loginDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back! Enter your registered mobile number to continue.'**
+  String get loginDescription;
+
+  /// No description provided for @mobileNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Number'**
+  String get mobileNumber;
+
+  /// No description provided for @continueText.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueText;
+
+  /// No description provided for @driverRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver Registration'**
+  String get driverRegistration;
+
+  /// No description provided for @joinEzmoovFleet.
+  ///
+  /// In en, this message translates to:
+  /// **'Join EZMoov Fleet'**
+  String get joinEzmoovFleet;
+
+  /// No description provided for @createYourPartnerProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your partner profile to start taking trips.'**
+  String get createYourPartnerProfile;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @emailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get emailAddress;
+
+  /// No description provided for @referralCodeOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral Code (Optional)'**
+  String get referralCodeOptional;
+
+  /// No description provided for @signUpAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up & Continue'**
+  String get signUpAndContinue;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? '**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have a partner account? '**
+  String get dontHaveAccount;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @otpVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP Verification'**
+  String get otpVerification;
+
+  /// No description provided for @enterVerificationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Verification Code'**
+  String get enterVerificationCode;
+
+  /// No description provided for @weHaveSentOtpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'We have sent a 6-digit OTP code to '**
+  String get weHaveSentOtpTo;
+
+  /// No description provided for @verifyAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify & Continue'**
+  String get verifyAndContinue;
+
+  /// No description provided for @didntReceiveCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive code? '**
+  String get didntReceiveCode;
+
+  /// No description provided for @resendOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend OTP'**
+  String get resendOtp;
+
+  /// No description provided for @fullOperationalAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Operational Address *'**
+  String get fullOperationalAddress;
+
+  /// No description provided for @tcRcPermitNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'TC / RC Permit Number *'**
+  String get tcRcPermitNumber;
+
+  /// No description provided for @truck.
+  ///
+  /// In en, this message translates to:
+  /// **'Truck'**
+  String get truck;
+
+  /// No description provided for @threeWheeler.
+  ///
+  /// In en, this message translates to:
+  /// **'3W'**
+  String get threeWheeler;
+
+  /// No description provided for @vehiclePermit.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Permit'**
+  String get vehiclePermit;
+
+  /// No description provided for @uploadVehiclePermit.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Vehicle Permit'**
+  String get uploadVehiclePermit;
+
+  /// No description provided for @documentVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Verification'**
+  String get documentVerification;
+
+  /// No description provided for @uploadRequiredDocumentsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload required documentation for verification'**
+  String get uploadRequiredDocumentsSubtitle;
+
+  /// No description provided for @aadhaarCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Aadhaar Card'**
+  String get aadhaarCard;
+
+  /// No description provided for @uploadAadhaarCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Aadhaar Card'**
+  String get uploadAadhaarCard;
+
+  /// No description provided for @drivingLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving License'**
+  String get drivingLicense;
+
+  /// No description provided for @uploadDrivingLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Driving License'**
+  String get uploadDrivingLicense;
+
+  /// No description provided for @vehicleRc.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle RC'**
+  String get vehicleRc;
+
+  /// No description provided for @uploadVehicleRc.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Vehicle RC'**
+  String get uploadVehicleRc;
+
+  /// No description provided for @panCard.
+  ///
+  /// In en, this message translates to:
+  /// **'PAN Card'**
+  String get panCard;
+
+  /// No description provided for @uploadPanCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload PAN Card'**
+  String get uploadPanCard;
+
+  /// No description provided for @vehicleInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Insurance'**
+  String get vehicleInsurance;
+
+  /// No description provided for @uploadVehicleInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Vehicle Insurance'**
+  String get uploadVehicleInsurance;
+
+  /// No description provided for @pucCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'PUC Certificate'**
+  String get pucCertificate;
+
+  /// No description provided for @uploadPucCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload PUC Certificate'**
+  String get uploadPucCertificate;
+
+  /// No description provided for @fitnessCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness Certificate'**
+  String get fitnessCertificate;
+
+  /// No description provided for @uploadFitnessCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Fitness Certificate'**
+  String get uploadFitnessCertificate;
+
+  /// No description provided for @policeClearanceCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Police Clearance Certificate'**
+  String get policeClearanceCertificate;
+
+  /// No description provided for @uploadPoliceClearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Police Clearance Certificate'**
+  String get uploadPoliceClearance;
+
+  /// No description provided for @selfieWithVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selfie with Vehicle'**
+  String get selfieWithVehicle;
+
+  /// No description provided for @uploadSelfieWithVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Selfie with Vehicle'**
+  String get uploadSelfieWithVehicle;
+
+  /// No description provided for @autoVerifiedDigilocker.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Verified via DigiLocker API'**
+  String get autoVerifiedDigilocker;
+
+  /// No description provided for @autoVerifiedApi.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Verified via API'**
+  String get autoVerifiedApi;
+
+  /// No description provided for @autoVerifiedVahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Verified via Vahan API'**
+  String get autoVerifiedVahan;
+
+  /// No description provided for @certificateUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate Upload'**
+  String get certificateUpload;
+
+  /// No description provided for @officialCitizenPortal.
+  ///
+  /// In en, this message translates to:
+  /// **'Official state citizen portal'**
+  String get officialCitizenPortal;
+
+  /// No description provided for @selfieWithVehicleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear photo of driver standing with vehicle'**
+  String get selfieWithVehicleSubtitle;
+
+  /// No description provided for @submitDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Documents'**
+  String get submitDocuments;
+
+  /// No description provided for @attached.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached'**
+  String get attached;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @changeDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Document'**
+  String get changeDocument;
+
+  /// No description provided for @takePhotoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo with Camera'**
+  String get takePhotoCamera;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @accountVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Verification'**
+  String get accountVerification;
+
+  /// No description provided for @verificationUnderReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Under Review'**
+  String get verificationUnderReview;
+
+  /// No description provided for @verificationUnderReviewDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vehicle and document submissions have been received. Access to the driver home dashboard will be unlocked once approved by our verification team.'**
+  String get verificationUnderReviewDesc;
+
+  /// No description provided for @mobilePhoneAndIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Phone & Identity'**
+  String get mobilePhoneAndIdentity;
+
+  /// No description provided for @phoneOtpVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone OTP Verified'**
+  String get phoneOtpVerified;
+
+  /// No description provided for @vehicleRegistrationAndRc.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Registration & RC'**
+  String get vehicleRegistrationAndRc;
+
+  /// No description provided for @vehicleVerifiedByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Verified by Admin'**
+  String get vehicleVerifiedByAdmin;
+
+  /// No description provided for @rcSubmittedReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'RC Photo Submitted - Reviewing'**
+  String get rcSubmittedReviewing;
+
+  /// No description provided for @certificatesVerifiedByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates Verified by Admin'**
+  String get certificatesVerifiedByAdmin;
+
+  /// No description provided for @certificatesSubmittedReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'PUC, Permit, Fitness, PCC Submitted - Reviewing'**
+  String get certificatesSubmittedReviewing;
+
+  /// No description provided for @bankAccountPayouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account Payouts'**
+  String get bankAccountPayouts;
+
+  /// No description provided for @bankAccountVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account Verified'**
+  String get bankAccountVerified;
+
+  /// No description provided for @bankDetailsSubmittedReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Details Submitted - Reviewing'**
+  String get bankDetailsSubmittedReviewing;
+
+  /// No description provided for @checkVerificationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Verification Status'**
+  String get checkVerificationStatus;
+
+  /// No description provided for @logOutAndExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Out & Exit'**
+  String get logOutAndExit;
+
+  /// No description provided for @verificationApprovedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'🎉 Verification Approved! Welcome to EZMoov Fleet.'**
+  String get verificationApprovedMsg;
+
+  /// No description provided for @verificationStillPendingMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification still pending admin review. Please check back shortly.'**
+  String get verificationStillPendingMsg;
+
+  /// No description provided for @emergencySos.
+  ///
+  /// In en, this message translates to:
+  /// **'EMERGENCY SOS'**
+  String get emergencySos;
+
+  /// No description provided for @callAmbulance108.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Ambulance (108)'**
+  String get callAmbulance108;
+
+  /// No description provided for @sosButtonText.
+  ///
+  /// In en, this message translates to:
+  /// **'SOS (108)'**
+  String get sosButtonText;
+
+  /// No description provided for @tapToCallAmbulance.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to call Ambulance (108) from dialer'**
+  String get tapToCallAmbulance;
+
+  /// No description provided for @cancelTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Trip'**
+  String get cancelTrip;
+
+  /// No description provided for @confirmCashPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Cash Payment'**
+  String get confirmCashPayment;
+
+  /// No description provided for @yesReceivedCash.
+  ///
+  /// In en, this message translates to:
+  /// **'YES, RECEIVED CASH'**
+  String get yesReceivedCash;
+
+  /// No description provided for @cargoPickupPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'CARGO PICKUP PHOTO'**
+  String get cargoPickupPhoto;
+
+  /// No description provided for @cargoPhotoMandatory.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of loaded cargo is MANDATORY to start trip'**
+  String get cargoPhotoMandatory;
+
+  /// No description provided for @proofOfDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'PROOF OF DELIVERY (POD)'**
+  String get proofOfDelivery;
+
+  /// No description provided for @startTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'START TRIP'**
+  String get startTrip;
+
+  /// No description provided for @completeTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPLETE TRIP'**
+  String get completeTrip;
+
+  /// No description provided for @referAndEarnPartnerBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer & Earn Partner Bonus'**
+  String get referAndEarnPartnerBonus;
+
+  /// No description provided for @yourReferralCode.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR REFERRAL CODE'**
+  String get yourReferralCode;
+
+  /// No description provided for @copyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Code'**
+  String get copyCode;
+
+  /// No description provided for @codeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral code copied to clipboard!'**
+  String get codeCopied;
+
+  /// No description provided for @shareCodeWithDrivers.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your code with fellow drivers to earn bonus rewards when they complete their first 5 trips.'**
+  String get shareCodeWithDrivers;
+
+  /// No description provided for @redeemReferralCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem Referral Code'**
+  String get redeemReferralCode;
+
+  /// No description provided for @haveReferralCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a Referral Code?'**
+  String get haveReferralCode;
+
+  /// No description provided for @applyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Code'**
+  String get applyCode;
 }
 
 class _AppLocalizationsDelegate

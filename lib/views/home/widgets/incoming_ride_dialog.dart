@@ -9,6 +9,7 @@ void showIncomingRideDialog(
     BuildContext context, BookingModel booking, String driverId) {
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     isDismissible: false,
     enableDrag: false,
     backgroundColor: Colors.transparent,
@@ -37,12 +38,15 @@ class IncomingRideDialog extends StatelessWidget {
     return Consumer<RideRequestViewModel>(
       builder: (context, vm, child) {
         final activeBooking = vm.activeBroadcastBooking ?? booking;
-        final customerDisplayName =
-            (activeBooking.customerName != null && activeBooking.customerName!.isNotEmpty)
-                ? activeBooking.customerName!
-                : 'Customer Delivery Request';
+        final customerDisplayName = (activeBooking.customerName != null &&
+                activeBooking.customerName!.isNotEmpty)
+            ? activeBooking.customerName!
+            : 'Customer Delivery Request';
 
         return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
           decoration: const BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -187,126 +191,188 @@ class IncomingRideDialog extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // Multi-Stops Badge Indicator
-              if (activeBooking.hasStops) ...[
-                Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFF59E0B)),
-                  ),
-                  child: Row(
+              // Scrollable Content Section (Stops Badge + Full Route Timeline)
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.alt_route_rounded, size: 18, color: Color(0xFFD97706)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${activeBooking.stopsCount} Intermediate Stop${activeBooking.stopsCount > 1 ? 's' : ''} (+₹${activeBooking.stopsCharge > 0 ? activeBooking.stopsCharge.toStringAsFixed(0) : (activeBooking.stopsCount * 25)})',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFB45309),
+                      // Multi-Stops Badge Indicator
+                      if (activeBooking.hasStops) ...[
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFF59E0B)),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-
-              // Route Container (Pickup, Intermediate Stops, Drop)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(
-                  children: [
-                    // Pickup Address
-                    Row(
-                      children: [
-                        const Icon(Icons.circle,
-                            color: AppColors.primary, size: 12),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              const Text(
-                                'PICKUP ADDRESS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textMuted,
+                              const Icon(Icons.alt_route_rounded,
+                                  size: 18, color: Color(0xFFD97706)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${activeBooking.stopsCount} Intermediate Stop${activeBooking.stopsCount > 1 ? 's' : ''} (+₹${activeBooking.stopsCharge > 0 ? activeBooking.stopsCharge.toStringAsFixed(0) : (activeBooking.stopsCount * 25)})',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFB45309),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                activeBooking.pickupAddress.isNotEmpty
-                                    ? activeBooking.pickupAddress
-                                    : 'Pickup Address',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
                       ],
-                    ),
 
-                    // Intermediate Stops Timeline Loop
-                    if (activeBooking.hasStops)
-                      ...activeBooking.effectiveIntermediateStops.asMap().entries.map((entry) {
-                        final idx = entry.key + 1;
-                        final stop = entry.value;
-                        return Column(
+                      // Route Container (Pickup, Intermediate Stops, Drop)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              margin: const EdgeInsets.only(left: 5, top: 4, bottom: 4),
-                              height: 16,
-                              width: 2,
-                              color: Colors.amber.shade700,
-                            ),
+                            // Pickup Address
                             Row(
                               children: [
-                                Icon(Icons.stop_circle_outlined,
-                                    color: Colors.amber.shade800, size: 14),
+                                const Icon(Icons.circle,
+                                    color: AppColors.primary, size: 12),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'STOP $idx ADDRESS (+₹25)',
+                                      const Text(
+                                        'PICKUP ADDRESS',
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.amber.shade900,
+                                          color: AppColors.textMuted,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        stop.address.isNotEmpty
-                                            ? stop.address
-                                            : 'Stop $idx Location',
+                                        activeBooking.pickupAddress.isNotEmpty
+                                            ? activeBooking.pickupAddress
+                                            : 'Pickup Address',
                                         style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.textPrimary,
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // Intermediate Stops Timeline Loop
+                            if (activeBooking.hasStops)
+                              ...activeBooking.effectiveIntermediateStops
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                final idx = entry.key + 1;
+                                final stop = entry.value;
+                                return Column(
+                                  children: [
+                                    Container(
+                                      margin: const EdgeInsets.only(
+                                          left: 5, top: 4, bottom: 4),
+                                      height: 16,
+                                      width: 2,
+                                      color: Colors.amber.shade700,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.stop_circle_outlined,
+                                            color: Colors.amber.shade800,
+                                            size: 14),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'STOP $idx ADDRESS (+₹25)',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.amber.shade900,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                stop.address.isNotEmpty
+                                                    ? stop.address
+                                                    : 'Stop $idx Location',
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }),
+
+                            Container(
+                              margin: const EdgeInsets.only(
+                                  left: 5, top: 4, bottom: 4),
+                              height: 16,
+                              width: 2,
+                              color: AppColors.divider,
+                            ),
+
+                            // Drop Address
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on_rounded,
+                                    color: AppColors.error, size: 14),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'FINAL DROP ADDRESS',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textMuted,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        activeBooking.dropAddress.isNotEmpty
+                                            ? activeBooking.dropAddress
+                                            : 'Drop Address',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textPrimary,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -314,59 +380,16 @@ class IncomingRideDialog extends StatelessWidget {
                               ],
                             ),
                           ],
-                        );
-                      }),
-
-                    Container(
-                      margin: const EdgeInsets.only(left: 5, top: 4, bottom: 4),
-                      height: 16,
-                      width: 2,
-                      color: AppColors.divider,
-                    ),
-
-                    // Drop Address
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_rounded,
-                            color: AppColors.error, size: 14),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'FINAL DROP ADDRESS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                activeBooking.dropAddress.isNotEmpty
-                                    ? activeBooking.dropAddress
-                                    : 'Drop Address',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              // Action Buttons: Decline & Accept
+              // Action Buttons: Decline & Accept (pinned at bottom!)
               Row(
                 children: [
                   Expanded(

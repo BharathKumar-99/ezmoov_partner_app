@@ -180,6 +180,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        actionsOverflowDirection: VerticalDirection.up,
         title: Row(
           children: [
             Container(
@@ -203,33 +204,35 @@ class _DriverPickupViewState extends State<DriverPickupView> {
             ),
           ],
         ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Call Ambulance Emergency Services (108) from phone dialer?',
-              style: TextStyle(fontSize: 14, height: 1.4, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'This action opens phone dialer with National Emergency Ambulance number 108.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ],
+        content: const SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you in an emergency situation?',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Tapping "Call Ambulance 108" will open your phone dialer to directly call Emergency Ambulance Services (108).',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('CANCEL', style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+            child: const Text('CANCEL', style: TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
-            icon: const Icon(Icons.call_rounded, color: Colors.white, size: 20),
+            icon: const Icon(Icons.phone_in_talk_rounded, color: Colors.white, size: 18),
             label: const Text('CALL AMBULANCE (108)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             onPressed: () {
               Navigator.pop(dialogCtx);
@@ -477,6 +480,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         builder: (dialogCtx) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          actionsOverflowDirection: VerticalDirection.up,
           title: const Row(
             children: [
               Icon(Icons.hourglass_top_rounded,
@@ -491,10 +495,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
               ),
             ],
           ),
-          content: const Text(
-            'The customer selected Online Payment (Razorpay). The payment has not been confirmed yet.\n\nPlease ask the customer to complete payment on their phone. The status will automatically update to "Payment Received" once paid.',
-            style: TextStyle(
-                fontSize: 13, height: 1.4, color: AppColors.textSecondary),
+          content: const SingleChildScrollView(
+            child: Text(
+              'The customer selected Online Payment (Razorpay). The payment has not been confirmed yet.\n\nPlease ask the customer to complete payment on their phone. The status will automatically update to "Payment Received" once paid.',
+              style: TextStyle(
+                  fontSize: 13, height: 1.4, color: AppColors.textSecondary),
+            ),
           ),
           actions: [
             TextButton(
@@ -533,20 +539,27 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        actionsOverflowDirection: VerticalDirection.up,
         title: const Row(
           children: [
             Icon(Icons.payments_rounded, color: Color(0xFF10B981), size: 26),
             SizedBox(width: 10),
-            Text('Confirm Cash Payment',
+            Flexible(
+              child: Text(
+                'Confirm Cash Payment',
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary)),
+                    color: AppColors.textPrimary),
+              ),
+            ),
           ],
         ),
-        content: Text(
-          'Did you collect ₹${totalFare.toStringAsFixed(0)} cash directly from the customer?',
-          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        content: SingleChildScrollView(
+          child: Text(
+            'Did you collect ₹${totalFare.toStringAsFixed(0)} cash directly from the customer?',
+            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          ),
         ),
         actions: [
           TextButton(
@@ -574,6 +587,71 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleIntermediateStopAction({
+    required int stopIndex,
+    required String action,
+  }) async {
+    final booking = _booking;
+    if (booking == null) return;
+
+    final currentStops = booking.effectiveIntermediateStops;
+    final List<Map<String, dynamic>> updatedStopsJson = [];
+
+    for (int i = 0; i < currentStops.length; i++) {
+      final s = currentStops[i];
+      if (i == stopIndex) {
+        updatedStopsJson.add({
+          'latitude': s.latitude,
+          'longitude': s.longitude,
+          'address': s.address,
+          'is_completed': action == 'completed',
+          'status': action,
+          'timestamp': DateTime.now().toIso8601String(),
+        });
+      } else {
+        updatedStopsJson.add(s.toJson());
+      }
+    }
+
+    try {
+      await SupabaseService.instance.updateIntermediateStopStatus(
+        bookingId: booking.id,
+        bookingIdx: booking.idx,
+        stopIndex: stopIndex,
+        stopStatus: action,
+        updatedStopsJson: updatedStopsJson,
+      );
+
+      final stopNum = stopIndex + 1;
+      final msg = action == 'reached'
+          ? 'Reached Stop $stopNum!'
+          : 'Completed Stop $stopNum!';
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: action == 'completed'
+                ? const Color(0xFF10B981)
+                : Colors.amber.shade800,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+
+      await _loadBookingDetails();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating stop status: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   void _showTripCancellationModal() {
@@ -2159,57 +2237,156 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ],
                         ),
 
-                        // Intermediate Stops Loop
+                        // Intermediate Stops Loop with Per-Stop Status Buttons
                         if (_booking != null && _booking!.hasStops)
                           ..._booking!.effectiveIntermediateStops.asMap().entries.map((entry) {
-                            final idx = entry.key + 1;
+                            final i = entry.key;
+                            final idx = i + 1;
                             final stop = entry.value;
+                            final currentStatus = _booking!.status.toLowerCase();
+                            final isThisStopReached = currentStatus == 'stop_${idx}_reached';
+                            final isThisStopCompleted = stop.isCompleted || currentStatus == 'stop_${idx}_completed';
+                            final isPrevStopCompleted = i == 0 || _booking!.effectiveIntermediateStops[i - 1].isCompleted;
+
                             return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
                                   margin: const EdgeInsets.only(left: 5, top: 2, bottom: 2),
                                   height: 20,
                                   width: 2,
-                                  color: Colors.amber.shade700,
+                                  color: isThisStopCompleted ? const Color(0xFF10B981) : Colors.amber.shade700,
                                 ),
-                                Row(
-                                  children: [
-                                    Icon(Icons.stop_circle_outlined,
-                                        color: Colors.amber.shade800, size: 14),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: isThisStopCompleted
+                                        ? const Color(0xFFECFDF5)
+                                        : (isThisStopReached ? const Color(0xFFFFFBEB) : AppColors.background),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isThisStopCompleted
+                                          ? const Color(0xFF10B981)
+                                          : (isThisStopReached ? Colors.amber.shade700 : AppColors.border),
+                                      width: isThisStopReached || isThisStopCompleted ? 1.5 : 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
                                         children: [
-                                          Text(
-                                            'STOP $idx (+₹25)',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.amber.shade900,
+                                          Icon(
+                                            isThisStopCompleted
+                                                ? Icons.check_circle_rounded
+                                                : (isThisStopReached
+                                                    ? Icons.nature_people_rounded
+                                                    : Icons.stop_circle_outlined),
+                                            color: isThisStopCompleted
+                                                ? const Color(0xFF10B981)
+                                                : Colors.amber.shade800,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'STOP $idx (+₹25)',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: isThisStopCompleted
+                                                        ? const Color(0xFF047857)
+                                                        : Colors.amber.shade900,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  stop.address.isNotEmpty
+                                                      ? stop.address
+                                                      : 'Intermediate Stop $idx',
+                                                  style: const TextStyle(
+                                                      fontSize: 13, fontWeight: FontWeight.w600),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                          Text(
-                                            stop.address.isNotEmpty
-                                                ? stop.address
-                                                : 'Intermediate Stop $idx',
-                                            style: const TextStyle(
-                                                fontSize: 13, fontWeight: FontWeight.w600),
+                                          IconButton(
+                                            tooltip: 'Navigate to Stop $idx in GMaps',
+                                            icon: const Icon(Icons.directions_outlined,
+                                                color: Color(0xFFD97706)),
+                                            onPressed: () => _openGoogleMaps(
+                                              lat: stop.latitude,
+                                              lng: stop.longitude,
+                                              fallbackAddress: stop.address,
+                                            ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Navigate to Stop $idx in GMaps',
-                                      icon: const Icon(Icons.directions_outlined,
-                                          color: Color(0xFFD97706)),
-                                      onPressed: () => _openGoogleMaps(
-                                        lat: stop.latitude,
-                                        lng: stop.longitude,
-                                        fallbackAddress: stop.address,
-                                      ),
-                                    ),
-                                  ],
+                                      // Per-Stop Action Button
+                                      if (_booking!.status != 'completed' && _booking!.status != 'cancelled') ...[
+                                        const SizedBox(height: 8),
+                                        if (isThisStopCompleted) ...[
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              '✓ STOP $idx COMPLETED',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF047857),
+                                              ),
+                                            ),
+                                          ),
+                                        ] else if (isThisStopReached) ...[
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton.icon(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFF10B981),
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(10)),
+                                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                              ),
+                                              icon: const Icon(Icons.done_all_rounded, color: Colors.white, size: 16),
+                                              label: Text(
+                                                'Complete Stop $idx',
+                                                style: const TextStyle(
+                                                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                              ),
+                                              onPressed: () => _handleIntermediateStopAction(
+                                                  stopIndex: i, action: 'completed'),
+                                            ),
+                                          ),
+                                        ] else if (isPrevStopCompleted) ...[
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton.icon(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.amber.shade800,
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(10)),
+                                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                              ),
+                                              icon: const Icon(Icons.pin_drop_rounded, color: Colors.white, size: 16),
+                                              label: Text(
+                                                'Reached Stop $idx',
+                                                style: const TextStyle(
+                                                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                              ),
+                                              onPressed: () => _handleIntermediateStopAction(
+                                                  stopIndex: i, action: 'reached'),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             );
@@ -2300,65 +2477,115 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                   const SizedBox(height: 24),
 
-                  // Progressive Action Button (ARRIVED -> START TRIP (OTP) -> UNLOAD CARGO (POD) -> CASH PAYMENT -> CONFIRM COMPLETED)
-                  if (currentStatus == 'accepted')
-                    GradientButton(
-                      text: 'ARRIVED AT PICKUP',
-                      isLoading: _isUpdatingStatus,
-                      icon: Icons.check_circle_outline_rounded,
-                      onPressed: () => _updateStatus(
-                        'arrived',
-                        'Customer notified: Driver arrived at pickup location! Loading timer started.',
-                      ),
-                    )
-                  else if (currentStatus == 'arrived')
-                    GradientButton(
-                      text: 'TAKE PICKUP PHOTO & START TRIP',
-                      isLoading: _isUpdatingStatus,
-                      icon: Icons.camera_alt_rounded,
-                      onPressed: _showCargoPickupPhotoModal,
-                    )
-                  else if (currentStatus == 'in_transit')
-                    GradientButton(
-                      text: 'REACHED DROP-OFF',
-                      isLoading: _isUpdatingStatus,
-                      icon: Icons.location_on_rounded,
-                      onPressed: () => _updateStatus(
-                        'arrived_at_dropoff',
-                        'Arrived at drop-off location! Unloading timer started.',
-                      ),
-                    )
-                  else if (currentStatus == 'arrived_at_dropoff')
-                    GradientButton(
-                      text: 'UNLOAD CARGO & SUBMIT POD',
-                      isLoading: _isUpdatingStatus,
-                      icon: Icons.task_alt_rounded,
-                      onPressed: _showProofOfDeliveryModal,
-                    )
-                  else if (currentStatus == 'drop_complete')
-                    GradientButton(
-                      text:
-                          'Received Cash Payment (₹${((_booking?.amount?['total_price'] ?? 0) + (_booking?.waitingCharges ?? 0)).toStringAsFixed(0)})',
-                      isLoading: _isUpdatingStatus,
-                      icon: Icons.payments_rounded,
-                      onPressed: _handleReceivedPaymentClick,
-                    )
-                  else if (currentStatus == 'amount_paid')
-                    GradientButton(
-                      text: 'Confirm Trip Completed',
-                      isLoading: _isUpdatingStatus,
-                      icon: Icons.check_circle_rounded,
-                      onPressed: () => _updateStatus(
-                        'completed',
-                        '🎉 Delivery Completed Successfully!',
-                      ),
-                    )
-                  else
-                    GradientButton(
-                      text: 'BACK TO HOME',
-                      icon: Icons.home_rounded,
-                      onPressed: () => context.go('/home'),
-                    ),
+                  // Progressive Action Button (ARRIVED -> START TRIP -> INTERMEDIATE STOPS -> FINAL DROPOFF -> POD -> CASH -> COMPLETE)
+                  Builder(
+                    builder: (context) {
+                      final effectiveStops = _booking?.effectiveIntermediateStops ?? [];
+                      final firstUncompletedIndex = effectiveStops.indexWhere((s) => !s.isCompleted);
+                      final hasPendingStops = _booking?.hasStops == true && firstUncompletedIndex != -1;
+
+                      if (currentStatus == 'accepted') {
+                        return GradientButton(
+                          text: 'ARRIVED AT PICKUP',
+                          isLoading: _isUpdatingStatus,
+                          icon: Icons.check_circle_outline_rounded,
+                          onPressed: () => _updateStatus(
+                            'arrived',
+                            'Customer notified: Driver arrived at pickup location! Loading timer started.',
+                          ),
+                        );
+                      }
+
+                      if (currentStatus == 'arrived') {
+                        return GradientButton(
+                          text: 'TAKE PICKUP PHOTO & START TRIP',
+                          isLoading: _isUpdatingStatus,
+                          icon: Icons.camera_alt_rounded,
+                          onPressed: _showCargoPickupPhotoModal,
+                        );
+                      }
+
+                      // If trip has pending intermediate stops
+                      if (hasPendingStops &&
+                          (currentStatus == 'in_transit' || currentStatus.startsWith('stop_'))) {
+                        final stopIdx = firstUncompletedIndex;
+                        final stopNum = stopIdx + 1;
+                        final isReached = currentStatus == 'stop_${stopNum}_reached';
+
+                        if (isReached) {
+                          return GradientButton(
+                            text: 'COMPLETE STOP $stopNum',
+                            isLoading: _isUpdatingStatus,
+                            icon: Icons.done_all_rounded,
+                            onPressed: () => _handleIntermediateStopAction(
+                              stopIndex: stopIdx,
+                              action: 'completed',
+                            ),
+                          );
+                        } else {
+                          return GradientButton(
+                            text: 'REACHED STOP $stopNum',
+                            isLoading: _isUpdatingStatus,
+                            icon: Icons.pin_drop_rounded,
+                            onPressed: () => _handleIntermediateStopAction(
+                              stopIndex: stopIdx,
+                              action: 'reached',
+                            ),
+                          );
+                        }
+                      }
+
+                      // All intermediate stops completed (or no stops) & in transit -> Ready for Final Dropoff!
+                      if (currentStatus == 'in_transit' || currentStatus.startsWith('stop_')) {
+                        return GradientButton(
+                          text: 'REACHED FINAL DESTINATION',
+                          isLoading: _isUpdatingStatus,
+                          icon: Icons.location_on_rounded,
+                          onPressed: () => _updateStatus(
+                            'arrived_at_dropoff',
+                            'Arrived at final drop-off location! Unloading timer started.',
+                          ),
+                        );
+                      }
+
+                      if (currentStatus == 'arrived_at_dropoff') {
+                        return GradientButton(
+                          text: 'UNLOAD CARGO & SUBMIT POD',
+                          isLoading: _isUpdatingStatus,
+                          icon: Icons.task_alt_rounded,
+                          onPressed: _showProofOfDeliveryModal,
+                        );
+                      }
+
+                      if (currentStatus == 'drop_complete') {
+                        return GradientButton(
+                          text:
+                              'Received Cash Payment (₹${((_booking?.amount?['total_price'] ?? 0) + (_booking?.waitingCharges ?? 0)).toStringAsFixed(0)})',
+                          isLoading: _isUpdatingStatus,
+                          icon: Icons.payments_rounded,
+                          onPressed: _handleReceivedPaymentClick,
+                        );
+                      }
+
+                      if (currentStatus == 'amount_paid') {
+                        return GradientButton(
+                          text: 'Confirm Trip Completed',
+                          isLoading: _isUpdatingStatus,
+                          icon: Icons.check_circle_rounded,
+                          onPressed: () => _updateStatus(
+                            'completed',
+                            '🎉 Delivery Completed Successfully!',
+                          ),
+                        );
+                      }
+
+                      return GradientButton(
+                        text: 'BACK TO HOME',
+                        icon: Icons.home_rounded,
+                        onPressed: () => context.go('/home'),
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: 12),
 

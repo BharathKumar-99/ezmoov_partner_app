@@ -402,21 +402,14 @@ class SupabaseService {
     }
   }
 
-  /// Get currently active booking for driver ('accepted', 'arrived', 'in_transit', 'drop_complete', or 'amount_paid')
+  /// Get currently active booking for driver (any ongoing status like 'accepted', 'arrived', 'stop_*', 'in_transit', 'drop_complete', or 'amount_paid')
   Future<BookingModel?> getActiveDriverBooking(String driverId) async {
     try {
       final response = await client
           .from('bookings')
           .select()
           .eq('driver_id', driverId)
-          .inFilter('status', [
-            'accepted',
-            'arrived',
-            'in_transit',
-            'arrived_at_dropoff',
-            'drop_complete',
-            'amount_paid'
-          ])
+          .not('status', 'in', '(completed,cancelled,expired,rejected,searching)')
           .order('created_at', ascending: false)
           .limit(1)
           .maybeSingle();
@@ -558,6 +551,31 @@ class SupabaseService {
       );
     } catch (e) {
       debugPrint('Error updating booking status: $e');
+      rethrow;
+    }
+  }
+
+  /// Update an intermediate stop status (reached / completed) in public.bookings
+  Future<void> updateIntermediateStopStatus({
+    required String bookingId,
+    int? bookingIdx,
+    required int stopIndex,
+    required String stopStatus,
+    required List<Map<String, dynamic>> updatedStopsJson,
+  }) async {
+    try {
+      final String overallStatus = 'stop_${stopIndex + 1}_$stopStatus';
+      await _updateBookingField(
+        bookingId: bookingId,
+        bookingIdx: bookingIdx,
+        updateData: {
+          'status': overallStatus,
+          'intermediate_stops': updatedStopsJson,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
+    } catch (e) {
+      debugPrint('Error updating intermediate stop status: $e');
       rethrow;
     }
   }

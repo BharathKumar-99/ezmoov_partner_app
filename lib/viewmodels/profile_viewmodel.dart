@@ -385,8 +385,9 @@ class ProfileViewModel extends ChangeNotifier {
               context: context,
               builder: (dialogCtx) => AlertDialog(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                actionsOverflowDirection: VerticalDirection.up,
                 title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                content: Text(message),
+                content: SingleChildScrollView(child: Text(message)),
                 actions: [
                   if (!isRejectionBlock) ...[
                     ElevatedButton.icon(

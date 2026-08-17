@@ -272,7 +272,7 @@ class RideRequestViewModel extends ChangeNotifier {
               : null);
 
       if (bookingToRestore != null &&
-          ['accepted', 'arrived', 'in_transit', 'drop_complete', 'amount_paid']
+          !['completed', 'cancelled', 'expired', 'rejected', 'searching']
               .contains(bookingToRestore.status)) {
         _activeDriverTrip = bookingToRestore;
         await _offlineTripService.saveActiveTrip(
@@ -283,8 +283,7 @@ class RideRequestViewModel extends ChangeNotifier {
         notifyListeners();
 
         if (context.mounted) {
-          _showSnackBar(context, '🔄 Restored active trip navigation');
-          GoRouter.of(context).go('/driver/pickup/${bookingToRestore.id}');
+          _showSnackBar(context, '⚡ Active trip in progress: Tap Resume Trip to return');
         }
       }
     } catch (e) {

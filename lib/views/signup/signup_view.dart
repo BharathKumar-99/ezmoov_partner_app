@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/gradient_button.dart';
+import '../../widgets/language_selector_button.dart';
 
 class SignupView extends StatelessWidget {
   const SignupView({super.key});
@@ -71,14 +73,23 @@ class SignupView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Driver Registration'),
+        title: Text(l10n.driverRegistration),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => context.go('/login'),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Center(
+              child: LanguageSelectorButton(isCompact: true),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Consumer<AuthViewModel>(
@@ -88,18 +99,18 @@ class SignupView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Join EZMoov Fleet',
-                    style: TextStyle(
+                  Text(
+                    l10n.joinEzmoovFleet,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Create your partner profile to start taking trips.',
-                    style: TextStyle(
+                  Text(
+                    l10n.createYourPartnerProfile,
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -114,8 +125,12 @@ class SignupView extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppColors.surface,
-                            border:
-                                Border.all(color: AppColors.primary, width: 2),
+                            border: Border.all(
+                              color: vm.profilePicPath != null
+                                  ? AppColors.primary
+                                  : AppColors.border,
+                              width: 2,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.05),
@@ -178,14 +193,14 @@ class SignupView extends StatelessWidget {
                       children: [
                         CustomTextField(
                           controller: vm.signupNameController,
-                          label: 'Full Name',
+                          label: l10n.fullName,
                           hint: 'Enter your full name',
                           prefixIcon: Icons.person_outline_rounded,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: vm.signupEmailController,
-                          label: 'Email Address',
+                          label: l10n.emailAddress,
                           hint: 'driver@ezmoov.com',
                           prefixIcon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
@@ -193,7 +208,7 @@ class SignupView extends StatelessWidget {
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: vm.signupPhoneController,
-                          label: 'Phone Number',
+                          label: l10n.mobileNumber,
                           hint: '9876543210',
                           prefixIcon: Icons.phone_android_rounded,
                           keyboardType: TextInputType.phone,
@@ -202,13 +217,13 @@ class SignupView extends StatelessWidget {
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: vm.signupReferralCodeController,
-                          label: 'Referral Code (Optional)',
+                          label: l10n.referralCodeOptional,
                           hint: 'e.g. EZM9876',
                           prefixIcon: Icons.confirmation_number_outlined,
                         ),
                         const SizedBox(height: 28),
                         GradientButton(
-                          text: 'Sign Up & Continue',
+                          text: l10n.signUpAndContinue,
                           isLoading: vm.isLoading,
                           icon: Icons.arrow_forward_rounded,
                           onPressed: () => vm.handleSignup(context),
@@ -221,9 +236,9 @@ class SignupView extends StatelessWidget {
                     alignment: WrapAlignment.center,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      const Text(
-                        'Already have an account? ',
-                        style: TextStyle(
+                      Text(
+                        l10n.alreadyHaveAccount,
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 14,
                         ),
@@ -236,9 +251,9 @@ class SignupView extends StatelessWidget {
                             context.go('/login');
                           }
                         },
-                        child: const Text(
-                          'Login',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.login,
+                          style: const TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,

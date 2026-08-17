@@ -2,10 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/constants/app_colors.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class DocumentUploadCard extends StatelessWidget {
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final String buttonText;
   final IconData iconData;
   final String? imagePath;
@@ -15,7 +16,7 @@ class DocumentUploadCard extends StatelessWidget {
   const DocumentUploadCard({
     super.key,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.buttonText,
     required this.iconData,
     this.imagePath,
@@ -24,6 +25,10 @@ class DocumentUploadCard extends StatelessWidget {
   });
 
   void _showPickerModal(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final takePhotoText = l10n?.takePhotoCamera ?? 'Take Photo with Camera';
+    final chooseGalleryText = l10n?.chooseFromGallery ?? 'Choose from Gallery';
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
@@ -45,7 +50,7 @@ class DocumentUploadCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Upload $title',
+              buttonText,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -58,7 +63,7 @@ class DocumentUploadCard extends StatelessWidget {
                 backgroundColor: Color(0xFFDCFCE7),
                 child: Icon(Icons.camera_alt, color: AppColors.primary),
               ),
-              title: const Text('Take Photo with Camera'),
+              title: Text(takePhotoText),
               onTap: () {
                 Navigator.pop(ctx);
                 onImageSelected(ImageSource.camera);
@@ -69,7 +74,7 @@ class DocumentUploadCard extends StatelessWidget {
                 backgroundColor: Color(0xFFFEF9C3),
                 child: Icon(Icons.photo_library, color: Color(0xFFCA8A04)),
               ),
-              title: const Text('Choose from Gallery'),
+              title: Text(chooseGalleryText),
               onTap: () {
                 Navigator.pop(ctx);
                 onImageSelected(ImageSource.gallery);
@@ -83,7 +88,11 @@ class DocumentUploadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final bool isUploaded = imagePath != null && imagePath!.isNotEmpty;
+    final attachedText = l10n?.attached ?? 'Attached';
+    final requiredText = l10n?.required ?? 'Required';
+    final changeDocumentText = l10n?.changeDocument ?? 'Change Document';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -146,14 +155,16 @@ class DocumentUploadCard extends StatelessWidget {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                    if (subtitle != null && subtitle!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -168,7 +179,7 @@ class DocumentUploadCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isUploaded ? 'Attached' : 'Required',
+                    isUploaded ? attachedText : requiredText,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -193,7 +204,7 @@ class DocumentUploadCard extends StatelessWidget {
                 color: isUploaded ? const Color(0xFF09A234) : AppColors.textSecondary,
               ),
               label: Text(
-                isUploaded ? 'Change Document' : buttonText,
+                isUploaded ? changeDocumentText : buttonText,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
