@@ -6,6 +6,7 @@ class AudioService {
   static final AudioService instance = AudioService._privateConstructor();
 
   final AudioPlayer _audioPlayer = AudioPlayer();
+  AudioPlayer get player => _audioPlayer;
   bool _isPlaying = false;
 
   /// Play incoming ride request alert sound
