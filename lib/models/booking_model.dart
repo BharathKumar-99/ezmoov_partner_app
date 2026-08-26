@@ -31,9 +31,12 @@ class BookingModel {
   final DateTime? tripStartedAt;
   final DateTime? arrivedAtDropoffAt;
   final DateTime? tripCompletedAt;
-  final int totalWaitMinutes;
-  final int graceTimeMinutes;
-  final int chargeableWaitMinutes;
+  final int? totalWaitMinutes;
+  final int? pickupWaitSeconds;
+  final int? dropoffWaitSeconds;
+  final int? graceTimeMinutes;
+  final int? chargeableWaitMinutes;
+
   final double waitFeePerMin;
   final double waitingCharges;
 
@@ -77,9 +80,12 @@ class BookingModel {
     this.tripStartedAt,
     this.arrivedAtDropoffAt,
     this.tripCompletedAt,
-    this.totalWaitMinutes = 0,
-    this.graceTimeMinutes = 15,
-    this.chargeableWaitMinutes = 0,
+    this.totalWaitMinutes,
+    this.pickupWaitSeconds,
+    this.dropoffWaitSeconds,
+    this.graceTimeMinutes,
+    this.chargeableWaitMinutes,
+
     this.waitFeePerMin = 0.0,
     this.waitingCharges = 0.0,
     this.intermediateStops = const [],
@@ -145,10 +151,11 @@ class BookingModel {
 
   static DateTime? _toDateTime(dynamic val) {
     if (val == null) return null;
-    if (val is DateTime) return val;
+    if (val is DateTime) return val.toLocal();
     final str = val.toString().trim();
     if (str.isEmpty) return null;
-    return DateTime.tryParse(str);
+    final parsed = DateTime.tryParse(str);
+    return parsed?.toLocal();
   }
 
   static double extractFare(Map<String, dynamic> json) {
@@ -437,13 +444,26 @@ class BookingModel {
       paymentMode: _toString(json['payment_mode']),
       service: _toString(json['service']) ?? _toString(json['services']),
       acceptedAt: _toDateTime(json['accepted_at']),
-      arrivedAtPickupAt: _toDateTime(json['arrived_at_pickup_at']),
+      arrivedAtPickupAt:
+          _toDateTime(json['arrived_at_pickup_at'] ?? json['arrived_at']),
       tripStartedAt: _toDateTime(json['trip_started_at']),
-      arrivedAtDropoffAt: _toDateTime(json['arrived_at_dropoff_at']),
+      arrivedAtDropoffAt: _toDateTime(json['arrived_at_dropoff_at'] ??
+          json['arrived_at_drop_at'] ??
+          json['arrived_at_dropoff']),
       tripCompletedAt: _toDateTime(json['trip_completed_at']),
-      totalWaitMinutes: _toInt(json['total_wait_minutes']) ?? 0,
-      graceTimeMinutes: _toInt(json['grace_time_minutes']) ?? 15,
-      chargeableWaitMinutes: _toInt(json['chargeable_wait_minutes']) ?? 0,
+      totalWaitMinutes: _toInt(json['total_wait_minutes']),
+      pickupWaitSeconds: json['pickup_wait_seconds'] != null
+          ? int.tryParse(json['pickup_wait_seconds'].toString())
+          : (json['pickupWaitSeconds'] != null
+              ? int.tryParse(json['pickupWaitSeconds'].toString())
+              : null),
+      dropoffWaitSeconds: json['dropoff_wait_seconds'] != null
+          ? int.tryParse(json['dropoff_wait_seconds'].toString())
+          : (json['dropoffWaitSeconds'] != null
+              ? int.tryParse(json['dropoffWaitSeconds'].toString())
+              : null),
+      graceTimeMinutes: _toInt(json['grace_time_minutes']),
+      chargeableWaitMinutes: _toInt(json['chargeable_wait_minutes']),
       waitFeePerMin: _toDouble(json['wait_fee_per_min']) ?? 0.0,
       waitingCharges: _toDouble(json['waiting_charges']) ?? 0.0,
       intermediateStops: stopsList,
@@ -491,9 +511,14 @@ class BookingModel {
         'arrived_at_dropoff_at': arrivedAtDropoffAt!.toIso8601String(),
       if (tripCompletedAt != null)
         'trip_completed_at': tripCompletedAt!.toIso8601String(),
-      'total_wait_minutes': totalWaitMinutes,
-      'grace_time_minutes': graceTimeMinutes,
-      'chargeable_wait_minutes': chargeableWaitMinutes,
+      if (totalWaitMinutes != null) 'total_wait_minutes': totalWaitMinutes,
+      if (pickupWaitSeconds != null) 'pickup_wait_seconds': pickupWaitSeconds,
+      if (dropoffWaitSeconds != null)
+        'dropoff_wait_seconds': dropoffWaitSeconds,
+      if (graceTimeMinutes != null) 'grace_time_minutes': graceTimeMinutes,
+      if (chargeableWaitMinutes != null)
+        'chargeable_wait_minutes': chargeableWaitMinutes,
+
       'wait_fee_per_min': waitFeePerMin,
       'waiting_charges': waitingCharges,
       if (intermediateStops.isNotEmpty)
@@ -533,13 +558,24 @@ class BookingModel {
     String? paymentMode,
     String? service,
     DateTime? acceptedAt,
+    DateTime? arrivedAtPickupAt,
+    DateTime? tripStartedAt,
+    DateTime? arrivedAtDropoffAt,
+    DateTime? tripCompletedAt,
     List<IntermediateStopModel>? intermediateStops,
     double? stopsCharge,
     double? baseFare,
     double? distanceCharges,
+    int? totalWaitMinutes,
+
+    int? pickupWaitSeconds,
+    int? dropoffWaitSeconds,
+    int? graceTimeMinutes,
+    int? chargeableWaitMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
+
     return BookingModel(
       idx: idx ?? this.idx,
       id: id ?? this.id,
@@ -566,13 +602,25 @@ class BookingModel {
       paymentMode: paymentMode ?? this.paymentMode,
       service: service ?? this.service,
       acceptedAt: acceptedAt ?? this.acceptedAt,
+      arrivedAtPickupAt: arrivedAtPickupAt ?? this.arrivedAtPickupAt,
+      tripStartedAt: tripStartedAt ?? this.tripStartedAt,
+      arrivedAtDropoffAt: arrivedAtDropoffAt ?? this.arrivedAtDropoffAt,
+      tripCompletedAt: tripCompletedAt ?? this.tripCompletedAt,
       intermediateStops: intermediateStops ?? this.intermediateStops,
       stopsCharge: stopsCharge ?? this.stopsCharge,
       baseFare: baseFare ?? this.baseFare,
       distanceCharges: distanceCharges ?? this.distanceCharges,
+      totalWaitMinutes: totalWaitMinutes ?? this.totalWaitMinutes,
+      pickupWaitSeconds: pickupWaitSeconds ?? this.pickupWaitSeconds,
+      dropoffWaitSeconds: dropoffWaitSeconds ?? this.dropoffWaitSeconds,
+      graceTimeMinutes: graceTimeMinutes ?? this.graceTimeMinutes,
+      chargeableWaitMinutes:
+          chargeableWaitMinutes ?? this.chargeableWaitMinutes,
       taxesAndGst: 0.0,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+
 }

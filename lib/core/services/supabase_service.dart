@@ -19,6 +19,16 @@ class SupabaseService {
 
   SupabaseClient get client => Supabase.instance.client;
 
+  /// Null-safe client getter for test environments where Supabase may not be initialized
+  SupabaseClient? get safeClient {
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
+
+
   /// Check if driver exists in `drivers` table by phone number
   Future<DriverModel?> getDriverByPhone(String rawPhone) async {
     try {
@@ -174,24 +184,34 @@ class SupabaseService {
     }
   }
 
-  /// Fetch list of vehicle types from database (with fallback defaults)
-  Future<List<VehicleTypeModel>> fetchVehicleTypes() async {
+  List<VehicleTypeModel> _cachedVehicleTypes = [];
+
+  /// Fetch list of vehicle types from database dynamically
+  Future<List<VehicleTypeModel>> fetchVehicleTypes({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedVehicleTypes.isNotEmpty) {
+      return _cachedVehicleTypes;
+    }
     try {
-      final response = await client.from('vehicle_types').select();
+      final sc = safeClient;
+      if (sc == null) return _cachedVehicleTypes;
+
+      final response = await sc.from('vehicle_types').select();
+
       if ((response as List).isNotEmpty) {
         final list = (response as List)
             .map((item) =>
                 VehicleTypeModel.fromJson(item as Map<String, dynamic>))
             .toList();
         list.sort((a, b) => a.capacityKg.compareTo(b.capacityKg));
+        _cachedVehicleTypes = list;
         return list;
       }
     } catch (e) {
-      debugPrint(
-          'Error fetching vehicle types from DB, using default list: $e');
+      debugPrint('Error fetching vehicle types from DB: $e');
     }
-    return VehicleTypeModel.defaultVehicleTypes;
+    return _cachedVehicleTypes;
   }
+
 
   /// Save Vehicle details & update driver vehicle status, address and owner_name
   Future<VehicleModel> saveVehicle(VehicleModel vehicle,
@@ -538,22 +558,30 @@ class SupabaseService {
     }
   }
 
-  /// Update booking status in Supabase (e.g., 'arrived', 'in_transit', 'completed', 'cancelled')
-  Future<void> updateBookingStatus(String bookingId, String status, {int? bookingIdx}) async {
+  /// Update booking status in Supabase (e.g., 'arrived', 'in_transit', 'arrived_at_dropoff', 'drop_complete', 'completed', 'cancelled')
+  Future<void> updateBookingStatus(
+    String bookingId,
+    String status, {
+    int? bookingIdx,
+    Map<String, dynamic>? extraData,
+  }) async {
     try {
+      final updateData = <String, dynamic>{
+        'status': status,
+        'updated_at': DateTime.now().toIso8601String(),
+        if (extraData != null) ...extraData,
+      };
       await _updateBookingField(
         bookingId: bookingId,
         bookingIdx: bookingIdx,
-        updateData: {
-          'status': status,
-          'updated_at': DateTime.now().toIso8601String(),
-        },
+        updateData: updateData,
       );
     } catch (e) {
       debugPrint('Error updating booking status: $e');
       rethrow;
     }
   }
+
 
   /// Update an intermediate stop status (reached / completed) in public.bookings
   Future<void> updateIntermediateStopStatus({

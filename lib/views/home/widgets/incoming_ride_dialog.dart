@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/location_service.dart';
 import '../../../models/booking_model.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../widgets/gradient_button.dart';
+import '../../../widgets/route_location_tile.dart';
 
 void showIncomingRideDialog(
     BuildContext context, BookingModel booking, String driverId) {
@@ -232,156 +234,115 @@ class IncomingRideDialog extends StatelessWidget {
                         ),
                       ],
 
-                      // Route Container (Pickup, Intermediate Stops, Drop)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Pickup Address
-                            Row(
-                              children: [
-                                const Icon(Icons.circle,
-                                    color: AppColors.primary, size: 12),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'PICKUP ADDRESS',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textMuted,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        activeBooking.pickupAddress.isNotEmpty
-                                            ? activeBooking.pickupAddress
-                                            : 'Pickup Address',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                      // Route Container (Pickup, Intermediate Stops, Drop with Distance Pills)
+                      Builder(
+                        builder: (context) {
+                          final driverPos = LocationService.instance.currentPosition;
+                          final driverLat = driverPos?.latitude ?? 0.0;
+                          final driverLng = driverPos?.longitude ?? 0.0;
 
-                            // Intermediate Stops Timeline Loop
-                            if (activeBooking.hasStops)
-                              ...activeBooking.effectiveIntermediateStops
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                final idx = entry.key + 1;
-                                final stop = entry.value;
-                                return Column(
-                                  children: [
-                                    Container(
-                                      margin: const EdgeInsets.only(
-                                          left: 5, top: 4, bottom: 4),
-                                      height: 16,
-                                      width: 2,
-                                      color: Colors.amber.shade700,
-                                    ),
-                                    Row(
+                          final pickupDistKm = (driverLat != 0.0 &&
+                                  driverLng != 0.0 &&
+                                  activeBooking.pickupLat != 0.0 &&
+                                  activeBooking.pickupLng != 0.0)
+                              ? vm.calculateDistance(
+                                  driverLat,
+                                  driverLng,
+                                  activeBooking.pickupLat,
+                                  activeBooking.pickupLng)
+                              : 0.0;
+
+                          final dropDistKm = (driverLat != 0.0 &&
+                                  driverLng != 0.0 &&
+                                  activeBooking.dropLat != 0.0 &&
+                                  activeBooking.dropLng != 0.0)
+                              ? vm.calculateDistance(
+                                  driverLat,
+                                  driverLng,
+                                  activeBooking.dropLat,
+                                  activeBooking.dropLng)
+                              : vm.calculateDistance(
+                                  activeBooking.pickupLat,
+                                  activeBooking.pickupLng,
+                                  activeBooking.dropLat,
+                                  activeBooking.dropLng);
+
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Pickup Location Tile with Distance Pill
+                                RouteLocationTile(
+                                  type: LocationTileType.pickup,
+                                  address: activeBooking.pickupAddress,
+                                  distanceKm: pickupDistKm,
+                                ),
+
+                                const DashedLineConnector(height: 20, color: Color(0xFF10B981)),
+
+                                // Intermediate Stops Loop
+                                if (activeBooking.hasStops)
+                                  ...activeBooking.effectiveIntermediateStops
+                                      .asMap()
+                                      .entries
+                                      .map((entry) {
+                                    final idx = entry.key + 1;
+                                    final stop = entry.value;
+
+                                    final stopDistKm = (driverLat != 0.0 &&
+                                            driverLng != 0.0 &&
+                                            stop.latitude != 0.0 &&
+                                            stop.longitude != 0.0)
+                                        ? vm.calculateDistance(
+                                            driverLat,
+                                            driverLng,
+                                            stop.latitude,
+                                            stop.longitude)
+                                        : (activeBooking.pickupLat != 0.0 &&
+                                                activeBooking.pickupLng != 0.0 &&
+                                                stop.latitude != 0.0 &&
+                                                stop.longitude != 0.0)
+                                            ? vm.calculateDistance(
+                                                activeBooking.pickupLat,
+                                                activeBooking.pickupLng,
+                                                stop.latitude,
+                                                stop.longitude)
+                                            : 0.0;
+
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Icon(Icons.stop_circle_outlined,
-                                            color: Colors.amber.shade800,
-                                            size: 14),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'STOP $idx ADDRESS (+₹25)',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.amber.shade900,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                stop.address.isNotEmpty
-                                                    ? stop.address
-                                                    : 'Stop $idx Location',
-                                                style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppColors.textPrimary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                        RouteLocationTile(
+                                          type: LocationTileType.stop,
+                                          address: stop.address,
+                                          distanceKm: stopDistKm,
+                                          stopIndex: idx,
                                         ),
+                                        const DashedLineConnector(
+                                            height: 20, color: Color(0xFFF59E0B)),
                                       ],
-                                    ),
-                                  ],
-                                );
-                              }),
+                                    );
+                                  }),
 
-                            Container(
-                              margin: const EdgeInsets.only(
-                                  left: 5, top: 4, bottom: 4),
-                              height: 16,
-                              width: 2,
-                              color: AppColors.divider,
-                            ),
-
-                            // Drop Address
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on_rounded,
-                                    color: AppColors.error, size: 14),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'FINAL DROP ADDRESS',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textMuted,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        activeBooking.dropAddress.isNotEmpty
-                                            ? activeBooking.dropAddress
-                                            : 'Drop Address',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                // Drop Location Tile with Distance Pill
+                                RouteLocationTile(
+                                  type: LocationTileType.drop,
+                                  address: activeBooking.dropAddress,
+                                  distanceKm: dropDistKm,
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
+
                     ],
                   ),
                 ),

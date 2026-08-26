@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -8,12 +10,17 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/supabase_service.dart';
+import '../../core/services/location_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/intermediate_stop_model.dart';
+import '../../models/vehicle_type_model.dart';
+
 import '../../viewmodels/ride_request_viewmodel.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../viewmodels/home_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
+import '../../widgets/route_location_tile.dart';
+import '../../widgets/waiting_time_widget.dart';
 
 class DriverPickupView extends StatefulWidget {
   final String bookingId;
@@ -37,20 +44,50 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   bool _isUploadingPod = false;
   Map<String, dynamic> _driverExtraCharges = {};
   Timer? _statusCheckTimer;
+  Timer? _liveUiTimer;
+  DateTime? _localArrivedAtPickupAt;
+  DateTime? _localArrivedAtDropoffAt;
+  List<VehicleTypeModel> _vehicleTypes = [];
 
   @override
   void initState() {
     super.initState();
+    _loadVehicleTypes();
     _loadBookingDetails();
     _startStatusCheckTimer();
+    _startLiveTimer();
+  }
+
+  Future<void> _loadVehicleTypes() async {
+    try {
+      final types = await SupabaseService.instance.fetchVehicleTypes();
+      if (mounted && types.isNotEmpty) {
+        setState(() {
+          _vehicleTypes = types;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading vehicle types: $e');
+    }
+  }
+
+
+  void _startLiveTimer() {
+    _liveUiTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      final status = _booking?.status.toLowerCase();
+      if (status == 'arrived' || status == 'arrived_at_dropoff') {
+        setState(() {});
+      }
+    });
   }
 
   void _startStatusCheckTimer() {
     _statusCheckTimer =
         Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (!mounted) return;
-      final updatedBooking =
-          await SupabaseService.instance.getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
+      final updatedBooking = await SupabaseService.instance
+          .getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
       if (!mounted) return;
       if (updatedBooking != null) {
         if (updatedBooking.status == 'cancelled') {
@@ -71,7 +108,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
           }
           return;
         }
-        if (_booking?.status != updatedBooking.status) {
+        if (mounted) {
           setState(() {
             _booking = updatedBooking;
           });
@@ -81,8 +118,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   Future<void> _loadBookingDetails() async {
-    final booking =
-        await SupabaseService.instance.getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
+    final booking = await SupabaseService.instance
+        .getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
     if (mounted) {
       if (booking?.status == 'cancelled') {
         context.read<RideRequestViewModel>().clearActiveDriverTrip();
@@ -119,6 +156,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   void dispose() {
     _statusCheckTimer?.cancel();
     _statusCheckTimer = null;
+    _liveUiTimer?.cancel();
+    _liveUiTimer = null;
     _profileViewModel?.setTripActive(false);
     super.dispose();
   }
@@ -189,7 +228,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                 color: Colors.red.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.medical_services_rounded, color: Colors.red, size: 28),
+              child: const Icon(Icons.medical_services_rounded,
+                  color: Colors.red, size: 28),
             ),
             const SizedBox(width: 10),
             const Flexible(
@@ -211,7 +251,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
             children: [
               Text(
                 'Are you in an emergency situation?',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary),
               ),
               SizedBox(height: 8),
               Text(
@@ -224,16 +267,21 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('CANCEL', style: TextStyle(color: AppColors.textMuted)),
+            child: const Text('CANCEL',
+                style: TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
-            icon: const Icon(Icons.phone_in_talk_rounded, color: Colors.white, size: 18),
-            label: const Text('CALL AMBULANCE (108)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.phone_in_talk_rounded,
+                color: Colors.white, size: 18),
+            label: const Text('CALL AMBULANCE (108)',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
             onPressed: () {
               Navigator.pop(dialogCtx);
               _callAmbulance();
@@ -334,14 +382,26 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     if (booking == null) return;
 
     final amountMap = booking.amount ?? {};
-    final baseFare = (amountMap['base_fare'] ?? booking.baseFare ?? 0.0).toDouble();
-    final distanceCharges = (amountMap['distance_charges'] ?? booking.distanceCharges ?? 0.0).toDouble();
-    final stopsCharge = (amountMap['stops_charge'] ?? booking.stopsCharge ?? (booking.stopsCount * 25.0)).toDouble();
-    final totalPrice = (amountMap['total_price'] ?? booking.fare ?? 0.0).toDouble();
+    final baseFare =
+        (amountMap['base_fare'] ?? booking.baseFare ?? 0.0).toDouble();
+    final distanceCharges =
+        (amountMap['distance_charges'] ?? booking.distanceCharges ?? 0.0)
+            .toDouble();
+    final stopsCharge = (amountMap['stops_charge'] ??
+            booking.stopsCharge ??
+            (booking.stopsCount * 25.0))
+        .toDouble();
+    final waitingCharges = (amountMap['waiting_charges'] ??
+            booking.waitingCharges ??
+            0.0)
+        .toDouble();
+    final rawTripPrice =
+        (amountMap['total_price'] ?? booking.fare ?? 0.0).toDouble();
+    final totalPrice = rawTripPrice + waitingCharges;
 
     final calcBaseFare = baseFare > 0
         ? baseFare
-        : (totalPrice > 0 ? (totalPrice - distanceCharges - stopsCharge) : 0.0);
+        : (rawTripPrice > 0 ? (rawTripPrice - distanceCharges - stopsCharge) : 0.0);
 
     showModalBottomSheet(
       context: context,
@@ -365,46 +425,74 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 24),
+                    child: const Icon(Icons.receipt_long_rounded,
+                        color: AppColors.primary, size: 24),
                   ),
                   const SizedBox(width: 12),
                   const Text(
                     'TRIP FARE BREAKDOWN',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              _FareItemRow(label: 'Base Fare (Includes 1st KM)', amount: calcBaseFare > 0 ? calcBaseFare : 0.0),
-              const SizedBox(height: 10),
-              _FareItemRow(label: 'Distance Charges (beyond 1 KM)', amount: distanceCharges),
+              _FareItemRow(
+                  label: 'Base Fare (Includes 1st KM)',
+                  amount: calcBaseFare > 0 ? calcBaseFare : 0.0),
               const SizedBox(height: 10),
               _FareItemRow(
-                label: 'Stops Charge (${booking.stopsCount} stop${booking.stopsCount != 1 ? 's' : ''} @ ₹25 each)',
+                  label: 'Distance Charges (beyond 1 KM)',
+                  amount: distanceCharges),
+              const SizedBox(height: 10),
+              _FareItemRow(
+                label:
+                    'Stops Charge (${booking.stopsCount} stop${booking.stopsCount != 1 ? 's' : ''} @ ₹25 each)',
                 amount: stopsCharge,
                 isHighlight: booking.hasStops,
               ),
               const SizedBox(height: 10),
-              const _FareItemRow(label: 'Taxes & GST', amount: 0.0, isZero: true),
+              _FareItemRow(
+                label: 'Waiting Charges',
+                amount: waitingCharges,
+                isHighlight: waitingCharges > 0,
+              ),
+              const SizedBox(height: 10),
+              const _FareItemRow(
+                  label: 'Taxes & GST', amount: 0.0, isZero: true),
               const Divider(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Total Trip Fare', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                  Text('₹ ${totalPrice.toStringAsFixed(2)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  const Text('Total Delivery Fee',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary)),
+                  Text('₹ ${totalPrice.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary)),
                 ],
               ),
+
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed: () => Navigator.pop(modalContext),
-                  child: const Text('CLOSE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: const Text('CLOSE',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
             ],
@@ -414,22 +502,156 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     );
   }
 
+  Widget _buildLiveWaitingTimerCard(BookingModel booking) {
+    final currentStatus = booking.status.toLowerCase();
+    final isAtPickup =
+        currentStatus == 'arrived' || currentStatus == 'arrived_at_pickup';
+    final isAtDropoff = currentStatus == 'arrived_at_dropoff' ||
+        currentStatus == 'arrived_at_drop_off';
+
+    if (!isAtPickup && !isAtDropoff) return const SizedBox.shrink();
+
+    int graceTimeMins =
+        (booking.graceTimeMinutes ?? 0) > 0 ? booking.graceTimeMinutes! : 15;
+    double waitFeePerMin =
+        booking.waitFeePerMin > 0 ? booking.waitFeePerMin : 0.0;
+
+    final vehicleTypeId = booking.vehicleTypeId;
+    if (vehicleTypeId != null && vehicleTypeId.isNotEmpty) {
+      for (final vt in _vehicleTypes) {
+        if (vt.id == vehicleTypeId ||
+            vt.name.toLowerCase() == vehicleTypeId.toLowerCase()) {
+          graceTimeMins = vt.graceTime;
+          waitFeePerMin = vt.waitTime.toDouble();
+          break;
+        }
+      }
+    }
+
+    final rateText =
+        '₹ ${waitFeePerMin.toStringAsFixed(0)}/min after $graceTimeMins mins free grace period';
+
+    return WaitingTimeWidget(
+      type: booking.status,
+      rateText: rateText,
+      graceMins: graceTimeMins,
+      pickupWaitSeconds: booking.pickupWaitSeconds,
+      arrivedAtPickup: booking.arrivedAtPickupAt ?? _localArrivedAtPickupAt,
+      arrivedAtDropOff: booking.arrivedAtDropoffAt ?? _localArrivedAtDropoffAt,
+    );
+  }
+
+  Map<String, dynamic> _buildStatusExtraData(String newStatus) {
+    final now = DateTime.now();
+    final nowUtcIso = now.toUtc().toIso8601String();
+
+    if (newStatus == 'arrived') {
+      final arrivedTime =
+          _booking?.arrivedAtPickupAt ?? _localArrivedAtPickupAt ?? now;
+      return {'arrived_at_pickup_at': arrivedTime.toUtc().toIso8601String()};
+    } else if (newStatus == 'in_transit') {
+      final arrivedAtPickupAt =
+          _booking?.arrivedAtPickupAt ?? _localArrivedAtPickupAt;
+      int pickupWaitSeconds = 0;
+      if (arrivedAtPickupAt != null) {
+        pickupWaitSeconds = max(0, now.difference(arrivedAtPickupAt).inSeconds);
+      } else if (_booking?.pickupWaitSeconds != null &&
+          _booking!.pickupWaitSeconds! > 0) {
+        pickupWaitSeconds = _booking!.pickupWaitSeconds!;
+      }
+
+      return {
+        'pickup_wait_seconds': pickupWaitSeconds,
+        'trip_started_at': nowUtcIso,
+      };
+    } else if (newStatus == 'arrived_at_dropoff') {
+      final arrivedTime =
+          _booking?.arrivedAtDropoffAt ?? _localArrivedAtDropoffAt ?? now;
+      return {'arrived_at_dropoff_at': arrivedTime.toUtc().toIso8601String()};
+    } else if (newStatus == 'drop_complete' || newStatus == 'completed') {
+      final arrivedAtDropoffAt =
+          _booking?.arrivedAtDropoffAt ?? _localArrivedAtDropoffAt;
+      int dropWaitSeconds = 0;
+      final pickupWaitSecs = _booking?.pickupWaitSeconds ?? 0;
+      if (arrivedAtDropoffAt != null) {
+        dropWaitSeconds =
+            max(0, now.difference(arrivedAtDropoffAt).inSeconds) -
+                pickupWaitSecs;
+        if (dropWaitSeconds < 0) dropWaitSeconds = 0;
+      }
+
+      final totalWaitSeconds = dropWaitSeconds + pickupWaitSecs;
+      final totalWaitMinutes = (totalWaitSeconds / 60).floor();
+
+      int graceTimeMins = _booking?.graceTimeMinutes ?? 15;
+      if (graceTimeMins <= 0) graceTimeMins = 15;
+      double waitFeePerMin = _booking?.waitFeePerMin ?? 0.0;
+
+      final vehicleTypeId = _booking?.vehicleTypeId;
+      if (vehicleTypeId != null && vehicleTypeId.isNotEmpty) {
+        for (final vt in _vehicleTypes) {
+          if (vt.id == vehicleTypeId ||
+              vt.name.toLowerCase() == vehicleTypeId.toLowerCase()) {
+            graceTimeMins = vt.graceTime;
+            waitFeePerMin = vt.waitTime.toDouble();
+            break;
+          }
+        }
+      }
+      final chargeableWaitMinutes = max(0, totalWaitMinutes - graceTimeMins);
+      final waitingCharges = chargeableWaitMinutes * waitFeePerMin;
+
+      return {
+        'dropoff_wait_seconds': dropWaitSeconds,
+        'total_wait_minutes': totalWaitMinutes,
+        'grace_time_minutes': graceTimeMins,
+        'chargeable_wait_minutes': chargeableWaitMinutes,
+        'wait_fee_per_min': waitFeePerMin,
+        'waiting_charges': waitingCharges,
+        'trip_completed_at': nowUtcIso,
+      };
+
+    }
+
+    return {};
+  }
+
   Future<void> _updateStatus(String newStatus, String successMessage) async {
     if (_isUpdatingStatus) return;
+
+    final now = DateTime.now();
+    if (newStatus == 'arrived') {
+      _localArrivedAtPickupAt ??= now;
+    } else if (newStatus == 'arrived_at_dropoff') {
+      _localArrivedAtDropoffAt ??= now;
+    }
 
     setState(() {
       _isUpdatingStatus = true;
     });
 
     try {
-      await SupabaseService.instance
-          .updateBookingStatus(widget.bookingId, newStatus, bookingIdx: _booking?.idx);
-      final reloadedBooking =
-          await SupabaseService.instance.getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
+      final extraData = _buildStatusExtraData(newStatus);
+
+      await SupabaseService.instance.updateBookingStatus(
+        widget.bookingId,
+        newStatus,
+        bookingIdx: _booking?.idx,
+        extraData: extraData,
+      );
+      final reloadedBooking = await SupabaseService.instance
+          .getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
 
       if (mounted) {
         setState(() {
-          _booking = reloadedBooking ?? _booking?.copyWith(status: newStatus);
+          final effectiveBooking = reloadedBooking ?? _booking;
+          _booking = effectiveBooking?.copyWith(
+            status: newStatus,
+            arrivedAtPickupAt:
+                effectiveBooking.arrivedAtPickupAt ?? _localArrivedAtPickupAt,
+            arrivedAtDropoffAt:
+                effectiveBooking.arrivedAtDropoffAt ?? _localArrivedAtDropoffAt,
+          );
           _isUpdatingStatus = false;
         });
 
@@ -533,7 +755,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
   void _confirmCashPaymentModal() {
     final double totalFare =
-        (_booking?.amount?['total_price'] ?? _booking?.fare ?? 0.0).toDouble();
+        (_booking?.amount?['total_price'] ?? _booking?.fare ?? 0.0).toDouble() +
+            (_booking?.waitingCharges ?? 0);
 
     showDialog(
       context: context,
@@ -558,7 +781,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         content: SingleChildScrollView(
           child: Text(
             'Did you collect ₹${totalFare.toStringAsFixed(0)} cash directly from the customer?',
-            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 14, color: AppColors.textSecondary),
           ),
         ),
         actions: [
@@ -1136,7 +1360,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     child: _pickupImageFile != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(16),
-                            child: Image.file(_pickupImageFile!, fit: BoxFit.cover),
+                            child: Image.file(_pickupImageFile!,
+                                fit: BoxFit.cover),
                           )
                         : const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -1172,7 +1397,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          icon: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
+                          icon: const Icon(Icons.camera_alt_rounded,
+                              color: AppColors.primary),
                           label: const Text('Camera'),
                           onPressed: () async {
                             final picker = ImagePicker();
@@ -1197,7 +1423,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          icon: const Icon(Icons.photo_library_rounded, color: AppColors.textSecondary),
+                          icon: const Icon(Icons.photo_library_rounded,
+                              color: AppColors.textSecondary),
                           label: const Text('Gallery'),
                           onPressed: () async {
                             final picker = ImagePicker();
@@ -1225,7 +1452,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       if (_pickupImageFile == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Please capture or select a pickup photo first!'),
+                            content: Text(
+                                'Please capture or select a pickup photo first!'),
                             backgroundColor: AppColors.error,
                             behavior: SnackBarBehavior.floating,
                           ),
@@ -1238,10 +1466,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       });
 
                       try {
-                        final pickupUrl = await SupabaseService.instance.uploadImage(
+                        final pickupUrl =
+                            await SupabaseService.instance.uploadImage(
                           bucket: 'bookings',
                           filePath: _pickupImageFile!.path,
-                          fileName: 'pickup_${widget.bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+                          fileName:
+                              'pickup_${widget.bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg',
                         );
 
                         await SupabaseService.instance.updateBookingPickupUrl(
@@ -1265,7 +1495,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Failed to upload pickup photo: $e'),
+                              content:
+                                  Text('Failed to upload pickup photo: $e'),
                               backgroundColor: AppColors.error,
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -1761,13 +1992,19 @@ class _DriverPickupViewState extends State<DriverPickupView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
               ),
-              icon: const Icon(Icons.medical_services_rounded, color: Colors.white, size: 16),
+              icon: const Icon(Icons.medical_services_rounded,
+                  color: Colors.white, size: 16),
               label: const Text(
                 'SOS (108)',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12),
               ),
               onPressed: _showSosConfirmationModal,
             ),
@@ -1860,13 +2097,16 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                       ? const Color(0xFF15803D)
                                       : (currentStatus == 'drop_complete'
                                           ? const Color(0xFFB45309)
-                                          : (currentStatus == 'arrived_at_dropoff'
+                                          : (currentStatus ==
+                                                  'arrived_at_dropoff'
                                               ? const Color(0xFF9333EA)
                                               : (currentStatus == 'arrived'
                                                   ? const Color(0xFFB45309)
-                                                  : (currentStatus == 'in_transit'
+                                                  : (currentStatus ==
+                                                          'in_transit'
                                                       ? const Color(0xFF0369A1)
-                                                      : AppColors.primaryDark)))),
+                                                      : AppColors
+                                                          .primaryDark)))),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -1899,7 +2139,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     onTap: _showSosConfirmationModal,
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
@@ -1921,7 +2162,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                               color: Colors.white24,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.medical_services_rounded, color: Colors.white, size: 22),
+                            child: const Icon(Icons.medical_services_rounded,
+                                color: Colors.white, size: 22),
                           ),
                           const SizedBox(width: 12),
                           const Expanded(
@@ -1948,7 +2190,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
@@ -1974,7 +2217,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   ),
                   const SizedBox(height: 16),
 
+                  if (_booking != null) _buildLiveWaitingTimerCard(_booking!),
+
                   // Customer Contact Quick Actions Card (Call / SMS)
+
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
@@ -2209,221 +2455,334 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                         const SizedBox(height: 16),
 
-                        // Route Timeline (Pickup, Intermediate Stops, Drop) with dedicated GMaps buttons
-                        Row(
-                          children: [
-                            const Icon(Icons.circle,
-                                color: AppColors.primary, size: 12),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                _booking?.pickupAddress.isNotEmpty == true
-                                    ? _booking!.pickupAddress
-                                    : 'Customer Pickup Point',
-                                style: const TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'Navigate to Pickup in GMaps',
-                              icon: const Icon(Icons.directions_outlined,
-                                  color: Color(0xFF1A73E8)),
-                              onPressed: () => _openGoogleMaps(
-                                lat: _booking?.pickupLat ?? 0.0,
-                                lng: _booking?.pickupLng ?? 0.0,
-                                fallbackAddress: _booking?.pickupAddress ?? '',
-                              ),
-                            ),
-                          ],
-                        ),
+                        // Route Timeline (Pickup, Intermediate Stops, Drop with Distance Pills)
+                        Builder(
+                          builder: (context) {
+                            final rideVm = Provider.of<RideRequestViewModel>(
+                                context,
+                                listen: false);
+                            final driverPos =
+                                LocationService.instance.currentPosition;
+                            final driverLat = driverPos?.latitude ?? 0.0;
+                            final driverLng = driverPos?.longitude ?? 0.0;
 
-                        // Intermediate Stops Loop with Per-Stop Status Buttons
-                        if (_booking != null && _booking!.hasStops)
-                          ..._booking!.effectiveIntermediateStops.asMap().entries.map((entry) {
-                            final i = entry.key;
-                            final idx = i + 1;
-                            final stop = entry.value;
-                            final currentStatus = _booking!.status.toLowerCase();
-                            final isThisStopReached = currentStatus == 'stop_${idx}_reached';
-                            final isThisStopCompleted = stop.isCompleted || currentStatus == 'stop_${idx}_completed';
-                            final isPrevStopCompleted = i == 0 || _booking!.effectiveIntermediateStops[i - 1].isCompleted;
+                            final pickupDistKm = (driverLat != 0.0 &&
+                                    driverLng != 0.0 &&
+                                    _booking != null &&
+                                    _booking!.pickupLat != 0.0 &&
+                                    _booking!.pickupLng != 0.0)
+                                ? rideVm.calculateDistance(driverLat, driverLng,
+                                    _booking!.pickupLat, _booking!.pickupLng)
+                                : 0.0;
+
+                            final dropDistKm = (driverLat != 0.0 &&
+                                    driverLng != 0.0 &&
+                                    _booking != null &&
+                                    _booking!.dropLat != 0.0 &&
+                                    _booking!.dropLng != 0.0)
+                                ? rideVm.calculateDistance(driverLat, driverLng,
+                                    _booking!.dropLat, _booking!.dropLng)
+                                : (_booking != null &&
+                                        _booking!.pickupLat != 0.0 &&
+                                        _booking!.pickupLng != 0.0 &&
+                                        _booking!.dropLat != 0.0 &&
+                                        _booking!.dropLng != 0.0)
+                                    ? rideVm.calculateDistance(
+                                        _booking!.pickupLat,
+                                        _booking!.pickupLng,
+                                        _booking!.dropLat,
+                                        _booking!.dropLng)
+                                    : 0.0;
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  margin: const EdgeInsets.only(left: 5, top: 2, bottom: 2),
-                                  height: 20,
-                                  width: 2,
-                                  color: isThisStopCompleted ? const Color(0xFF10B981) : Colors.amber.shade700,
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: isThisStopCompleted
-                                        ? const Color(0xFFECFDF5)
-                                        : (isThisStopReached ? const Color(0xFFFFFBEB) : AppColors.background),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isThisStopCompleted
-                                          ? const Color(0xFF10B981)
-                                          : (isThisStopReached ? Colors.amber.shade700 : AppColors.border),
-                                      width: isThisStopReached || isThisStopCompleted ? 1.5 : 1,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            isThisStopCompleted
-                                                ? Icons.check_circle_rounded
-                                                : (isThisStopReached
-                                                    ? Icons.nature_people_rounded
-                                                    : Icons.stop_circle_outlined),
-                                            color: isThisStopCompleted
-                                                ? const Color(0xFF10B981)
-                                                : Colors.amber.shade800,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'STOP $idx (+₹25)',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: isThisStopCompleted
-                                                        ? const Color(0xFF047857)
-                                                        : Colors.amber.shade900,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  stop.address.isNotEmpty
-                                                      ? stop.address
-                                                      : 'Intermediate Stop $idx',
-                                                  style: const TextStyle(
-                                                      fontSize: 13, fontWeight: FontWeight.w600),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          IconButton(
-                                            tooltip: 'Navigate to Stop $idx in GMaps',
-                                            icon: const Icon(Icons.directions_outlined,
-                                                color: Color(0xFFD97706)),
-                                            onPressed: () => _openGoogleMaps(
-                                              lat: stop.latitude,
-                                              lng: stop.longitude,
-                                              fallbackAddress: stop.address,
-                                            ),
-                                          ),
-                                        ],
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: RouteLocationTile(
+                                        type: LocationTileType.pickup,
+                                        address: _booking?.pickupAddress
+                                                    .isNotEmpty ==
+                                                true
+                                            ? _booking!.pickupAddress
+                                            : 'Customer Pickup Point',
+                                        distanceKm: pickupDistKm,
                                       ),
-                                      // Per-Stop Action Button
-                                      if (_booking!.status != 'completed' && _booking!.status != 'cancelled') ...[
-                                        const SizedBox(height: 8),
-                                        if (isThisStopCompleted) ...[
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              '✓ STOP $idx COMPLETED',
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF047857),
-                                              ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Navigate to Pickup in GMaps',
+                                      icon: const Icon(
+                                          Icons.directions_outlined,
+                                          color: Color(0xFF1A73E8)),
+                                      onPressed: () => _openGoogleMaps(
+                                        lat: _booking?.pickupLat ?? 0.0,
+                                        lng: _booking?.pickupLng ?? 0.0,
+                                        fallbackAddress:
+                                            _booking?.pickupAddress ?? '',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const DashedLineConnector(
+                                    height: 18, color: Color(0xFF10B981)),
+
+                                // Intermediate Stops Loop with Per-Stop Status Buttons & Distance Pills
+                                if (_booking != null && _booking!.hasStops)
+                                  ..._booking!.effectiveIntermediateStops
+                                      .asMap()
+                                      .entries
+                                      .map((entry) {
+                                    final i = entry.key;
+                                    final idx = i + 1;
+                                    final stop = entry.value;
+                                    final currentStatus =
+                                        _booking!.status.toLowerCase();
+                                    final isThisStopReached =
+                                        currentStatus == 'stop_${idx}_reached';
+                                    final isThisStopCompleted =
+                                        stop.isCompleted ||
+                                            currentStatus ==
+                                                'stop_${idx}_completed';
+                                    final isPrevStopCompleted = i == 0 ||
+                                        _booking!
+                                            .effectiveIntermediateStops[i - 1]
+                                            .isCompleted;
+
+                                    final stopDistKm = (driverLat != 0.0 &&
+                                            driverLng != 0.0 &&
+                                            stop.latitude != 0.0 &&
+                                            stop.longitude != 0.0)
+                                        ? rideVm.calculateDistance(
+                                            driverLat,
+                                            driverLng,
+                                            stop.latitude,
+                                            stop.longitude)
+                                        : (_booking!.pickupLat != 0.0 &&
+                                                _booking!.pickupLng != 0.0 &&
+                                                stop.latitude != 0.0 &&
+                                                stop.longitude != 0.0)
+                                            ? rideVm.calculateDistance(
+                                                _booking!.pickupLat,
+                                                _booking!.pickupLng,
+                                                stop.latitude,
+                                                stop.longitude)
+                                            : 0.0;
+
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: isThisStopCompleted
+                                                ? const Color(0xFFECFDF5)
+                                                : (isThisStopReached
+                                                    ? const Color(0xFFFFFBEB)
+                                                    : AppColors.background),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: isThisStopCompleted
+                                                  ? const Color(0xFF10B981)
+                                                  : (isThisStopReached
+                                                      ? Colors.amber.shade700
+                                                      : AppColors.border),
+                                              width: isThisStopReached ||
+                                                      isThisStopCompleted
+                                                  ? 1.5
+                                                  : 1,
                                             ),
                                           ),
-                                        ] else if (isThisStopReached) ...[
-                                          SizedBox(
-                                            width: double.infinity,
-                                            child: ElevatedButton.icon(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(0xFF10B981),
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(10)),
-                                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: RouteLocationTile(
+                                                      type:
+                                                          LocationTileType.stop,
+                                                      address: stop.address
+                                                              .isNotEmpty
+                                                          ? stop.address
+                                                          : 'Intermediate Stop $idx',
+                                                      distanceKm: stopDistKm,
+                                                      stopIndex: idx,
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    tooltip:
+                                                        'Navigate to Stop $idx in GMaps',
+                                                    icon: const Icon(
+                                                        Icons
+                                                            .directions_outlined,
+                                                        color:
+                                                            Color(0xFFD97706)),
+                                                    onPressed: () =>
+                                                        _openGoogleMaps(
+                                                      lat: stop.latitude,
+                                                      lng: stop.longitude,
+                                                      fallbackAddress:
+                                                          stop.address,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              icon: const Icon(Icons.done_all_rounded, color: Colors.white, size: 16),
-                                              label: Text(
-                                                'Complete Stop $idx',
-                                                style: const TextStyle(
-                                                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                                              ),
-                                              onPressed: () => _handleIntermediateStopAction(
-                                                  stopIndex: i, action: 'completed'),
-                                            ),
+                                              // Per-Stop Action Button
+                                              if (_booking!.status !=
+                                                      'completed' &&
+                                                  _booking!.status !=
+                                                      'cancelled') ...[
+                                                const SizedBox(height: 8),
+                                                if (isThisStopCompleted) ...[
+                                                  Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(
+                                                              0xFF10B981)
+                                                          .withValues(
+                                                              alpha: 0.15),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6),
+                                                    ),
+                                                    child: Text(
+                                                      '✓ STOP $idx COMPLETED',
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color:
+                                                            Color(0xFF047857),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ] else if (isThisStopReached) ...[
+                                                  SizedBox(
+                                                    width: double.infinity,
+                                                    child: ElevatedButton.icon(
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor:
+                                                            const Color(
+                                                                0xFF10B981),
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10)),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 8),
+                                                      ),
+                                                      icon: const Icon(
+                                                          Icons
+                                                              .done_all_rounded,
+                                                          color: Colors.white,
+                                                          size: 16),
+                                                      label: Text(
+                                                        'Complete Stop $idx',
+                                                        style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 13),
+                                                      ),
+                                                      onPressed: () =>
+                                                          _handleIntermediateStopAction(
+                                                              stopIndex: i,
+                                                              action:
+                                                                  'completed'),
+                                                    ),
+                                                  ),
+                                                ] else if (isPrevStopCompleted) ...[
+                                                  SizedBox(
+                                                    width: double.infinity,
+                                                    child: ElevatedButton.icon(
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: Colors
+                                                            .amber.shade800,
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10)),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 8),
+                                                      ),
+                                                      icon: const Icon(
+                                                          Icons
+                                                              .pin_drop_rounded,
+                                                          color: Colors.white,
+                                                          size: 16),
+                                                      label: Text(
+                                                        'Reached Stop $idx',
+                                                        style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 13),
+                                                      ),
+                                                      onPressed: () =>
+                                                          _handleIntermediateStopAction(
+                                                              stopIndex: i,
+                                                              action:
+                                                                  'reached'),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
+                                            ],
                                           ),
-                                        ] else if (isPrevStopCompleted) ...[
-                                          SizedBox(
-                                            width: double.infinity,
-                                            child: ElevatedButton.icon(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.amber.shade800,
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(10)),
-                                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                              ),
-                                              icon: const Icon(Icons.pin_drop_rounded, color: Colors.white, size: 16),
-                                              label: Text(
-                                                'Reached Stop $idx',
-                                                style: const TextStyle(
-                                                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                                              ),
-                                              onPressed: () => _handleIntermediateStopAction(
-                                                  stopIndex: i, action: 'reached'),
-                                            ),
-                                          ),
-                                        ],
+                                        ),
+                                        const DashedLineConnector(
+                                            height: 18,
+                                            color: Color(0xFFF59E0B)),
                                       ],
-                                    ],
-                                  ),
+                                    );
+                                  }),
+
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: RouteLocationTile(
+                                        type: LocationTileType.drop,
+                                        address:
+                                            _booking?.dropAddress.isNotEmpty ==
+                                                    true
+                                                ? _booking!.dropAddress
+                                                : 'Customer Dropoff Point',
+                                        distanceKm: dropDistKm,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Navigate to Dropoff in GMaps',
+                                      icon: const Icon(
+                                          Icons.directions_outlined,
+                                          color: Color(0xFF1A73E8)),
+                                      onPressed: () => _openGoogleMaps(
+                                        lat: _booking?.dropLat ?? 0.0,
+                                        lng: _booking?.dropLng ?? 0.0,
+                                        fallbackAddress:
+                                            _booking?.dropAddress ?? '',
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             );
-                          }),
-
-                        Container(
-                          margin:
-                              const EdgeInsets.only(left: 5, top: 2, bottom: 2),
-                          height: 20,
-                          width: 2,
-                          color: AppColors.divider,
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_rounded,
-                                color: AppColors.error, size: 14),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                _booking?.dropAddress.isNotEmpty == true
-                                    ? _booking!.dropAddress
-                                    : 'Customer Dropoff Point',
-                                style: const TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'Navigate to Dropoff in GMaps',
-                              icon: const Icon(Icons.directions_outlined,
-                                  color: Color(0xFF1A73E8)),
-                              onPressed: () => _openGoogleMaps(
-                                lat: _booking?.dropLat ?? 0.0,
-                                lng: _booking?.dropLng ?? 0.0,
-                                fallbackAddress: _booking?.dropAddress ?? '',
-                              ),
-                            ),
-                          ],
+                          },
                         ),
 
                         if (_booking != null && _booking!.fare > 0) ...[
@@ -2454,20 +2813,23 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                             color: AppColors.primary,
                                           ),
                                         ),
-                                        Icon(Icons.chevron_right_rounded, size: 14, color: AppColors.primary),
+                                        Icon(Icons.chevron_right_rounded,
+                                            size: 14, color: AppColors.primary),
                                       ],
                                     ),
                                   ),
                                 ],
                               ),
                               Text(
-                                '₹ ${(_booking!.amount?['total_price'] ?? _booking!.fare ?? 0.0).toStringAsFixed(2)}',
+                                '₹ ${((_booking!.amount?['total_price'] ?? _booking!.fare ?? 0.0) + _booking!.waitingCharges).toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryDark,
                                 ),
                               ),
+
+
                             ],
                           ),
                         ],
@@ -2480,9 +2842,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   // Progressive Action Button (ARRIVED -> START TRIP -> INTERMEDIATE STOPS -> FINAL DROPOFF -> POD -> CASH -> COMPLETE)
                   Builder(
                     builder: (context) {
-                      final effectiveStops = _booking?.effectiveIntermediateStops ?? [];
-                      final firstUncompletedIndex = effectiveStops.indexWhere((s) => !s.isCompleted);
-                      final hasPendingStops = _booking?.hasStops == true && firstUncompletedIndex != -1;
+                      final effectiveStops =
+                          _booking?.effectiveIntermediateStops ?? [];
+                      final firstUncompletedIndex =
+                          effectiveStops.indexWhere((s) => !s.isCompleted);
+                      final hasPendingStops = _booking?.hasStops == true &&
+                          firstUncompletedIndex != -1;
 
                       if (currentStatus == 'accepted') {
                         return GradientButton(
@@ -2507,10 +2872,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                       // If trip has pending intermediate stops
                       if (hasPendingStops &&
-                          (currentStatus == 'in_transit' || currentStatus.startsWith('stop_'))) {
+                          (currentStatus == 'in_transit' ||
+                              currentStatus.startsWith('stop_'))) {
                         final stopIdx = firstUncompletedIndex;
                         final stopNum = stopIdx + 1;
-                        final isReached = currentStatus == 'stop_${stopNum}_reached';
+                        final isReached =
+                            currentStatus == 'stop_${stopNum}_reached';
 
                         if (isReached) {
                           return GradientButton(
@@ -2536,7 +2903,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       }
 
                       // All intermediate stops completed (or no stops) & in transit -> Ready for Final Dropoff!
-                      if (currentStatus == 'in_transit' || currentStatus.startsWith('stop_')) {
+                      if (currentStatus == 'in_transit' ||
+                          currentStatus.startsWith('stop_')) {
                         return GradientButton(
                           text: 'REACHED FINAL DESTINATION',
                           isLoading: _isUpdatingStatus,
@@ -2664,7 +3032,9 @@ class _FareItemRow extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 13,
-              color: isHighlight ? const Color(0xFFB45309) : AppColors.textSecondary,
+              color: isHighlight
+                  ? const Color(0xFFB45309)
+                  : AppColors.textSecondary,
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
             ),
           ),

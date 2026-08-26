@@ -62,14 +62,12 @@ class VehicleViewModel extends ChangeNotifier {
 
   Future<void> loadVehicleTypes() async {
     try {
-      final list = await _supabaseService.fetchVehicleTypes();
-      _vehicleTypes =
-          list.isNotEmpty ? list : VehicleTypeModel.defaultVehicleTypes;
+      _vehicleTypes = await _supabaseService.fetchVehicleTypes();
       _syncSelectedVehicleType();
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading vehicle types: $e');
-      _vehicleTypes = VehicleTypeModel.defaultVehicleTypes;
+      _vehicleTypes = [];
       _syncSelectedVehicleType();
       notifyListeners();
     }
@@ -115,10 +113,14 @@ class VehicleViewModel extends ChangeNotifier {
 
   void _syncSelectedVehicleType() {
     if (_selectedCategory == '3W') {
-      _selectedVehicleType = _vehicleTypes.firstWhere(
-        (v) => v.id == '2' || v.name.toLowerCase().contains('3 wheeler'),
-        orElse: () => VehicleTypeModel.defaultVehicleTypes[1], // 3 Wheeler
-      );
+      try {
+        _selectedVehicleType = _vehicleTypes.firstWhere(
+          (v) => v.id == '2' || v.name.toLowerCase().contains('3 wheeler'),
+        );
+      } catch (_) {
+        _selectedVehicleType =
+            _vehicleTypes.isNotEmpty ? _vehicleTypes.first : null;
+      }
     } else if (_selectedCategory == 'Truck') {
       String targetId = '5'; // default 8ft
       if (_selectedBodyDetail.contains('Tata Ace') ||
@@ -131,16 +133,17 @@ class VehicleViewModel extends ChangeNotifier {
       } else {
         targetId = '5'; // 8 Ft Vehicle
       }
-      _selectedVehicleType = _vehicleTypes.firstWhere(
-        (v) => v.id == targetId,
-        orElse: () => VehicleTypeModel.defaultVehicleTypes.firstWhere(
+      try {
+        _selectedVehicleType = _vehicleTypes.firstWhere(
           (v) => v.id == targetId,
-          orElse: () =>
-              VehicleTypeModel.defaultVehicleTypes[2], // 4 Wheeler (ID 4)
-        ),
-      );
+        );
+      } catch (_) {
+        _selectedVehicleType =
+            _vehicleTypes.isNotEmpty ? _vehicleTypes.first : null;
+      }
     }
   }
+
 
   void setLoading(bool value) {
     _isLoading = value;

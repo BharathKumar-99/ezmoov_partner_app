@@ -25,11 +25,30 @@ void main() {
       expect(vt.isActive, isTrue);
     });
 
-    test('Contains valid default vehicle types list', () {
-      final defaults = VehicleTypeModel.defaultVehicleTypes;
-      expect(defaults, isNotEmpty);
-      expect(defaults.any((vt) => vt.name == '3 Wheeler'), isTrue);
-      expect(defaults.any((vt) => vt.name == '4 Wheeler'), isTrue);
+    test('Parses vehicle types list dynamically', () {
+      final listJson = [
+        {
+          'id': '2',
+          'name': '3 Wheeler',
+          'capacity_kg': 500.0,
+          'base_fare': 210.0,
+          'daily_fee': 175.0,
+          'is_active': true
+        },
+        {
+          'id': '4',
+          'name': '4 Wheeler',
+          'capacity_kg': 750.0,
+          'base_fare': 218.0,
+          'daily_fee': 200.0,
+          'is_active': true
+        },
+      ];
+
+      final types = listJson.map((j) => VehicleTypeModel.fromJson(j)).toList();
+      expect(types, isNotEmpty);
+      expect(types.any((vt) => vt.name == '3 Wheeler'), isTrue);
+      expect(types.any((vt) => vt.name == '4 Wheeler'), isTrue);
     });
   });
 }

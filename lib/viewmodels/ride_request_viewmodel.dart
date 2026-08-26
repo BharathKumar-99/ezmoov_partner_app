@@ -84,6 +84,8 @@ class RideRequestViewModel extends ChangeNotifier {
     }
   }
 
+  List<VehicleTypeModel> _vehicleTypes = [];
+
   /// Check if the booking vehicle type matches the partner's vehicle type
   bool _isVehicleTypeMatching(BookingModel booking) {
     final bookingVeh = booking.vehicleTypeId?.trim();
@@ -116,8 +118,14 @@ class RideRequestViewModel extends ChangeNotifier {
       return true;
     }
 
-    // 3. Match using VehicleTypeModel catalog (ID to Name & Name to ID mapping)
-    for (final vt in VehicleTypeModel.defaultVehicleTypes) {
+    // 3. Match using dynamic VehicleTypeModel catalog from database
+    if (_vehicleTypes.isEmpty) {
+      _supabaseService.fetchVehicleTypes().then((types) {
+        if (types.isNotEmpty) _vehicleTypes = types;
+      });
+    }
+
+    for (final vt in _vehicleTypes) {
       final vtId = vt.id.trim();
       final vtNameNorm = vt.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
 
@@ -131,6 +139,7 @@ class RideRequestViewModel extends ChangeNotifier {
 
     return false;
   }
+
 
   /// Explicitly decline a ride request so it is never shown again to this driver
   void declineRide(String bookingId, {String? driverId}) {

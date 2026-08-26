@@ -9,7 +9,7 @@ class VehicleTypeModel {
   final bool isActive;
   final bool active;
   final int graceTime;
-  final int waitTime;
+  final num waitTime;
 
   VehicleTypeModel({
     required this.id,
@@ -48,8 +48,9 @@ class VehicleTypeModel {
       graceTime: (json['grace_time'] as num?)?.toInt() ??
           (json['gracetime'] as num?)?.toInt() ??
           15,
-      waitTime: (json['waittime'] as num?)?.toInt() ??
-          (json['wait_time'] as num?)?.toInt() ??
+      waitTime: (json['waittime'] as num?) ??
+          (json['wait_time'] as num?) ??
+          (json['waitTime'] as num?) ??
           30,
     );
   }
@@ -69,86 +70,4 @@ class VehicleTypeModel {
       'waittime': waitTime,
     };
   }
-
-  // Default vehicle dataset matching database table
-  static final List<VehicleTypeModel> defaultVehicleTypes = [
-    VehicleTypeModel(
-      id: '1',
-      name: '2 Wheeler',
-      capacity: '20 Kgs',
-      capacityKg: 20,
-      baseFare: 100,
-      dailyFee: 100,
-      iconName: 'two_wheeler',
-      isActive: false,
-      active: false,
-      graceTime: 10,
-      waitTime: 2,
-    ),
-    VehicleTypeModel(
-      id: '2',
-      name: '3 Wheeler',
-      capacity: '500 Kgs',
-      capacityKg: 500,
-      baseFare: 210,
-      dailyFee: 175,
-      iconName: 'electric_rickshaw',
-      isActive: true,
-      active: true,
-      graceTime: 50,
-      waitTime: 3,
-    ),
-    VehicleTypeModel(
-      id: '4',
-      name: '4 Wheeler',
-      capacity: '750 Kgs',
-      capacityKg: 750,
-      baseFare: 218,
-      dailyFee: 200,
-      iconName: 'local_shipping',
-      isActive: true,
-      active: true,
-      graceTime: 60,
-      waitTime: 3,
-    ),
-    VehicleTypeModel(
-      id: '5',
-      name: '8 Ft Vehicle',
-      capacity: '1200 Kgs',
-      capacityKg: 1200,
-      baseFare: 318,
-      dailyFee: 250,
-      iconName: 'local_shipping',
-      isActive: true,
-      active: true,
-      graceTime: 90,
-      waitTime: 4,
-    ),
-    VehicleTypeModel(
-      id: '6',
-      name: '9 Ft Vehicle',
-      capacity: '1700 Kgs',
-      capacityKg: 1700,
-      baseFare: 380,
-      dailyFee: 270,
-      iconName: 'local_shipping',
-      isActive: true,
-      active: true,
-      graceTime: 120,
-      waitTime: 5,
-    ),
-    VehicleTypeModel(
-      id: '7',
-      name: '10 Ft Vehicle',
-      capacity: '2000 Kgs',
-      capacityKg: 2000,
-      baseFare: 450,
-      dailyFee: 270,
-      iconName: 'local_shipping',
-      isActive: true,
-      active: true,
-      graceTime: 120,
-      waitTime: 6,
-    ),
-  ];
 }
