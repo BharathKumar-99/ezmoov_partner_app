@@ -71,7 +71,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     }
   }
 
-
   void _startLiveTimer() {
     _liveUiTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
@@ -391,17 +390,18 @@ class _DriverPickupViewState extends State<DriverPickupView> {
             booking.stopsCharge ??
             (booking.stopsCount * 25.0))
         .toDouble();
-    final waitingCharges = (amountMap['waiting_charges'] ??
-            booking.waitingCharges ??
-            0.0)
-        .toDouble();
+    final waitingCharges =
+        (amountMap['waiting_charges'] ?? booking.waitingCharges ?? 0.0)
+            .toDouble();
     final rawTripPrice =
         (amountMap['total_price'] ?? booking.fare ?? 0.0).toDouble();
     final totalPrice = rawTripPrice + waitingCharges;
 
     final calcBaseFare = baseFare > 0
         ? baseFare
-        : (rawTripPrice > 0 ? (rawTripPrice - distanceCharges - stopsCharge) : 0.0);
+        : (rawTripPrice > 0
+            ? (rawTripPrice - distanceCharges - stopsCharge)
+            : 0.0);
 
     showModalBottomSheet(
       context: context,
@@ -478,7 +478,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           color: AppColors.primary)),
                 ],
               ),
-
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -574,9 +573,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       int dropWaitSeconds = 0;
       final pickupWaitSecs = _booking?.pickupWaitSeconds ?? 0;
       if (arrivedAtDropoffAt != null) {
-        dropWaitSeconds =
-            max(0, now.difference(arrivedAtDropoffAt).inSeconds) -
-                pickupWaitSecs;
+        dropWaitSeconds = max(0, now.difference(arrivedAtDropoffAt).inSeconds) -
+            pickupWaitSecs;
         if (dropWaitSeconds < 0) dropWaitSeconds = 0;
       }
 
@@ -610,7 +608,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         'waiting_charges': waitingCharges,
         'trip_completed_at': nowUtcIso,
       };
-
     }
 
     return {};
@@ -757,10 +754,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     final double tripFare =
         (_booking?.amount?['total_price'] ?? _booking?.fare ?? 0.0).toDouble() +
             (_booking?.waitingCharges ?? 0);
-    final double incentive =
-        (_booking?.farDriverIncentive != null && (_booking!.farDriverIncentive!) > 0)
-            ? _booking!.farDriverIncentive!
-            : 0.0;
+    final double incentive = (_booking?.farDriverIncentive != null &&
+            (_booking!.farDriverIncentive!) > 0)
+        ? _booking!.farDriverIncentive!
+        : 0.0;
     final double totalFare = tripFare + incentive;
 
     showDialog(
@@ -793,70 +790,69 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                 style: const TextStyle(
                     fontSize: 14, color: AppColors.textSecondary),
               ),
-              if (incentive > 0) ...
-                [
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
-                      border: Border.all(
-                          color: const Color(0xFF10B981), width: 1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Trip Fare',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.textSecondary)),
-                            Text('₹${tripFare.toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.textSecondary)),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Far Driver Incentive 🎁',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF10B981),
-                                    fontWeight: FontWeight.bold)),
-                            Text('+ ₹${incentive.toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF10B981),
-                                    fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        const Divider(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Total to Collect',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary)),
-                            Text('₹${totalFare.toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryDark)),
-                          ],
-                        ),
-                      ],
-                    ),
+              if (incentive > 0) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    border:
+                        Border.all(color: const Color(0xFF10B981), width: 1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Trip Fare',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary)),
+                          Text('₹${tripFare.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Far Driver Incentive 🎁',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF10B981),
+                                  fontWeight: FontWeight.bold)),
+                          Text('+ ₹${incentive.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF10B981),
+                                  fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const Divider(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Total to Collect',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary)),
+                          Text('₹${totalFare.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryDark)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -2538,8 +2534,18 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 listen: false);
                             final driverPos =
                                 LocationService.instance.currentPosition;
-                            final driverLat = driverPos?.latitude ?? 0.0;
-                            final driverLng = driverPos?.longitude ?? 0.0;
+                            double driverLat = driverPos?.latitude ?? 0.0;
+                            double driverLng = driverPos?.longitude ?? 0.0;
+
+                            if (driverLat == 0.0 || driverLng == 0.0) {
+                              try {
+                                final profileVm = Provider.of<ProfileViewModel>(context, listen: false);
+                                if (profileVm.latitude != 0.0 && profileVm.longitude != 0.0) {
+                                  driverLat = profileVm.latitude;
+                                  driverLng = profileVm.longitude;
+                                }
+                              } catch (_) {}
+                            }
 
                             final pickupDistKm = (driverLat != 0.0 &&
                                     driverLng != 0.0 &&
@@ -2550,24 +2556,49 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                     _booking!.pickupLat, _booking!.pickupLng)
                                 : 0.0;
 
-                            final dropDistKm = (driverLat != 0.0 &&
-                                    driverLng != 0.0 &&
-                                    _booking != null &&
-                                    _booking!.dropLat != 0.0 &&
-                                    _booking!.dropLng != 0.0)
-                                ? rideVm.calculateDistance(driverLat, driverLng,
-                                    _booking!.dropLat, _booking!.dropLng)
-                                : (_booking != null &&
-                                        _booking!.pickupLat != 0.0 &&
-                                        _booking!.pickupLng != 0.0 &&
-                                        _booking!.dropLat != 0.0 &&
-                                        _booking!.dropLng != 0.0)
-                                    ? rideVm.calculateDistance(
+                            double calculatedTotalTripDist = 0.0;
+                            if (_booking != null &&
+                                _booking!.pickupLat != 0.0 &&
+                                _booking!.pickupLng != 0.0) {
+                              if (_booking!.hasStops &&
+                                  _booking!
+                                      .effectiveIntermediateStops.isNotEmpty) {
+                                double currentLat = _booking!.pickupLat;
+                                double currentLng = _booking!.pickupLng;
+                                for (final stop
+                                    in _booking!.effectiveIntermediateStops) {
+                                  if (stop.latitude != 0.0 &&
+                                      stop.longitude != 0.0) {
+                                    calculatedTotalTripDist +=
+                                        rideVm.calculateDistance(
+                                            currentLat,
+                                            currentLng,
+                                            stop.latitude,
+                                            stop.longitude);
+                                    currentLat = stop.latitude;
+                                    currentLng = stop.longitude;
+                                  }
+                                }
+                                if (_booking!.dropLat != 0.0 &&
+                                    _booking!.dropLng != 0.0) {
+                                  calculatedTotalTripDist +=
+                                      rideVm.calculateDistance(
+                                          currentLat,
+                                          currentLng,
+                                          _booking!.dropLat,
+                                          _booking!.dropLng);
+                                }
+                              } else if (_booking!.dropLat != 0.0 &&
+                                  _booking!.dropLng != 0.0) {
+                                calculatedTotalTripDist =
+                                    rideVm.calculateDistance(
                                         _booking!.pickupLat,
                                         _booking!.pickupLng,
                                         _booking!.dropLat,
-                                        _booking!.dropLng)
-                                    : 0.0;
+                                        _booking!.dropLng);
+                              }
+                            }
+                            final dropDistKm = calculatedTotalTripDist;
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2625,25 +2656,31 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                             .effectiveIntermediateStops[i - 1]
                                             .isCompleted;
 
-                                    final stopDistKm = (driverLat != 0.0 &&
-                                            driverLng != 0.0 &&
+                                    final double prevLat = (i == 0)
+                                        ? (_booking?.pickupLat ?? 0.0)
+                                        : (_booking
+                                                ?.effectiveIntermediateStops[
+                                                    i - 1]
+                                                .latitude ??
+                                            0.0);
+                                    final double prevLng = (i == 0)
+                                        ? (_booking?.pickupLng ?? 0.0)
+                                        : (_booking
+                                                ?.effectiveIntermediateStops[
+                                                    i - 1]
+                                                .longitude ??
+                                            0.0);
+
+                                    final stopDistKm = (prevLat != 0.0 &&
+                                            prevLng != 0.0 &&
                                             stop.latitude != 0.0 &&
                                             stop.longitude != 0.0)
                                         ? rideVm.calculateDistance(
-                                            driverLat,
-                                            driverLng,
+                                            prevLat,
+                                            prevLng,
                                             stop.latitude,
                                             stop.longitude)
-                                        : (_booking!.pickupLat != 0.0 &&
-                                                _booking!.pickupLng != 0.0 &&
-                                                stop.latitude != 0.0 &&
-                                                stop.longitude != 0.0)
-                                            ? rideVm.calculateDistance(
-                                                _booking!.pickupLat,
-                                                _booking!.pickupLng,
-                                                stop.latitude,
-                                                stop.longitude)
-                                            : 0.0;
+                                        : 0.0;
 
                                     return Column(
                                       crossAxisAlignment:
@@ -2866,70 +2903,80 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Total Delivery Fare:',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.textSecondary),
-                                  ),
-                                  InkWell(
-                                    onTap: _showFareBreakdownModal,
-                                    child: const Row(
-                                      children: [
-                                        Text(
-                                          'View Fare Breakdown',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
-                                        Icon(Icons.chevron_right_rounded,
-                                            size: 14, color: AppColors.primary),
-                                      ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Total Delivery Fare:',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.textSecondary),
                                     ),
-                                  ),
-                                ],
+                                    InkWell(
+                                      onTap: _showFareBreakdownModal,
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'View Fare Breakdown',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.primary,
+                                            ),
+                                          ),
+                                          Icon(Icons.chevron_right_rounded,
+                                              size: 14,
+                                              color: AppColors.primary),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              Text(
-                                () {
-                                  final double cardBase =
-                                      ((_booking!.amount?['total_price'] ??
-                                                  _booking!.fare ??
-                                                  0.0) +
-                                              _booking!.waitingCharges)
-                                          .toDouble();
-                                  final double cardIncentive =
-                                      (_booking!.farDriverIncentive != null &&
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    () {
+                                      final double cardBase =
+                                          ((_booking!.amount?['total_price'] ??
+                                                      _booking!.fare ??
+                                                      0.0) +
+                                                  _booking!.waitingCharges)
+                                              .toDouble();
+                                      final double cardIncentive = (_booking!
+                                                      .farDriverIncentive !=
+                                                  null &&
                                               _booking!.farDriverIncentive! > 0)
                                           ? _booking!.farDriverIncentive!
                                           : 0.0;
-                                  return '₹ ${(cardBase + cardIncentive).toStringAsFixed(2)}';
-                                }(),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryDark,
-                                ),
-                              ),
-                              if ((_booking!.farDriverIncentive ?? 0) > 0)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Text(
-                                    'Incl. ₹${_booking!.farDriverIncentive!.toStringAsFixed(0)} far driver incentive 🎁',
+                                      return '₹ ${(cardBase + cardIncentive).toStringAsFixed(2)}';
+                                    }(),
                                     style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF10B981),
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryDark,
                                     ),
                                   ),
-                                ),
-
-
+                                  if ((_booking!.farDriverIncentive ?? 0) > 0)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        'Incl. ₹${_booking!.farDriverIncentive!.toStringAsFixed(0)} far driver incentive 🎁',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF10B981),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ],
                           ),
                         ],
@@ -3025,7 +3072,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         );
                       }
 
-                        if (currentStatus == 'drop_complete') {
+                      if (currentStatus == 'drop_complete') {
                         final double dropIncentive =
                             (_booking?.farDriverIncentive != null &&
                                     (_booking!.farDriverIncentive!) > 0)
@@ -3037,9 +3084,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 .toDouble();
                         final double dropTotal = dropTripFare + dropIncentive;
                         return GradientButton(
-                          text: dropIncentive > 0
-                              ? 'Collect Cash ₹${dropTripFare.toStringAsFixed(0)} + ₹${dropIncentive.toStringAsFixed(0)} Incentive = ₹${dropTotal.toStringAsFixed(0)}'
-                              : 'Received Cash Payment (₹${dropTripFare.toStringAsFixed(0)})',
+                          text: 'Collect Cash Payment (₹${dropTotal.toStringAsFixed(0)})',
                           isLoading: _isUpdatingStatus,
                           icon: Icons.payments_rounded,
                           onPressed: _handleReceivedPaymentClick,

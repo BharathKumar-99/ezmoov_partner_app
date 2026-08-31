@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/services/location_service.dart';
 import '../../../models/booking_model.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
+import '../../../viewmodels/profile_viewmodel.dart';
 import '../../../widgets/gradient_button.dart';
 import '../../../widgets/route_location_tile.dart';
 
@@ -276,8 +277,18 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                 Builder(
                   builder: (context) {
                     final driverPos = LocationService.instance.currentPosition;
-                    final driverLat = driverPos?.latitude ?? 0.0;
-                    final driverLng = driverPos?.longitude ?? 0.0;
+                    double driverLat = driverPos?.latitude ?? 0.0;
+                    double driverLng = driverPos?.longitude ?? 0.0;
+
+                    if (driverLat == 0.0 || driverLng == 0.0) {
+                      try {
+                        final profileVm = Provider.of<ProfileViewModel>(context, listen: false);
+                        if (profileVm.latitude != 0.0 && profileVm.longitude != 0.0) {
+                          driverLat = profileVm.latitude;
+                          driverLng = profileVm.longitude;
+                        }
+                      } catch (_) {}
+                    }
 
                     final pickupDistKm = (driverLat != 0.0 &&
                             driverLng != 0.0 &&
@@ -290,20 +301,34 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                             activeBooking.pickupLng)
                         : 0.0;
 
-                    final dropDistKm = (driverLat != 0.0 &&
-                            driverLng != 0.0 &&
-                            activeBooking.dropLat != 0.0 &&
-                            activeBooking.dropLng != 0.0)
-                        ? vm.calculateDistance(
-                            driverLat,
-                            driverLng,
-                            activeBooking.dropLat,
-                            activeBooking.dropLng)
-                        : vm.calculateDistance(
+                    double calculatedTotalTripDist = 0.0;
+                    if (activeBooking.pickupLat != 0.0 &&
+                        activeBooking.pickupLng != 0.0) {
+                      if (activeBooking.hasStops &&
+                          activeBooking.effectiveIntermediateStops.isNotEmpty) {
+                        double currentLat = activeBooking.pickupLat;
+                        double currentLng = activeBooking.pickupLng;
+                        for (final stop in activeBooking.effectiveIntermediateStops) {
+                          if (stop.latitude != 0.0 && stop.longitude != 0.0) {
+                            calculatedTotalTripDist += vm.calculateDistance(
+                                currentLat, currentLng, stop.latitude, stop.longitude);
+                            currentLat = stop.latitude;
+                            currentLng = stop.longitude;
+                          }
+                        }
+                        if (activeBooking.dropLat != 0.0 && activeBooking.dropLng != 0.0) {
+                          calculatedTotalTripDist += vm.calculateDistance(
+                              currentLat, currentLng, activeBooking.dropLat, activeBooking.dropLng);
+                        }
+                      } else if (activeBooking.dropLat != 0.0 && activeBooking.dropLng != 0.0) {
+                        calculatedTotalTripDist = vm.calculateDistance(
                             activeBooking.pickupLat,
                             activeBooking.pickupLng,
                             activeBooking.dropLat,
                             activeBooking.dropLng);
+                      }
+                    }
+                    final dropDistKm = calculatedTotalTripDist;
 
                     return Container(
                       width: double.infinity,
@@ -331,28 +356,27 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                                 .asMap()
                                 .entries
                                 .map((entry) {
-                              final idx = entry.key + 1;
+                              final i = entry.key;
+                              final idx = i + 1;
                               final stop = entry.value;
 
-                              final stopDistKm = (driverLat != 0.0 &&
-                                      driverLng != 0.0 &&
+                              final double prevLat = (i == 0)
+                                  ? activeBooking.pickupLat
+                                  : activeBooking.effectiveIntermediateStops[i - 1].latitude;
+                              final double prevLng = (i == 0)
+                                  ? activeBooking.pickupLng
+                                  : activeBooking.effectiveIntermediateStops[i - 1].longitude;
+
+                              final stopDistKm = (prevLat != 0.0 &&
+                                      prevLng != 0.0 &&
                                       stop.latitude != 0.0 &&
                                       stop.longitude != 0.0)
                                   ? vm.calculateDistance(
-                                      driverLat,
-                                      driverLng,
+                                      prevLat,
+                                      prevLng,
                                       stop.latitude,
                                       stop.longitude)
-                                  : (activeBooking.pickupLat != 0.0 &&
-                                          activeBooking.pickupLng != 0.0 &&
-                                          stop.latitude != 0.0 &&
-                                          stop.longitude != 0.0)
-                                      ? vm.calculateDistance(
-                                          activeBooking.pickupLat,
-                                          activeBooking.pickupLng,
-                                          stop.latitude,
-                                          stop.longitude)
-                                      : 0.0;
+                                  : 0.0;
 
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

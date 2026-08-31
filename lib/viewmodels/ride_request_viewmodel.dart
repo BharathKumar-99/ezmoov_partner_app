@@ -45,6 +45,10 @@ class RideRequestViewModel extends ChangeNotifier {
   bool get isAccepting => _isAccepting;
 
   bool _isModalOpen = false;
+  bool get isModalOpen => _isModalOpen;
+
+  String? _activeShowingBookingId;
+  String? get activeShowingBookingId => _activeShowingBookingId;
 
   final Set<String> _declinedBookingIds = {};
   Set<String> get declinedBookingIds => _declinedBookingIds;
@@ -150,6 +154,7 @@ class RideRequestViewModel extends ChangeNotifier {
       _activeBroadcastBooking = null;
     }
     _isModalOpen = false;
+    _activeShowingBookingId = null;
     notifyListeners();
 
     if (driverId != null && driverId.isNotEmpty) {
@@ -473,6 +478,7 @@ class RideRequestViewModel extends ChangeNotifier {
           _audioService.stopAlert();
           Navigator.of(context, rootNavigator: true).pop();
           _isModalOpen = false;
+          _activeShowingBookingId = null;
           _showSnackBar(
             context,
             isCancelled
@@ -491,17 +497,27 @@ class RideRequestViewModel extends ChangeNotifier {
       _activeBroadcastBooking = matchingBooking;
       notifyListeners();
 
-      if (!_isModalOpen && context.mounted) {
+      // Guard: Do NOT open another modal or trigger duplicate alerts if a modal is already open or this order is currently being shown
+      if (_isModalOpen || _activeShowingBookingId == matchingBooking.id) {
+        return;
+      }
+
+      // Synchronously lock state to prevent race conditions from 3s polling & stream updates
+      _isModalOpen = true;
+      _activeShowingBookingId = matchingBooking.id;
+
+      if (context.mounted) {
         _supabaseService.getDriverDailyStatus(driverId).then((status) {
           if (status != null && status.isBlocked) {
             debugPrint('⛔ Driver $driverId is blocked today (${status.blockReason}). Suppressing ride request dialog.');
+            _isModalOpen = false;
+            _activeShowingBookingId = null;
             return;
           }
 
           final currentBooking = matchingBooking;
-          if (currentBooking != null && !_isModalOpen && context.mounted) {
+          if (currentBooking != null && context.mounted) {
             debugPrint('🎉 POP-UP TRIGGERED for booking #${currentBooking.id}!');
-            _isModalOpen = true;
 
             // Play audio alert ringtone
             _audioService.playRideRequestAlert();
@@ -529,8 +545,18 @@ class RideRequestViewModel extends ChangeNotifier {
             } else {
               showIncomingRideDialog(context, currentBooking, driverId);
             }
+          } else {
+            _isModalOpen = false;
+            _activeShowingBookingId = null;
           }
+        }).catchError((e) {
+          debugPrint('Notice in getDriverDailyStatus: $e');
+          _isModalOpen = false;
+          _activeShowingBookingId = null;
         });
+      } else {
+        _isModalOpen = false;
+        _activeShowingBookingId = null;
       }
     }
   }
@@ -571,6 +597,7 @@ class RideRequestViewModel extends ChangeNotifier {
         );
 
         _isModalOpen = false;
+        _activeShowingBookingId = null;
         notifyListeners();
 
         if (context.mounted) {
@@ -604,6 +631,7 @@ class RideRequestViewModel extends ChangeNotifier {
     _pollingTimer = null;
     _activeBroadcastBooking = null;
     _isModalOpen = false;
+    _activeShowingBookingId = null;
     notifyListeners();
   }
 
@@ -638,6 +666,7 @@ class RideRequestViewModel extends ChangeNotifier {
         if (_isModalOpen) {
           Navigator.of(context, rootNavigator: true).pop();
           _isModalOpen = false;
+          _activeShowingBookingId = null;
         }
 
         if (_activeBroadcastBooking != null) {
@@ -663,6 +692,7 @@ class RideRequestViewModel extends ChangeNotifier {
         if (_isModalOpen) {
           Navigator.of(context, rootNavigator: true).pop();
           _isModalOpen = false;
+          _activeShowingBookingId = null;
         }
         _showSnackBar(
           context,
@@ -689,6 +719,7 @@ class RideRequestViewModel extends ChangeNotifier {
       _activeBroadcastBooking = null;
     }
     _isModalOpen = false;
+    _activeShowingBookingId = null;
     notifyListeners();
   }
 
