@@ -754,9 +754,14 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   void _confirmCashPaymentModal() {
-    final double totalFare =
+    final double tripFare =
         (_booking?.amount?['total_price'] ?? _booking?.fare ?? 0.0).toDouble() +
             (_booking?.waitingCharges ?? 0);
+    final double incentive =
+        (_booking?.farDriverIncentive != null && (_booking!.farDriverIncentive!) > 0)
+            ? _booking!.farDriverIncentive!
+            : 0.0;
+    final double totalFare = tripFare + incentive;
 
     showDialog(
       context: context,
@@ -779,10 +784,80 @@ class _DriverPickupViewState extends State<DriverPickupView> {
           ],
         ),
         content: SingleChildScrollView(
-          child: Text(
-            'Did you collect ₹${totalFare.toStringAsFixed(0)} cash directly from the customer?',
-            style:
-                const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Did you collect ₹${totalFare.toStringAsFixed(0)} cash directly from the customer?',
+                style: const TextStyle(
+                    fontSize: 14, color: AppColors.textSecondary),
+              ),
+              if (incentive > 0) ...
+                [
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      border: Border.all(
+                          color: const Color(0xFF10B981), width: 1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Trip Fare',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary)),
+                            Text('₹${tripFare.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Far Driver Incentive 🎁',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF10B981),
+                                    fontWeight: FontWeight.bold)),
+                            Text('+ ₹${incentive.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF10B981),
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const Divider(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Total to Collect',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary)),
+                            Text('₹${totalFare.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryDark)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+            ],
           ),
         ),
         actions: [
@@ -2821,13 +2896,38 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 ],
                               ),
                               Text(
-                                '₹ ${((_booking!.amount?['total_price'] ?? _booking!.fare ?? 0.0) + _booking!.waitingCharges).toStringAsFixed(2)}',
+                                () {
+                                  final double cardBase =
+                                      ((_booking!.amount?['total_price'] ??
+                                                  _booking!.fare ??
+                                                  0.0) +
+                                              _booking!.waitingCharges)
+                                          .toDouble();
+                                  final double cardIncentive =
+                                      (_booking!.farDriverIncentive != null &&
+                                              _booking!.farDriverIncentive! > 0)
+                                          ? _booking!.farDriverIncentive!
+                                          : 0.0;
+                                  return '₹ ${(cardBase + cardIncentive).toStringAsFixed(2)}';
+                                }(),
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryDark,
                                 ),
                               ),
+                              if ((_booking!.farDriverIncentive ?? 0) > 0)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    'Incl. ₹${_booking!.farDriverIncentive!.toStringAsFixed(0)} far driver incentive 🎁',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF10B981),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
 
 
                             ],
@@ -2925,10 +3025,21 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         );
                       }
 
-                      if (currentStatus == 'drop_complete') {
+                        if (currentStatus == 'drop_complete') {
+                        final double dropIncentive =
+                            (_booking?.farDriverIncentive != null &&
+                                    (_booking!.farDriverIncentive!) > 0)
+                                ? _booking!.farDriverIncentive!
+                                : 0.0;
+                        final double dropTripFare =
+                            ((_booking?.amount?['total_price'] ?? 0) +
+                                    (_booking?.waitingCharges ?? 0))
+                                .toDouble();
+                        final double dropTotal = dropTripFare + dropIncentive;
                         return GradientButton(
-                          text:
-                              'Received Cash Payment (₹${((_booking?.amount?['total_price'] ?? 0) + (_booking?.waitingCharges ?? 0)).toStringAsFixed(0)})',
+                          text: dropIncentive > 0
+                              ? 'Collect Cash ₹${dropTripFare.toStringAsFixed(0)} + ₹${dropIncentive.toStringAsFixed(0)} Incentive = ₹${dropTotal.toStringAsFixed(0)}'
+                              : 'Received Cash Payment (₹${dropTripFare.toStringAsFixed(0)})',
                           isLoading: _isUpdatingStatus,
                           icon: Icons.payments_rounded,
                           onPressed: _handleReceivedPaymentClick,

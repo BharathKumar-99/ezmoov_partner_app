@@ -36,6 +36,8 @@ class BookingModel {
   final int? dropoffWaitSeconds;
   final int? graceTimeMinutes;
   final int? chargeableWaitMinutes;
+  final bool? farDriver;
+  final double? farDriverIncentive;
 
   final double waitFeePerMin;
   final double waitingCharges;
@@ -85,6 +87,8 @@ class BookingModel {
     this.dropoffWaitSeconds,
     this.graceTimeMinutes,
     this.chargeableWaitMinutes,
+    this.farDriver,
+    this.farDriverIncentive,
 
     this.waitFeePerMin = 0.0,
     this.waitingCharges = 0.0,
@@ -464,6 +468,8 @@ class BookingModel {
               : null),
       graceTimeMinutes: _toInt(json['grace_time_minutes']),
       chargeableWaitMinutes: _toInt(json['chargeable_wait_minutes']),
+      farDriver: json['far_driver'] == true,
+      farDriverIncentive: _toDouble(json['far_driver_incentive']),
       waitFeePerMin: _toDouble(json['wait_fee_per_min']) ?? 0.0,
       waitingCharges: _toDouble(json['waiting_charges']) ?? 0.0,
       intermediateStops: stopsList,
@@ -518,6 +524,8 @@ class BookingModel {
       if (graceTimeMinutes != null) 'grace_time_minutes': graceTimeMinutes,
       if (chargeableWaitMinutes != null)
         'chargeable_wait_minutes': chargeableWaitMinutes,
+      if (farDriver != null) 'far_driver': farDriver,
+      if (farDriverIncentive != null) 'far_driver_incentive': farDriverIncentive,
 
       'wait_fee_per_min': waitFeePerMin,
       'waiting_charges': waitingCharges,
@@ -572,6 +580,8 @@ class BookingModel {
     int? dropoffWaitSeconds,
     int? graceTimeMinutes,
     int? chargeableWaitMinutes,
+    bool? farDriver,
+    double? farDriverIncentive,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -616,6 +626,8 @@ class BookingModel {
       graceTimeMinutes: graceTimeMinutes ?? this.graceTimeMinutes,
       chargeableWaitMinutes:
           chargeableWaitMinutes ?? this.chargeableWaitMinutes,
+      farDriver: farDriver ?? this.farDriver,
+      farDriverIncentive: farDriverIncentive ?? this.farDriverIncentive,
       taxesAndGst: 0.0,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

@@ -413,7 +413,7 @@ class RideRequestViewModel extends ChangeNotifier {
         final serviceName = booking.service?.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_') ?? '';
         final isLocalAdda = serviceName.isEmpty || serviceName == 'local_adda' || serviceName == 'localadda';
 
-        // ONLY alert driver within 3.0 km distance if service is local_adda
+        // 1. Local Adda distance check: ONLY alert driver within 3.0 km
         if (isLocalAdda) {
           if (driverLat != 0.0 &&
               driverLng != 0.0 &&
@@ -422,6 +422,25 @@ class RideRequestViewModel extends ChangeNotifier {
             if (dist > 3.0) {
               debugPrint(
                   '⏩ Skipping booking #${booking.id}: Service ($serviceName) is local_adda and distance to pickup is ${dist.toStringAsFixed(2)} km (exceeds 3 km threshold)');
+              continue;
+            }
+          }
+        }
+
+        // 2. Far Driver distance check (completely separate from local adda):
+        // - if far_driver is null or false: within 3.0 km (like local adda)
+        // - if far_driver is true: distance increases to 10.0 km
+        if (!isLocalAdda) {
+          final isFarDriver = booking.farDriver == true;
+          final distanceThresholdKm = isFarDriver ? 10.0 : 3.0;
+
+          if (driverLat != 0.0 &&
+              driverLng != 0.0 &&
+              booking.pickupLat != 0.0 &&
+              booking.pickupLng != 0.0) {
+            if (dist > distanceThresholdKm) {
+              debugPrint(
+                  '⏩ Skipping booking #${booking.id}: Service ($serviceName), far_driver=$isFarDriver, distance to pickup is ${dist.toStringAsFixed(2)} km (exceeds ${distanceThresholdKm.toStringAsFixed(0)} km threshold)');
               continue;
             }
           }
@@ -487,11 +506,17 @@ class RideRequestViewModel extends ChangeNotifier {
             // Play audio alert ringtone
             _audioService.playRideRequestAlert();
 
+            final double baseFare = currentBooking.fare;
+            final double incentive = (currentBooking.farDriverIncentive != null &&
+                    currentBooking.farDriverIncentive! > 0)
+                ? currentBooking.farDriverIncentive!
+                : 0.0;
+
             // Trigger system heads-up push notification
             NotificationService.instance.showIncomingRideNotification(
               bookingId: currentBooking.id,
               pickupAddress: currentBooking.pickupAddress,
-              fare: currentBooking.fare,
+              fare: baseFare + incentive,
               customerName: currentBooking.customerName,
               customerPhone: currentBooking.customerPhone,
             );
