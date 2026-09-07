@@ -29,7 +29,7 @@ ALTER TABLE public.vehicle_types ADD COLUMN IF NOT EXISTS waittime INT DEFAULT 3
 -- 2. Populate / Update vehicle_types with exact dataset
 INSERT INTO public.vehicle_types (id, name, capacity, capacity_kg, base_fare, daily_fee, icon_name, is_active, active, grace_time, waittime)
 VALUES 
-  (1, '2 Wheeler',    '20 Kgs',   20.00,   100.00, 100.00, 'two_wheeler',       false, false, 10,  2),
+  (1, '2 Wheeler',    '20 Kgs',   20.00,   100.00, 30.00, 'two_wheeler',       false, false, 10,  2),
   (2, '3 Wheeler',    '500 Kgs',  500.00,  210.00, 175.00, 'electric_rickshaw',  true,  true,  50,  3),
   (4, '4 Wheeler',    '750 Kgs',  750.00,  218.00, 200.00, 'local_shipping',    true,  true,  60,  3),
   (5, '8 Ft Vehicle', '1200 Kgs', 1200.00, 318.00, 250.00, 'local_shipping',    true,  true,  90,  4),
