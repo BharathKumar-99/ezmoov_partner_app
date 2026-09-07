@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public.vehicle_types (
 
 INSERT INTO public.vehicle_types (id, name, capacity, capacity_kg, base_fare, daily_fee, icon_name)
 VALUES 
-    (1, '2 Wheeler', '20kg', 20, 50, 100.00, 'two_wheeler'),
+    (1, '2 Wheeler', '20kg', 20, 50, 30.00, 'two_wheeler'),
     (2, 'Mini 3W', '90kg', 90, 206, 175.00, 'electric_rickshaw'),
     (3, '3 Wheeler', '500kg', 500, 356, 175.00, 'local_shipping'),
     (4, '7ft Tata Ace', '750kg', 750, 374, 200.00, 'local_shipping'),
