@@ -51,6 +51,7 @@ Future<void> main() async {
       debugPrint('Supabase initialization notice: $e');
     }
   } else {
+    
     debugPrint(
         '⚠️ Warning: SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is not defined in .env');
   }
