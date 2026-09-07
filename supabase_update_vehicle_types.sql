@@ -18,15 +18,18 @@ INSERT INTO public.vehicle_types (
     daily_fee, 
     is_active, 
     active, 
-    icon_name
+    icon_name,
+    grace_time,
+    waittime
 ) VALUES 
-  ('2 Wheeler',        '20 Kgs',   20.00,   100.00, 100.00, false, false, 'two_wheeler'),
-  ('3 Wheeler',        '500 Kgs',  500.00,  210.00, 175.00, true,  true,  'electric_rickshaw'),
-  ('Mini 3 Wheeler',   '90 Kgs',   90.00,   150.00, 175.00, true,  true,  'electric_rickshaw'),
-  ('4 Wheeler',        '750 Kgs',  750.00,  218.00, 200.00, true,  true,  'local_shipping'),
-  ('8 Ft Vehicle',     '1200 Kgs', 1200.00, 318.00, 250.00, true,  true,  'local_shipping'),
-  ('9 Ft Vehicle',     '1700 Kgs', 1700.00, 380.00, 270.00, true,  true,  'local_shipping'),
-  ('10 Ft Vehicle',    '2000 Kgs', 2000.00, 450.00, 270.00, true,  true,  'local_shipping');
+  -- daily_fee = daily recharge amount (₹) | grace_time = free period (mins) | waittime = per-min charge (₹) after grace
+  ('2 Wheeler - Bike',  '20 Kgs',   20.00,   100.00,  30.00, true,  true,  'two_wheeler',        20,  1.0),
+  ('2 Wheeler - Moped', '20 Kgs',   20.00,   100.00,  30.00, true,  true,  'two_wheeler',        20,  1.5),
+  ('3 Wheeler',         '500 Kgs',  500.00,  210.00, 150.00, true,  true,  'electric_rickshaw',  40,  3.0),
+  ('4 Wheeler',         '750 Kgs',  750.00,  218.00, 175.00, true,  true,  'local_shipping',     50,  3.5),
+  ('4 Wheeler',         '1200 Kgs', 1200.00, 318.00, 236.00, true,  true,  'local_shipping',     80,  4.0),
+  ('4 Wheeler',         '1700 Kgs', 1700.00, 380.00, 236.00, true,  true,  'local_shipping',    110,  7.0),
+  ('4 Wheeler',         '2000 Kgs', 2000.00, 450.00, 236.00, true,  true,  'local_shipping',    110,  7.5);
 
 -- 3. Reload schema cache for PostgREST
 NOTIFY pgrst, 'reload schema';

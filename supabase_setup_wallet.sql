@@ -23,23 +23,25 @@ CREATE TABLE IF NOT EXISTS public.vehicle_types (
 -- 9 feet and 10 feet: ₹270
 -- 14 feet and 16 feet: ₹300
 
-INSERT INTO public.vehicle_types (id, name, capacity, capacity_kg, base_fare, daily_fee, icon_name)
+-- daily_fee = daily recharge amount (₹) | grace_time = free loading/unloading mins | waittime = per-min charge (₹) after grace period
+INSERT INTO public.vehicle_types (id, name, capacity, capacity_kg, base_fare, daily_fee, icon_name, grace_time, waittime)
 VALUES 
-    (1, '2 Wheeler', '20kg', 20, 50, 100.00, 'two_wheeler'),
-    (2, 'Mini 3W', '90kg', 90, 206, 175.00, 'electric_rickshaw'),
-    (3, '3 Wheeler', '500kg', 500, 356, 175.00, 'local_shipping'),
-    (4, '7ft Tata Ace', '750kg', 750, 374, 200.00, 'local_shipping'),
-    (5, '8ft Pickup', '1,200kg', 1200, 511, 250.00, 'directions_bus'),
-    (6, '9-10ft Pickup', '1,700kg', 1700, 612, 270.00, 'fire_truck'),
-    (7, '14ft Container', '3,500kg', 3500, 1063, 300.00, 'fire_truck'),
-    (8, '16-17ft Open', '6,000kg', 6000, 1733, 300.00, 'agriculture')
+    (1, '2 Wheeler - Bike',  '20 Kgs',   20,    100.00,  30.00, 'two_wheeler',        20,  1.0),
+    (2, '2 Wheeler - Moped', '20 Kgs',   20,    100.00,  30.00, 'two_wheeler',        20,  1.5),
+    (3, '3 Wheeler',         '500 Kgs',  500,   210.00, 150.00, 'electric_rickshaw',  40,  3.0),
+    (4, '4 Wheeler',         '750 Kgs',  750,   218.00, 175.00, 'local_shipping',     50,  3.5),
+    (5, '4 Wheeler',         '1200 Kgs', 1200,  318.00, 236.00, 'local_shipping',     80,  4.0),
+    (6, '4 Wheeler',         '1700 Kgs', 1700,  380.00, 236.00, 'local_shipping',    110,  7.0),
+    (7, '4 Wheeler',         '2000 Kgs', 2000,  450.00, 236.00, 'local_shipping',    110,  7.5)
 ON CONFLICT (id) DO UPDATE SET 
     name = EXCLUDED.name,
     capacity = EXCLUDED.capacity,
     capacity_kg = EXCLUDED.capacity_kg,
     base_fare = EXCLUDED.base_fare,
     daily_fee = EXCLUDED.daily_fee,
-    icon_name = EXCLUDED.icon_name;
+    icon_name = EXCLUDED.icon_name,
+    grace_time = EXCLUDED.grace_time,
+    waittime = EXCLUDED.waittime;
 
 SELECT setval(pg_get_serial_sequence('public.vehicle_types', 'id'), COALESCE(MAX(id), 1)) FROM public.vehicle_types;
 
@@ -164,33 +166,35 @@ BEGIN
         FROM public.drivers d
         WHERE d.is_verified = true
     LOOP
-        v_vehicle_fee := 100.00;
+        v_vehicle_fee := 30.00;
         
         -- Priority 1: Match by driver's vehicle_type column from drivers table
         IF r.driver_vehicle_type IS NOT NULL AND r.driver_vehicle_type <> '' THEN
-            SELECT COALESCE(vt.daily_fee, 100.00) INTO v_vehicle_fee
+            SELECT COALESCE(vt.daily_fee, 30.00) INTO v_vehicle_fee
             FROM public.vehicle_types vt
             WHERE LOWER(vt.name) = LOWER(r.driver_vehicle_type)
                OR LOWER(r.driver_vehicle_type) LIKE '%' || LOWER(vt.name) || '%'
+            ORDER BY
+                CASE WHEN LOWER(vt.capacity) LIKE '%' || LOWER(SPLIT_PART(r.driver_vehicle_type, ' ', 3)) || '%' THEN 0 ELSE 1 END
             LIMIT 1;
         END IF;
 
-        -- Priority 2: Fallback fee based on vehicle_type name string matching
-        IF v_vehicle_fee IS NULL OR v_vehicle_fee = 100.00 THEN
-            IF LOWER(r.driver_vehicle_type) LIKE '%2%' OR LOWER(r.driver_vehicle_type) LIKE '%two%' OR LOWER(r.driver_vehicle_type) LIKE '%bike%' THEN
-                v_vehicle_fee := 100.00;
-            ELSIF LOWER(r.driver_vehicle_type) LIKE '%mini 3%' OR LOWER(r.driver_vehicle_type) LIKE '%3w%' OR LOWER(r.driver_vehicle_type) LIKE '%rickshaw%' OR LOWER(r.driver_vehicle_type) LIKE '%auto%' THEN
+        -- Priority 2: Fallback fee based on vehicle_type name string matching (updated pricing)
+        IF v_vehicle_fee IS NULL THEN
+            IF LOWER(r.driver_vehicle_type) LIKE '%moped%' THEN
+                v_vehicle_fee := 30.00;
+            ELSIF LOWER(r.driver_vehicle_type) LIKE '%bike%' OR LOWER(r.driver_vehicle_type) LIKE '%two%' OR LOWER(r.driver_vehicle_type) LIKE '%2%wheel%' THEN
+                v_vehicle_fee := 30.00;
+            ELSIF LOWER(r.driver_vehicle_type) LIKE '%3%' OR LOWER(r.driver_vehicle_type) LIKE '%three%' OR LOWER(r.driver_vehicle_type) LIKE '%rickshaw%' OR LOWER(r.driver_vehicle_type) LIKE '%auto%' THEN
+                v_vehicle_fee := 150.00;
+            ELSIF LOWER(r.driver_vehicle_type) LIKE '%750%' OR (LOWER(r.driver_vehicle_type) LIKE '%4%' AND LOWER(r.driver_vehicle_type) LIKE '%750%') THEN
                 v_vehicle_fee := 175.00;
-            ELSIF LOWER(r.driver_vehicle_type) LIKE '%3%' THEN
+            ELSIF LOWER(r.driver_vehicle_type) LIKE '%1200%' OR (LOWER(r.driver_vehicle_type) LIKE '%4%' AND LOWER(r.driver_vehicle_type) LIKE '%1200%') THEN
+                v_vehicle_fee := 236.00;
+            ELSIF LOWER(r.driver_vehicle_type) LIKE '%1700%' OR LOWER(r.driver_vehicle_type) LIKE '%2000%' THEN
+                v_vehicle_fee := 236.00;
+            ELSIF LOWER(r.driver_vehicle_type) LIKE '%4%' OR LOWER(r.driver_vehicle_type) LIKE '%four%' THEN
                 v_vehicle_fee := 175.00;
-            ELSIF LOWER(r.driver_vehicle_type) LIKE '%7%' OR LOWER(r.driver_vehicle_type) LIKE '%ace%' OR LOWER(r.driver_vehicle_type) LIKE '%tata%' THEN
-                v_vehicle_fee := 200.00;
-            ELSIF LOWER(r.driver_vehicle_type) LIKE '%8%' THEN
-                v_vehicle_fee := 250.00;
-            ELSIF LOWER(r.driver_vehicle_type) LIKE '%9%' OR LOWER(r.driver_vehicle_type) LIKE '%10%' THEN
-                v_vehicle_fee := 270.00;
-            ELSIF LOWER(r.driver_vehicle_type) LIKE '%14%' OR LOWER(r.driver_vehicle_type) LIKE '%16%' OR LOWER(r.driver_vehicle_type) LIKE '%17%' OR LOWER(r.driver_vehicle_type) LIKE '%container%' THEN
-                v_vehicle_fee := 300.00;
             END IF;
         END IF;
 
@@ -308,7 +312,7 @@ CREATE OR REPLACE FUNCTION public.pay_driver_daily_fee(
 RETURNS JSONB AS $$
 DECLARE
     v_balance NUMERIC(10, 2);
-    v_daily_fee NUMERIC(10, 2) := 100.00;
+    v_daily_fee NUMERIC(10, 2) := 30.00;
     v_driver_vehicle_type TEXT;
     v_pass_expires_at TIMESTAMPTZ;
     v_today DATE := CURRENT_DATE;
@@ -321,13 +325,15 @@ BEGIN
 
     SELECT d.vehicle_type INTO v_driver_vehicle_type FROM public.drivers d WHERE d.id = p_driver_id LIMIT 1;
     IF v_driver_vehicle_type IS NOT NULL AND v_driver_vehicle_type <> '' THEN
-        SELECT COALESCE(vt.daily_fee, 100.00) INTO v_daily_fee 
+        SELECT COALESCE(vt.daily_fee, 30.00) INTO v_daily_fee 
         FROM public.vehicle_types vt 
         WHERE LOWER(vt.name) = LOWER(v_driver_vehicle_type) 
            OR LOWER(v_driver_vehicle_type) LIKE '%' || LOWER(vt.name) || '%'
+        ORDER BY
+            CASE WHEN LOWER(vt.capacity) LIKE '%' || LOWER(SPLIT_PART(v_driver_vehicle_type, ' ', 3)) || '%' THEN 0 ELSE 1 END
         LIMIT 1;
     END IF;
-    IF v_daily_fee IS NULL THEN v_daily_fee := 100.00; END IF;
+    IF v_daily_fee IS NULL THEN v_daily_fee := 30.00; END IF;
 
     IF v_balance < v_daily_fee THEN
         RETURN jsonb_build_object(
