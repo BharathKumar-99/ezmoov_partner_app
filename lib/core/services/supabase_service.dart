@@ -260,10 +260,11 @@ class SupabaseService {
           .from('vehicles')
           .select()
           .eq('driver_id', driverId)
-          .maybeSingle();
+          .order('created_at', ascending: true)
+          .limit(1);
 
-      if (response == null) return null;
-      return VehicleModel.fromJson(response);
+      if (response.isEmpty) return null;
+      return VehicleModel.fromJson(response.first);
     } catch (e) {
       debugPrint('Error getting vehicle by driver id: $e');
       rethrow;
