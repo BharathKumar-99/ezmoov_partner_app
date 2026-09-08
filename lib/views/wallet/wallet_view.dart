@@ -1072,7 +1072,9 @@ class _WalletViewState extends State<WalletView> {
                                     Text(
                                       walletVm.isPassActive
                                           ? 'Active (Expires ${walletVm.passExpiresAt != null ? DateFormat('MMM dd, hh:mm a').format(walletVm.passExpiresAt!) : ''})'
-                                          : 'Pass Expired / Unpaid (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} / 24 hrs)',
+                                          : (walletVm.passExpiresAt != null
+                                              ? 'Expired ${DateFormat('MMM dd, hh:mm a').format(walletVm.passExpiresAt!)} (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} / 24 hrs)'
+                                              : 'Pass Expired / Unpaid (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} / 24 hrs)'),
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -1097,7 +1099,9 @@ class _WalletViewState extends State<WalletView> {
                               child: Text(
                                 walletVm.isPassActive
                                     ? 'Pass Active'
-                                    : 'Unpaid',
+                                    : (walletVm.passExpiresAt != null
+                                        ? 'Pass Expired'
+                                        : 'Unpaid'),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,

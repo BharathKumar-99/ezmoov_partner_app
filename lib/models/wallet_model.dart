@@ -107,8 +107,18 @@ class DriverDailyStatusModel {
     this.blockReason,
   });
 
-  bool get isPassActive =>
-      (passExpiresAt != null && passExpiresAt!.isAfter(DateTime.now())) || feeDeducted;
+  bool get isPassActive {
+    if (passExpiresAt != null) {
+      return passExpiresAt!.isAfter(DateTime.now());
+    }
+    if (feeDeducted) {
+      final now = DateTime.now();
+      return statusDate.year == now.year &&
+          statusDate.month == now.month &&
+          statusDate.day == now.day;
+    }
+    return false;
+  }
 
   static DateTime? _parseDateTimeToLocal(dynamic val) {
     if (val == null) return null;

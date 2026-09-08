@@ -361,7 +361,7 @@ class ProfileViewModel extends ChangeNotifier {
         final walletBalance = wallet?.balance ?? 0.0;
 
         final isRejectionBlock = (dailyStatus?.rejectionsCount ?? 0) >= 2 || dailyStatus?.blockReason == 'exceeded_rejections';
-        bool isPassActive = (dailyStatus?.isPassActive ?? false) || (dailyStatus?.feeDeducted ?? false);
+        bool isPassActive = dailyStatus?.isPassActive ?? false;
 
         // Auto-activate 24-hour pass if wallet has sufficient balance and pass is not active
         if (!isPassActive && !isRejectionBlock && walletBalance >= vehicleDailyFee && context.mounted) {
