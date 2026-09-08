@@ -26,15 +26,17 @@ ALTER TABLE public.vehicle_types ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT
 ALTER TABLE public.vehicle_types ADD COLUMN IF NOT EXISTS grace_time INT DEFAULT 15;
 ALTER TABLE public.vehicle_types ADD COLUMN IF NOT EXISTS waittime INT DEFAULT 30;
 
--- 2. Populate / Update vehicle_types with exact dataset
+-- 2. Populate / Update vehicle_types with new pricing dataset
+-- daily_fee = daily recharge amount | grace_time = free loading/unloading mins | waittime = per-minute charge (₹) after grace period
 INSERT INTO public.vehicle_types (id, name, capacity, capacity_kg, base_fare, daily_fee, icon_name, is_active, active, grace_time, waittime)
 VALUES 
-  (1, '2 Wheeler',    '20 Kgs',   20.00,   100.00, 100.00, 'two_wheeler',       false, false, 10,  2),
-  (2, '3 Wheeler',    '500 Kgs',  500.00,  210.00, 175.00, 'electric_rickshaw',  true,  true,  50,  3),
-  (4, '4 Wheeler',    '750 Kgs',  750.00,  218.00, 200.00, 'local_shipping',    true,  true,  60,  3),
-  (5, '8 Ft Vehicle', '1200 Kgs', 1200.00, 318.00, 250.00, 'local_shipping',    true,  true,  90,  4),
-  (6, '9 Ft Vehicle', '1700 Kgs', 1700.00, 380.00, 270.00, 'local_shipping',    true,  true,  120, 5),
-  (7, '10 Ft Vehicle','2000 Kgs', 2000.00, 450.00, 270.00, 'local_shipping',    true,  true,  120, 6)
+  (1,  '2 Wheeler - Bike',  '20 Kgs',   20.00,   100.00,  30.00, 'two_wheeler',       true,  true,  20,  1.0),
+  (2,  '2 Wheeler - Moped', '20 Kgs',   20.00,   100.00,  30.00, 'two_wheeler',       true,  true,  20,  1.5),
+  (3,  '3 Wheeler',         '500 Kgs',  500.00,  210.00, 150.00, 'electric_rickshaw', true,  true,  40,  3.0),
+  (4,  '4 Wheeler',         '750 Kgs',  750.00,  218.00, 175.00, 'local_shipping',    true,  true,  50,  3.5),
+  (5,  '4 Wheeler',         '1200 Kgs', 1200.00, 318.00, 236.00, 'local_shipping',    true,  true,  80,  4.0),
+  (6,  '4 Wheeler',         '1700 Kgs', 1700.00, 380.00, 236.00, 'local_shipping',    true,  true,  110, 7.0),
+  (7,  '4 Wheeler',         '2000 Kgs', 2000.00, 450.00, 236.00, 'local_shipping',    true,  true,  110, 7.5)
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   capacity = EXCLUDED.capacity,

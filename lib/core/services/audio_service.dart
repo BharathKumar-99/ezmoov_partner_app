@@ -41,6 +41,36 @@ class AudioService {
     }
   }
 
+  /// Play one-shot sound when ride is picked up / trip starts
+  Future<void> playPickupStartAlert() async {
+    try {
+      final player = AudioPlayer();
+      await player.setSource(
+        UrlSource('https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3'),
+      );
+      await player.setReleaseMode(ReleaseMode.release); // plays once, auto-releases
+      await player.resume();
+      debugPrint('🔔 Pickup Start Sound played.');
+    } catch (e) {
+      debugPrint('Notice playing pickup start audio: $e');
+    }
+  }
+
+  /// Play one-shot sound when cargo is dropped off / POD submitted
+  Future<void> playDropCompleteAlert() async {
+    try {
+      final player = AudioPlayer();
+      await player.setSource(
+        UrlSource('https://assets.mixkit.co/active_storage/sfx/2865/2865-preview.mp3'),
+      );
+      await player.setReleaseMode(ReleaseMode.release); // plays once, auto-releases
+      await player.resume();
+      debugPrint('🔔 Drop Complete Sound played.');
+    } catch (e) {
+      debugPrint('Notice playing drop complete audio: $e');
+    }
+  }
+
   void dispose() {
     _audioPlayer.dispose();
   }

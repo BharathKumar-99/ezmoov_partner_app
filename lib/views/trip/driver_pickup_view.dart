@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/location_service.dart';
+import '../../core/services/audio_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/intermediate_stop_model.dart';
 import '../../models/vehicle_type_model.dart';
@@ -1559,6 +1560,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           'in_transit',
                           'Cargo pickup photo saved! Trip started.',
                         );
+                        // 🔔 Play pickup start sound when ride begins
+                        AudioService.instance.playPickupStartAlert();
                       } catch (e) {
                         setModalState(() {
                           _isUploadingPickup = false;
@@ -1888,6 +1891,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       await _loadBookingDetails();
                       await _updateStatus('drop_complete',
                           '📦 Cargo unloaded & POD submitted! Awaiting payment.');
+                      // 🔔 Play drop complete sound when cargo is unloaded
+                      AudioService.instance.playDropCompleteAlert();
                     },
                   ),
                 ],
