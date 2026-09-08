@@ -25,6 +25,7 @@ import 'viewmodels/locale_viewmodel.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'viewmodels/wallet_viewmodel.dart';
 import 'viewmodels/referral_viewmodel.dart';
+import 'viewmodels/performance_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -115,6 +116,7 @@ class EzMoovPartnerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RideRequestViewModel()),
         ChangeNotifierProvider(create: (_) => WalletViewModel()),
         ChangeNotifierProvider(create: (_) => ReferralViewModel()),
+        ChangeNotifierProvider(create: (_) => PerformanceViewModel()),
       ],
       child: Consumer<LocaleViewModel>(
         builder: (context, localeVM, child) {

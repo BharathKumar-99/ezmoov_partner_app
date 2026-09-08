@@ -12,6 +12,7 @@ import '../../models/booking_model.dart';
 import '../../models/earning_model.dart';
 import '../../models/vehicle_catalog_model.dart';
 import '../../models/wallet_model.dart';
+import '../../models/driver_login_time_model.dart';
 
 class SupabaseService {
   SupabaseService._internal();
@@ -1354,4 +1355,36 @@ class SupabaseService {
       }
     }
   }
+
+  /// Get driver login time records for a specific date (YYYY-MM-DD)
+  Future<List<DriverLoginTimeModel>> getDriverLoginTimes({
+    required String driverId,
+    required DateTime date,
+  }) async {
+    try {
+      final dateStr = '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final response = await client
+          .from('driver_login_time')
+          .select()
+          .eq('driver_id', driverId)
+          .eq('date', dateStr)
+          .order('start_time', ascending: true);
+
+      return (response as List)
+          .map((item) => DriverLoginTimeModel.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    } catch (e) {
+      debugPrint('Notice fetching driver login times: $e');
+      return [];
+    }
+  }
+
+  /// Get today's driver login time records
+  Future<List<DriverLoginTimeModel>> getTodayDriverLoginTimes(String driverId) async {
+    return getDriverLoginTimes(
+      driverId: driverId,
+      date: DateTime.now(),
+    );
+  }
 }
+

@@ -736,4 +736,38 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get applyCode => 'कोड लागू करें';
+
+  @override
+  String get performance => 'प्रदर्शन';
+
+  @override
+  String get todayLoginHours => 'आज के लॉगिन घंटे';
+
+  @override
+  String get viewPerformanceHistory =>
+      'लॉगिन घंटे और सत्र विवरण देखने के लिए टैप करें';
+
+  @override
+  String get totalLoginHours => 'कुल लॉगिन घंटे';
+
+  @override
+  String get loginSessions => 'लॉगिन सत्र';
+
+  @override
+  String get noLoginSessions => 'इस तारीख के लिए कोई लॉगिन सत्र दर्ज नहीं है';
+
+  @override
+  String get session => 'सत्र';
+
+  @override
+  String get ongoing => 'जारी है';
+
+  @override
+  String get selectDate => 'तारीख चुनें';
+
+  @override
+  String get today => 'आज';
+
+  @override
+  String get yesterday => 'कल';
 }

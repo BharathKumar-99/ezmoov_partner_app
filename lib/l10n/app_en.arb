@@ -226,5 +226,16 @@
   "shareCodeWithDrivers": "Share your code with fellow drivers to earn bonus rewards when they complete their first 5 trips.",
   "redeemReferralCode": "Redeem Referral Code",
   "haveReferralCode": "Have a Referral Code?",
-  "applyCode": "Apply Code"
+  "applyCode": "Apply Code",
+  "performance": "Performance",
+  "todayLoginHours": "Today Login Hours",
+  "viewPerformanceHistory": "Tap to view login hours and session breakdown",
+  "totalLoginHours": "Total Login Hours",
+  "loginSessions": "Login Sessions",
+  "noLoginSessions": "No login sessions recorded for this date",
+  "session": "Session",
+  "ongoing": "Ongoing",
+  "selectDate": "Select Date",
+  "today": "Today",
+  "yesterday": "Yesterday"
 }

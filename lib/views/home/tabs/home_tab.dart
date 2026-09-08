@@ -7,6 +7,7 @@ import '../../../viewmodels/profile_viewmodel.dart';
 import '../../../viewmodels/home_viewmodel.dart';
 import '../../../viewmodels/wallet_viewmodel.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
+import '../../../viewmodels/performance_viewmodel.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class HomeTab extends StatefulWidget {
@@ -26,6 +27,7 @@ class _HomeTabState extends State<HomeTab> {
       if (profileVm.driver?.id != null && mounted) {
         context.read<HomeViewModel>().fetchEarnings(profileVm.driver!.id!);
         context.read<WalletViewModel>().fetchWalletData(profileVm.driver!.id!);
+        context.read<PerformanceViewModel>().fetchTodayLoginTime(profileVm.driver!.id!);
       }
     });
   }
@@ -563,9 +565,186 @@ class _HomeTabState extends State<HomeTab> {
                 ],
               ),
 
+              const SizedBox(height: 24),
+
+              // 4. PERFORMANCE SECTION (TODAY LOGIN HOURS)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    l10n.performance,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      context.push('/driver/performance?driverId=${driver?.id ?? ''}');
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        children: [
+                          Text(
+                            l10n.viewDetails,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(Icons.arrow_forward_ios_rounded,
+                              size: 11, color: AppColors.primary),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              Consumer<PerformanceViewModel>(
+                builder: (context, perfVm, child) {
+                  final todayLoginHoursStr = perfVm.formattedTodayLoginHoursDetailed;
+                  final sessionsCount = perfVm.todaySessions.length;
+                  final isOnline = vm.isOnline;
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.border),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          context.push('/driver/performance?driverId=${driver?.id ?? ''}');
+                        },
+                        borderRadius: BorderRadius.circular(18),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF09A234), Color(0xFF047857)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.25),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.speed_rounded,
+                                  color: Colors.white,
+                                  size: 26,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          l10n.todayLoginHours,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                        if (isOnline) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFDCFCE7),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              l10n.ongoing.toUpperCase(),
+                                              style: const TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF15803D),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      todayLoginHoursStr,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.textPrimary,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '$sessionsCount ${sessionsCount == 1 ? l10n.session : l10n.loginSessions} today • ${l10n.viewPerformanceHistory}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textMuted,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.background,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 14,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
               const SizedBox(height: 28),
 
-              // 4. RECENT TRIPS SECTION
+              // 5. RECENT TRIPS SECTION
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

@@ -741,4 +741,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get applyCode => 'Apply Code';
+
+  @override
+  String get performance => 'Performance';
+
+  @override
+  String get todayLoginHours => 'Today Login Hours';
+
+  @override
+  String get viewPerformanceHistory =>
+      'Tap to view login hours and session breakdown';
+
+  @override
+  String get totalLoginHours => 'Total Login Hours';
+
+  @override
+  String get loginSessions => 'Login Sessions';
+
+  @override
+  String get noLoginSessions => 'No login sessions recorded for this date';
+
+  @override
+  String get session => 'Session';
+
+  @override
+  String get ongoing => 'Ongoing';
+
+  @override
+  String get selectDate => 'Select Date';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
 }

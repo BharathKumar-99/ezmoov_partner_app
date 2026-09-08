@@ -743,4 +743,38 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get applyCode => 'కోడ్‌ను వర్తింపజేయండి';
+
+  @override
+  String get performance => 'పనితీరు';
+
+  @override
+  String get todayLoginHours => 'నేటి లాగిన్ గంటలు';
+
+  @override
+  String get viewPerformanceHistory =>
+      'లాగిన్ గంటలు మరియు సెషన్ వివరాలను చూడటానికి నొక్కండి';
+
+  @override
+  String get totalLoginHours => 'మొత్తం లాగిన్ గంటలు';
+
+  @override
+  String get loginSessions => 'లాగిన్ సెషన్‌లు';
+
+  @override
+  String get noLoginSessions => 'ఈ తేదీకి ఎటువంటి లాగిన్ సెషన్‌లు నమోదు కాలేదు';
+
+  @override
+  String get session => 'సెషన్';
+
+  @override
+  String get ongoing => 'కొనసాగుతోంది';
+
+  @override
+  String get selectDate => 'తేదీని ఎంచుకోండి';
+
+  @override
+  String get today => 'ఈరోజు';
+
+  @override
+  String get yesterday => 'నిన్న';
 }

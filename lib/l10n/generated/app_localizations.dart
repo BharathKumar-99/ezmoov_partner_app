@@ -1461,6 +1461,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply Code'**
   String get applyCode;
+
+  /// No description provided for @performance.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance'**
+  String get performance;
+
+  /// No description provided for @todayLoginHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Today Login Hours'**
+  String get todayLoginHours;
+
+  /// No description provided for @viewPerformanceHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to view login hours and session breakdown'**
+  String get viewPerformanceHistory;
+
+  /// No description provided for @totalLoginHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Login Hours'**
+  String get totalLoginHours;
+
+  /// No description provided for @loginSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Sessions'**
+  String get loginSessions;
+
+  /// No description provided for @noLoginSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'No login sessions recorded for this date'**
+  String get noLoginSessions;
+
+  /// No description provided for @session.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get session;
+
+  /// No description provided for @ongoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get ongoing;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDate;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
 }
 
 class _AppLocalizationsDelegate

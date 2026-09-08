@@ -226,5 +226,16 @@
   "shareCodeWithDrivers": "साथी ड्राइवरों के साथ अपना कोड साझा करें और उनकी पहली 5 ट्रिप पूरी होने पर बोनस कमाएं।",
   "redeemReferralCode": "रेफ़रल कोड का उपयोग करें",
   "haveReferralCode": "क्या आपके पास रेफ़रल कोड है?",
-  "applyCode": "कोड लागू करें"
+  "applyCode": "कोड लागू करें",
+  "performance": "प्रदर्शन",
+  "todayLoginHours": "आज के लॉगिन घंटे",
+  "viewPerformanceHistory": "लॉगिन घंटे और सत्र विवरण देखने के लिए टैप करें",
+  "totalLoginHours": "कुल लॉगिन घंटे",
+  "loginSessions": "लॉगिन सत्र",
+  "noLoginSessions": "इस तारीख के लिए कोई लॉगिन सत्र दर्ज नहीं है",
+  "session": "सत्र",
+  "ongoing": "जारी है",
+  "selectDate": "तारीख चुनें",
+  "today": "आज",
+  "yesterday": "कल"
 }

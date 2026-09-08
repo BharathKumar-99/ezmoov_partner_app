@@ -15,6 +15,7 @@ import '../../views/support/support_view.dart';
 import '../../views/wallet/wallet_view.dart';
 import '../../views/profile/edit_profile_view.dart';
 import '../../views/referral/referral_view.dart';
+import '../../views/performance/performance_view.dart';
 
 class AppRouter {
   AppRouter._();
@@ -80,9 +81,10 @@ class AppRouter {
           return '/verification-pending?driverId=$driverId';
         }
 
-        // 7. Allow pickup navigation route, bidding status view, support view & wallet view when fully verified
+        // 7. Allow pickup navigation route, bidding status view, support view, wallet view & performance view when fully verified
         if (location.startsWith('/driver/pickup/') ||
             location.startsWith('/driver/bidding-status/') ||
+            location == '/driver/performance' ||
             location == '/support' ||
             location == '/wallet') {
           return null;
@@ -215,6 +217,16 @@ class AppRouter {
                 state.uri.queryParameters['driverId'] ??
                 '';
             return ReferralView(driverId: driverId);
+          },
+        ),
+        GoRoute(
+          path: '/driver/performance',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final driverId = extra?['driverId'] ??
+                state.uri.queryParameters['driverId'] ??
+                '';
+            return PerformanceView(driverId: driverId);
           },
         ),
       ],
