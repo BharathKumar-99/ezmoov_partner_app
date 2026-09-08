@@ -302,10 +302,11 @@ class SupabaseService {
           .from('documents')
           .select()
           .eq('driver_id', driverId)
-          .maybeSingle();
+          .order('created_at', ascending: true)
+          .limit(1);
 
-      if (response == null) return null;
-      return DocumentModel.fromJson(response);
+      if (response.isEmpty) return null;
+      return DocumentModel.fromJson(response.first);
     } catch (e) {
       debugPrint('Error getting documents: $e');
       rethrow;
