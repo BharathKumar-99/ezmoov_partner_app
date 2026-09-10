@@ -28,6 +28,7 @@ class _HomeTabState extends State<HomeTab> {
         context.read<HomeViewModel>().fetchEarnings(profileVm.driver!.id!);
         context.read<WalletViewModel>().fetchWalletData(profileVm.driver!.id!);
         context.read<PerformanceViewModel>().fetchTodayLoginTime(profileVm.driver!.id!);
+        context.read<PerformanceViewModel>().fetchLoginDaysThisMonth(profileVm.driver!.id!);
       }
     });
   }
@@ -615,7 +616,7 @@ class _HomeTabState extends State<HomeTab> {
                           // ── Green gradient header ──
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
+                                horizontal: 12, vertical: 6),
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -689,14 +690,14 @@ class _HomeTabState extends State<HomeTab> {
 
                           // ── Two stat boxes ──
                           Padding(
-                            padding: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                             child: Row(
                               children: [
                                 // Login Hours box
                                 Expanded(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 10),
+                                        horizontal: 10, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF0FDF4),
                                       borderRadius: BorderRadius.circular(14),
@@ -748,21 +749,20 @@ class _HomeTabState extends State<HomeTab> {
                                             ],
                                           ],
                                         ),
-                                        const SizedBox(height: 6),
+                                        const SizedBox(height: 2),
                                         Text(
                                           todayLoginHoursStr,
                                           style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
                                             color: AppColors.textPrimary,
-                                            letterSpacing: -0.5,
                                           ),
                                         ),
-                                        const SizedBox(height: 3),
+                                        const SizedBox(height: 0),
                                         const Text(
                                           'Login Hours',
                                           style: TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 11,
                                             color: AppColors.textSecondary,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -776,7 +776,7 @@ class _HomeTabState extends State<HomeTab> {
                                 Expanded(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 10),
+                                        horizontal: 10, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFFFFBEB),
                                       borderRadius: BorderRadius.circular(14),
@@ -802,21 +802,20 @@ class _HomeTabState extends State<HomeTab> {
                                             size: 14,
                                           ),
                                         ),
-                                        const SizedBox(height: 6),
+                                        const SizedBox(height: 2),
                                         const Text(
                                           '– –',
                                           style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
                                             color: AppColors.textPrimary,
-                                            letterSpacing: -0.5,
                                           ),
                                         ),
-                                        const SizedBox(height: 3),
+                                        const SizedBox(height: 0),
                                         const Text(
                                           'Completion Score',
                                           style: TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 11,
                                             color: AppColors.textSecondary,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -835,7 +834,111 @@ class _HomeTabState extends State<HomeTab> {
                 },
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 16),
+
+              // ── Insurance Progress Tracker ──
+              Consumer<PerformanceViewModel>(
+                builder: (context, performanceVm, child) {
+                  final daysLogged = performanceVm.loginDaysThisMonth;
+                  const daysNeeded = 24;
+                  final remaining = (daysNeeded - daysLogged).clamp(0, daysNeeded);
+                  final progress = (daysLogged / daysNeeded).clamp(0.0, 1.0);
+
+                  return InkWell(
+                    onTap: () {
+                      // TODO: Navigate to Benefits/Rewards page
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.health_and_safety_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        'Free Health Insurance',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '$daysLogged/$daysNeeded Days',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                // Progress bar
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: progress,
+                                    minHeight: 6,
+                                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  remaining > 0 ? 'Log in for $remaining more days to unlock!' : 'Unlocked! Keep it up!',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 24),
 
               // 5. RECENT TRIPS SECTION
               Row(
