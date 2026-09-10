@@ -1387,5 +1387,34 @@ class SupabaseService {
       date: DateTime.now(),
     );
   }
+
+  /// Get total unique login days for the current month
+  Future<int> getDriverLoginDaysCountThisMonth(String driverId) async {
+    try {
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0);
+
+      final startStr = '${startOfMonth.year.toString().padLeft(4, '0')}-${startOfMonth.month.toString().padLeft(2, '0')}-01';
+      final endStr = '${endOfMonth.year.toString().padLeft(4, '0')}-${endOfMonth.month.toString().padLeft(2, '0')}-${endOfMonth.day.toString().padLeft(2, '0')}';
+      
+      final response = await client
+          .from('driver_login_time')
+          .select('date')
+          .eq('driver_id', driverId)
+          .gte('date', startStr)
+          .lte('date', endStr);
+          
+      // Extract unique dates
+      final uniqueDates = (response as List)
+          .map((item) => item['date'] as String)
+          .toSet();
+          
+      return uniqueDates.length;
+    } catch (e) {
+      debugPrint('Error fetching driver login days count: $e');
+      return 0;
+    }
+  }
 }
 

@@ -430,12 +430,14 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         color: AppColors.primary, size: 24),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
-                    'TRIP FARE BREAKDOWN',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary),
+                  const Expanded(
+                    child: Text(
+                      'TRIP FARE BREAKDOWN',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary),
+                    ),
                   ),
                 ],
               ),

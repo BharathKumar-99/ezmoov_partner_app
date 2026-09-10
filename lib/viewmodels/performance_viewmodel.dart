@@ -26,6 +26,9 @@ class PerformanceViewModel extends ChangeNotifier {
   String _currentDriverId = '';
   String get currentDriverId => _currentDriverId;
 
+  int _loginDaysThisMonth = 0;
+  int get loginDaysThisMonth => _loginDaysThisMonth;
+
   bool get isSelectedDateToday {
     final now = DateTime.now();
     return _selectedDate.year == now.year &&
@@ -121,6 +124,20 @@ class PerformanceViewModel extends ChangeNotifier {
       debugPrint('Error fetching today login time: $e');
     } finally {
       _isFetchingToday = false;
+      notifyListeners();
+    }
+  }
+
+  /// Fetch the number of unique login days for the current month
+  Future<void> fetchLoginDaysThisMonth(String driverId) async {
+    if (driverId.isEmpty) return;
+    _currentDriverId = driverId;
+    
+    try {
+      _loginDaysThisMonth = await _supabaseService.getDriverLoginDaysCountThisMonth(driverId);
+    } catch (e) {
+      debugPrint('Error fetching login days this month: $e');
+    } finally {
       notifyListeners();
     }
   }
