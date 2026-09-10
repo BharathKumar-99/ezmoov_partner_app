@@ -16,6 +16,8 @@ import '../../views/wallet/wallet_view.dart';
 import '../../views/profile/edit_profile_view.dart';
 import '../../views/referral/referral_view.dart';
 import '../../views/performance/performance_view.dart';
+import '../../views/maintenance/maintenance_view.dart';
+import '../../views/update/app_update_view.dart';
 
 class AppRouter {
   AppRouter._();
@@ -26,6 +28,28 @@ class AppRouter {
       refreshListenable: profileViewModel,
       redirect: (context, state) {
         final location = state.uri.path;
+        final config = profileViewModel.appConfig;
+
+        // 0. Maintenance Guard
+        if (config.isMaintenance) {
+          if (location != '/maintenance') {
+            return '/maintenance';
+          }
+          return null;
+        } else if (location == '/maintenance') {
+          return '/home';
+        }
+
+        // 0.1 Force Update Guard
+        if (config.forceUpdate) {
+          if (location != '/update') {
+            return '/update';
+          }
+          return null;
+        } else if (location == '/update') {
+          return '/home';
+        }
+
         final authUser = SupabaseService.instance.client.auth.currentUser;
         final driver = profileViewModel.driver;
 
@@ -104,6 +128,18 @@ class AppRouter {
         return null;
       },
       routes: [
+        GoRoute(
+          path: '/maintenance',
+          builder: (context, state) => const MaintenanceView(),
+        ),
+        GoRoute(
+          path: '/update',
+          builder: (context, state) {
+            final isForced = state.uri.queryParameters['forced'] == 'true' ||
+                profileViewModel.appConfig.forceUpdate;
+            return AppUpdateView(isForced: isForced);
+          },
+        ),
         GoRoute(
           path: '/login',
           builder: (context, state) => const LoginView(),

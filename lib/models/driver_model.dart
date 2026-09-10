@@ -17,6 +17,7 @@ class DriverModel {
   final bool isVehicleVerified;
   final bool isDocumentsVerified;
   final bool isBankDetailsVerified;
+  final bool registrationFeePaid;
   final double rating;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -47,6 +48,7 @@ class DriverModel {
     this.isVehicleVerified = false,
     this.isDocumentsVerified = false,
     this.isBankDetailsVerified = false,
+    this.registrationFeePaid = false,
     this.rating = 5.0,
     this.createdAt,
     this.updatedAt,
@@ -101,6 +103,9 @@ class DriverModel {
       isVehicleVerified: json['is_vehicle_verified'] as bool? ?? false,
       isDocumentsVerified: json['is_documents_verified'] as bool? ?? false,
       isBankDetailsVerified: json['is_bank_details_verified'] as bool? ?? false,
+      registrationFeePaid: (json['registration_fee_paid'] ??
+              json['regisration_fee_paid']) as bool? ??
+          false,
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
@@ -134,6 +139,7 @@ class DriverModel {
       'is_vehicle_verified': isVehicleVerified,
       'is_documents_verified': isDocumentsVerified,
       'is_bank_details_verified': isBankDetailsVerified,
+      'registration_fee_paid': registrationFeePaid,
       'rating': rating,
     };
   }
@@ -160,6 +166,7 @@ class DriverModel {
     bool? isVehicleVerified,
     bool? isDocumentsVerified,
     bool? isBankDetailsVerified,
+    bool? registrationFeePaid,
     double? rating,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -187,6 +194,7 @@ class DriverModel {
       isDocumentsVerified: isDocumentsVerified ?? this.isDocumentsVerified,
       isBankDetailsVerified:
           isBankDetailsVerified ?? this.isBankDetailsVerified,
+      registrationFeePaid: registrationFeePaid ?? this.registrationFeePaid,
       rating: rating ?? this.rating,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

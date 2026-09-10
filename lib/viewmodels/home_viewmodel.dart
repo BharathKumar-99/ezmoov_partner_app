@@ -248,12 +248,13 @@ class HomeViewModel extends ChangeNotifier {
     if (_driver == null || _driver!.id == null) return;
 
     if (value) {
+      final isFreeLogin = context.read<ProfileViewModel>().isFreeDriverLogin;
       // Check if driver pass is active
       final dailyStatus = await _supabaseService.getDriverDailyStatus(_driver!.id!);
-      final isPassActive = dailyStatus?.isPassActive ?? false;
+      final isPassActive = isFreeLogin || (dailyStatus?.isPassActive ?? false);
       final isRejectionBlock = dailyStatus?.blockReason == 'exceeded_rejections' || (dailyStatus?.rejectionsCount ?? 0) >= 2;
 
-      if (!isPassActive || isRejectionBlock || dailyStatus?.isBlocked == true) {
+      if ((!isPassActive && !isFreeLogin) || isRejectionBlock || dailyStatus?.isBlocked == true) {
         _isOnline = false;
         notifyListeners();
 

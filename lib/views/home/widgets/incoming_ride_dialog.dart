@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/location_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../models/booking_model.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
@@ -38,13 +39,15 @@ class IncomingRideDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<RideRequestViewModel>(
       builder: (context, vm, child) {
         final activeBooking = vm.activeBroadcastBooking ?? booking;
         final customerDisplayName = (activeBooking.customerName != null &&
                 activeBooking.customerName!.isNotEmpty)
             ? activeBooking.customerName!
-            : 'Customer Delivery Request';
+            : l10n.customerDeliveryRequest;
 
         return Container(
           constraints: BoxConstraints(
@@ -86,10 +89,10 @@ class IncomingRideDialog extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Flexible(
+                        Flexible(
                           child: Text(
-                            'INCOMING RIDE REQUEST',
-                            style: TextStyle(
+                            l10n.incomingRideRequestCaps,
+                            style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryDark,
@@ -114,8 +117,8 @@ class IncomingRideDialog extends StatelessWidget {
                     ),
                     child: Text(
                       activeBooking.farDriver == true
-                          ? 'Within 10 km'
-                          : 'Within 3 km',
+                          ? l10n.within10km
+                          : l10n.within3km,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -168,9 +171,9 @@ class IncomingRideDialog extends StatelessWidget {
                             ],
                           )
                         else
-                          const Text(
-                            'Standard Delivery Order',
-                            style: TextStyle(
+                          Text(
+                            l10n.standardDeliveryOrder,
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary,
                             ),
@@ -206,7 +209,7 @@ class IncomingRideDialog extends StatelessWidget {
                           ),
                           if (incentive > 0)
                             Text(
-                              'Incl. ₹${incentive.toStringAsFixed(0)} incentive 🎁',
+                              l10n.inclIncentive(incentive.toStringAsFixed(0)),
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
@@ -248,7 +251,12 @@ class IncomingRideDialog extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  '${activeBooking.stopsCount} Intermediate Stop${activeBooking.stopsCount > 1 ? 's' : ''} (+₹${activeBooking.stopsCharge > 0 ? activeBooking.stopsCharge.toStringAsFixed(0) : (activeBooking.stopsCount * 25)})',
+                                  l10n.intermediateStopsBadge(
+                                    activeBooking.stopsCharge > 0
+                                        ? activeBooking.stopsCharge.toStringAsFixed(0)
+                                        : (activeBooking.stopsCount * 25).toString(),
+                                    activeBooking.stopsCount,
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -295,7 +303,7 @@ class IncomingRideDialog extends StatelessWidget {
 
                           double calculatedTotalTripDist = 0.0;
                           if (activeBooking.pickupLat != 0.0 &&
-                              activeBooking.pickupLng != 0.0) {
+                                  activeBooking.pickupLng != 0.0) {
                             if (activeBooking.hasStops &&
                                 activeBooking
                                     .effectiveIntermediateStops.isNotEmpty) {
@@ -433,12 +441,16 @@ class IncomingRideDialog extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        vm.declineRide(booking.id, driverId: driverId);
+                        vm.declineRide(
+                          booking.id,
+                          driverId: driverId,
+                          booking: booking,
+                        );
                         Navigator.of(context).pop();
                       },
-                      child: const Text(
-                        'Decline',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.decline,
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -450,7 +462,7 @@ class IncomingRideDialog extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: GradientButton(
-                      text: 'ACCEPT RIDE',
+                      text: l10n.acceptRideCaps,
                       isLoading: vm.isAccepting,
                       icon: Icons.check_circle_rounded,
                       onPressed: () {

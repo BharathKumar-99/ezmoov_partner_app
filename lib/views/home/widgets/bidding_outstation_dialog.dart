@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/location_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../models/booking_model.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
@@ -70,13 +71,15 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<RideRequestViewModel>(
       builder: (context, vm, child) {
         final activeBooking = vm.activeBroadcastBooking ?? widget.booking;
         final customerDisplayName = (activeBooking.customerName != null &&
                 activeBooking.customerName!.isNotEmpty)
             ? activeBooking.customerName!
-            : 'Outstation Customer';
+            : l10n.outstationCustomer;
 
         final baseFare = activeBooking.fare > 0
             ? activeBooking.fare
@@ -128,10 +131,10 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                             ),
                           ),
                           const SizedBox(width: 10),
-                          const Flexible(
+                          Flexible(
                             child: Text(
-                              'OUTSTATION BIDDING RIDE',
-                              style: TextStyle(
+                              l10n.outstationBiddingRideCaps,
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFD97706),
@@ -204,9 +207,9 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                               ],
                             )
                           else
-                            const Text(
-                              'Outstation Booking',
-                              style: TextStyle(
+                            Text(
+                              l10n.outstationBooking,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                               ),
@@ -218,9 +221,9 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
-                          'Base Rate',
-                          style: TextStyle(
+                        Text(
+                          l10n.baseRate,
+                          style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w500,
@@ -260,7 +263,12 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '${activeBooking.stopsCount} Intermediate Stop${activeBooking.stopsCount > 1 ? 's' : ''} (+₹${activeBooking.stopsCharge > 0 ? activeBooking.stopsCharge.toStringAsFixed(0) : (activeBooking.stopsCount * 25)})',
+                            l10n.intermediateStopsBadge(
+                              activeBooking.stopsCharge > 0
+                                  ? activeBooking.stopsCharge.toStringAsFixed(0)
+                                  : (activeBooking.stopsCount * 25).toString(),
+                              activeBooking.stopsCount,
+                            ),
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -409,9 +417,9 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                 const SizedBox(height: 18),
 
                 // 4. Driver Bid Number Input Field
-                const Text(
-                  'ENTER YOUR BID AMOUNT (₹)',
-                  style: TextStyle(
+                Text(
+                  l10n.enterYourBidAmountCaps,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -442,7 +450,7 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                     ),
                     prefixIconConstraints:
                         const BoxConstraints(minWidth: 0, minHeight: 0),
-                    hintText: 'e.g. 1500',
+                    hintText: l10n.bidAmountHint,
                     filled: true,
                     fillColor: AppColors.background,
                     contentPadding: const EdgeInsets.symmetric(
@@ -459,11 +467,11 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a bid amount';
+                      return l10n.pleaseEnterBidAmount;
                     }
                     final parsed = double.tryParse(value.trim());
                     if (parsed == null || parsed <= 0) {
-                      return 'Enter a valid positive bid amount';
+                      return l10n.enterValidPositiveBid;
                     }
                     return null;
                   },
@@ -490,9 +498,9 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                                 vm.declineRide(widget.booking.id);
                                 Navigator.of(context).pop();
                               },
-                        child: const Text(
-                          'Decline',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.decline,
+                          style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -504,7 +512,7 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                     Expanded(
                       flex: 2,
                       child: GradientButton(
-                        text: 'SUBMIT BID',
+                        text: l10n.submitBidCaps,
                         isLoading: _isSubmitting,
                         icon: Icons.send_rounded,
                         onPressed: () async {

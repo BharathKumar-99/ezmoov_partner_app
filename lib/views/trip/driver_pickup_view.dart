@@ -15,6 +15,7 @@ import '../../core/services/audio_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/intermediate_stop_model.dart';
 import '../../models/vehicle_type_model.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 import '../../viewmodels/ride_request_viewmodel.dart';
 import '../../viewmodels/profile_viewmodel.dart';
@@ -94,14 +95,15 @@ class _DriverPickupViewState extends State<DriverPickupView> {
           timer.cancel();
           _statusCheckTimer = null;
           if (mounted) {
+            final l10n = AppLocalizations.of(context);
             context.read<RideRequestViewModel>().clearActiveDriverTrip();
             context.read<ProfileViewModel>().setTripActive(false);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('⚠️ Ride was cancelled by customer'),
+              SnackBar(
+                content: Text(l10n?.rideCancelledByCustomer ?? '⚠️ Ride was cancelled by customer'),
                 backgroundColor: Colors.red,
                 behavior: SnackBarBehavior.floating,
-                duration: Duration(seconds: 4),
+                duration: const Duration(seconds: 4),
               ),
             );
             context.go('/home');
@@ -122,14 +124,15 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         .getBookingById(widget.bookingId, bookingIdx: _booking?.idx);
     if (mounted) {
       if (booking?.status == 'cancelled') {
+        final l10n = AppLocalizations.of(context);
         context.read<RideRequestViewModel>().clearActiveDriverTrip();
         context.read<ProfileViewModel>().setTripActive(false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⚠️ Ride was cancelled by customer'),
+          SnackBar(
+            content: Text(l10n?.rideCancelledByCustomer ?? '⚠️ Ride was cancelled by customer'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 4),
+            duration: const Duration(seconds: 4),
           ),
         );
         context.go('/home');
@@ -166,9 +169,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
     if (cleanPhone.isEmpty) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Customer phone number not available'),
+          SnackBar(
+            content: Text(l10n?.customerPhoneNotAvailable ?? 'Customer phone number not available'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -184,9 +188,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not make call: $e'),
+            content: Text(l10n?.couldNotMakeCall(e.toString()) ?? 'Could not make call: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -204,9 +209,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not launch dialer for 108: $e'),
+            content: Text(l10n?.couldNotLaunchDialer(e.toString()) ?? 'Could not launch dialer for 108: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -215,6 +221,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   void _showSosConfirmationModal() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -232,10 +239,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   color: Colors.red, size: 28),
             ),
             const SizedBox(width: 10),
-            const Flexible(
+            Flexible(
               child: Text(
-                'EMERGENCY SOS',
-                style: TextStyle(
+                l10n.emergencySos,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.red,
@@ -244,22 +251,22 @@ class _DriverPickupViewState extends State<DriverPickupView> {
             ),
           ],
         ),
-        content: const SingleChildScrollView(
+        content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Are you in an emergency situation?',
-                style: TextStyle(
+                l10n.emergencyQuestion,
+                style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                'Tapping "Call Ambulance 108" will open your phone dialer to directly call Emergency Ambulance Services (108).',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                l10n.emergencyAmbulanceDesc,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -267,8 +274,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('CANCEL',
-                style: TextStyle(color: AppColors.textMuted)),
+            child: Text(l10n.cancelCaps,
+                style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -279,8 +286,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
             ),
             icon: const Icon(Icons.phone_in_talk_rounded,
                 color: Colors.white, size: 18),
-            label: const Text('CALL AMBULANCE (108)',
-                style: TextStyle(
+            label: Text(l10n.callAmbulance108,
+                style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
             onPressed: () {
               Navigator.pop(dialogCtx);
@@ -296,9 +303,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
     if (cleanPhone.isEmpty) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Customer phone number not available'),
+          SnackBar(
+            content: Text(l10n?.customerPhoneNotAvailable ?? 'Customer phone number not available'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -314,9 +322,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open SMS: $e'),
+            content: Text(l10n?.couldNotOpenSms(e.toString()) ?? 'Could not open SMS: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -330,6 +339,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     required String fallbackAddress,
     List<IntermediateStopModel>? waypoints,
   }) async {
+    final l10n = AppLocalizations.of(context);
     Uri url;
     if (lat != 0.0 && lng != 0.0) {
       String waypointsParam = '';
@@ -350,8 +360,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
           'https://www.google.com/maps/dir/?api=1&destination=$encoded&travelmode=driving');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Location coordinates or address not available'),
+        SnackBar(
+          content: Text(l10n?.locationCoordsNotAvailable ?? 'Location coordinates or address not available'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -368,7 +378,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open Google Maps: $e'),
+            content: Text(l10n?.couldNotOpenGoogleMaps(e.toString()) ?? 'Could not open Google Maps: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -380,6 +390,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   void _showFareBreakdownModal() {
     final booking = _booking;
     if (booking == null) return;
+    final l10n = AppLocalizations.of(context)!;
 
     final amountMap = booking.amount ?? {};
     final baseFare =
@@ -430,10 +441,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         color: AppColors.primary, size: 24),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'TRIP FARE BREAKDOWN',
-                      style: TextStyle(
+                      l10n.tripFareBreakdown,
+                      style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary),
@@ -443,34 +454,33 @@ class _DriverPickupViewState extends State<DriverPickupView> {
               ),
               const SizedBox(height: 20),
               _FareItemRow(
-                  label: 'Base Fare (Includes 1st KM)',
+                  label: l10n.baseFareIncludes1km,
                   amount: calcBaseFare > 0 ? calcBaseFare : 0.0),
               const SizedBox(height: 10),
               _FareItemRow(
-                  label: 'Distance Charges (beyond 1 KM)',
+                  label: l10n.distanceChargesBeyond1km,
                   amount: distanceCharges),
               const SizedBox(height: 10),
               _FareItemRow(
-                label:
-                    'Stops Charge (${booking.stopsCount} stop${booking.stopsCount != 1 ? 's' : ''} @ ₹25 each)',
+                label: l10n.stopsChargeLabel(booking.stopsCount),
                 amount: stopsCharge,
                 isHighlight: booking.hasStops,
               ),
               const SizedBox(height: 10),
               _FareItemRow(
-                label: 'Waiting Charges',
+                label: l10n.waitingCharges,
                 amount: waitingCharges,
                 isHighlight: waitingCharges > 0,
               ),
               const SizedBox(height: 10),
-              const _FareItemRow(
-                  label: 'Taxes & GST', amount: 0.0, isZero: true),
+              _FareItemRow(
+                  label: l10n.taxesAndGst, amount: 0.0, isZero: true),
               const Divider(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Total Delivery Fee',
-                      style: TextStyle(
+                  Text(l10n.totalDeliveryFee,
+                      style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary)),
@@ -492,8 +502,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed: () => Navigator.pop(modalContext),
-                  child: const Text('CLOSE',
-                      style: TextStyle(
+                  child: Text(l10n.closeCaps,
+                      style: const TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
@@ -676,12 +686,13 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         setState(() {
           _isUpdatingStatus = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update status: $e'),
+            content: Text(l10n?.failedToUpdateStatus(e.toString()) ?? 'Failed to update status: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -697,38 +708,39 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
     // If online payment selected by customer and status is not yet amount_paid
     if (isOnlinePayment && _booking?.status != 'amount_paid') {
+      final l10n = AppLocalizations.of(context)!;
       showDialog(
         context: context,
         builder: (dialogCtx) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           actionsOverflowDirection: VerticalDirection.up,
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.hourglass_top_rounded,
+              const Icon(Icons.hourglass_top_rounded,
                   color: Color(0xFFF59E0B), size: 26),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Flexible(
-                child: Text('Online Payment Pending',
-                    style: TextStyle(
+                child: Text(l10n.onlinePaymentPending,
+                    style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary)),
               ),
             ],
           ),
-          content: const SingleChildScrollView(
+          content: SingleChildScrollView(
             child: Text(
-              'The customer selected Online Payment (Razorpay). The payment has not been confirmed yet.\n\nPlease ask the customer to complete payment on their phone. The status will automatically update to "Payment Received" once paid.',
-              style: TextStyle(
+              l10n.onlinePaymentPendingDesc,
+              style: const TextStyle(
                   fontSize: 13, height: 1.4, color: AppColors.textSecondary),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('WAIT FOR PAYMENT',
-                  style: TextStyle(
+              child: Text(l10n.waitForPaymentCaps,
+                  style: const TextStyle(
                       color: AppColors.primary, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
@@ -741,8 +753,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                 Navigator.pop(dialogCtx);
                 _confirmCashPaymentModal();
               },
-              child: const Text('RECEIVED CASH INSTEAD',
-                  style: TextStyle(
+              child: Text(l10n.receivedCashInsteadCaps,
+                  style: const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
@@ -754,6 +766,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   void _confirmCashPaymentModal() {
+    final l10n = AppLocalizations.of(context)!;
     final double tripFare =
         (_booking?.amount?['total_price'] ?? _booking?.fare ?? 0.0).toDouble() +
             (_booking?.waitingCharges ?? 0);
@@ -768,14 +781,14 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         actionsOverflowDirection: VerticalDirection.up,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.payments_rounded, color: Color(0xFF10B981), size: 26),
-            SizedBox(width: 10),
+            const Icon(Icons.payments_rounded, color: Color(0xFF10B981), size: 26),
+            const SizedBox(width: 10),
             Flexible(
               child: Text(
-                'Confirm Cash Payment',
-                style: TextStyle(
+                l10n.confirmCashPayment,
+                style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary),
@@ -789,7 +802,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Did you collect ₹${totalFare.toStringAsFixed(0)} cash directly from the customer?',
+                l10n.didYouCollectCash(totalFare.toStringAsFixed(0)),
                 style: const TextStyle(
                     fontSize: 14, color: AppColors.textSecondary),
               ),
@@ -810,8 +823,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Trip Fare',
-                              style: TextStyle(
+                          Text(l10n.tripFare,
+                              style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.textSecondary)),
                           Text('₹${tripFare.toStringAsFixed(0)}',
@@ -824,8 +837,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Far Driver Incentive 🎁',
-                              style: TextStyle(
+                          Text(l10n.farDriverIncentive,
+                              style: const TextStyle(
                                   fontSize: 13,
                                   color: Color(0xFF10B981),
                                   fontWeight: FontWeight.bold)),
@@ -840,8 +853,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Total to Collect',
-                              style: TextStyle(
+                          Text(l10n.totalToCollect,
+                              style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textPrimary)),
@@ -862,8 +875,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('CANCEL',
-                style: TextStyle(color: AppColors.textMuted)),
+            child: Text(l10n.cancelCaps,
+                style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -875,11 +888,11 @@ class _DriverPickupViewState extends State<DriverPickupView> {
               Navigator.pop(dialogCtx);
               _updateStatus(
                 'amount_paid',
-                'Cash Payment Received! Please confirm trip completion.',
+                l10n.cashPaymentReceivedNotify,
               );
             },
-            child: const Text('YES, RECEIVED CASH',
-                style: TextStyle(
+            child: Text(l10n.yesReceivedCash,
+                style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
@@ -923,11 +936,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       );
 
       final stopNum = stopIndex + 1;
-      final msg = action == 'reached'
-          ? 'Reached Stop $stopNum!'
-          : 'Completed Stop $stopNum!';
-
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        final msg = action == 'reached'
+            ? (l10n?.reachedStopMsg(stopNum.toString()) ?? 'Reached Stop $stopNum!')
+            : (l10n?.completedStopMsg(stopNum.toString()) ?? 'Completed Stop $stopNum!');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(msg),
@@ -942,9 +956,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
       await _loadBookingDetails();
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error updating stop status: $e'),
+            content: Text(l10n?.errorUpdatingStopStatus(e.toString()) ?? 'Error updating stop status: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -953,7 +968,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   void _showTripCancellationModal() {
-    String selectedReason = 'Customer No-Show at Pickup';
+    final l10n = AppLocalizations.of(context)!;
+    String selectedReason = l10n.reasonNoShow;
     bool isCancelling = false;
 
     showModalBottomSheet(
@@ -964,11 +980,11 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             final List<String> reasons = [
-              'Customer No-Show at Pickup',
-              'Oversized Goods',
-              'Vehicle Breakdown',
-              'Customer Requested Cancellation',
-              'Other Issue',
+              l10n.reasonNoShow,
+              l10n.reasonOversized,
+              l10n.reasonBreakdown,
+              l10n.reasonCustomerRequested,
+              l10n.reasonOther,
             ];
 
             return Container(
@@ -996,21 +1012,21 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'CANCEL TRIP REQUEST',
-                            style: TextStyle(
+                            l10n.cancelTripRequest,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            'Please select a cancellation reason',
-                            style: TextStyle(
+                            l10n.selectCancellationReason,
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary,
                             ),
@@ -1104,8 +1120,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                       .read<RideRequestViewModel>()
                                       .clearActiveDriverTrip();
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Trip cancelled.'),
+                                    SnackBar(
+                                      content: Text(l10n.tripCancelled),
                                       backgroundColor: AppColors.error,
                                     ),
                                   );
@@ -1119,7 +1135,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                         content:
-                                            Text('Error cancelling trip: $e')),
+                                            Text(l10n.errorCancellingTrip(e.toString()))),
                                   );
                                 }
                               }
@@ -1131,9 +1147,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                               child: CircularProgressIndicator(
                                   color: Colors.white, strokeWidth: 2),
                             )
-                          : const Text(
-                              'CONFIRM CANCELLATION',
-                              style: TextStyle(
+                          : Text(
+                              l10n.confirmCancellationCaps,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1151,6 +1167,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
   void _showAddExtraChargesPopup(
       BuildContext dialogContext, StateSetter setParentModalState) {
+    final l10n = AppLocalizations.of(dialogContext)!;
     final chargeNameController = TextEditingController();
     final chargeAmountController = TextEditingController();
     Map<String, dynamic> tempChargesMap =
@@ -1179,10 +1196,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Flexible(
+                  Flexible(
                     child: Text(
-                      'ADD EXTRA CHARGES',
-                      style: TextStyle(
+                      l10n.addExtraChargesCaps,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -1198,17 +1215,17 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Add extra trip expenses (e.g. Toll, Gas, Parking):',
-                      style: TextStyle(
+                    Text(
+                      l10n.addExtraExpensesDesc,
+                      style: const TextStyle(
                           fontSize: 12, color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 14),
                     TextField(
                       controller: chargeNameController,
                       decoration: InputDecoration(
-                        labelText: 'Charge Name',
-                        hintText: 'e.g. toll',
+                        labelText: l10n.chargeName,
+                        hintText: l10n.chargeNameHint,
                         filled: true,
                         fillColor: AppColors.background,
                         border: OutlineInputBorder(
@@ -1227,8 +1244,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
-                        labelText: 'Charge Number / Amount (₹)',
-                        hintText: 'e.g. 55',
+                        labelText: l10n.chargeAmount,
+                        hintText: l10n.chargeAmountHint,
                         filled: true,
                         fillColor: AppColors.background,
                         border: OutlineInputBorder(
@@ -1252,8 +1269,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         icon: const Icon(Icons.add_rounded, size: 20),
-                        label: const Text('ADD',
-                            style: TextStyle(
+                        label: Text(l10n.addCaps,
+                            style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 14)),
                         onPressed: () {
                           final name =
@@ -1263,17 +1280,17 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                           if (name.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                   content: Text(
-                                      'Please enter a charge name (e.g., toll)')),
+                                      l10n.enterChargeNameAlert)),
                             );
                             return;
                           }
                           if (numVal == null || numVal <= 0) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                   content: Text(
-                                      'Please enter a valid numeric charge amount')),
+                                      l10n.enterValidChargeAmountAlert)),
                             );
                             return;
                           }
@@ -1290,9 +1307,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                     if (tempChargesMap.isNotEmpty) ...[
                       const SizedBox(height: 16),
-                      const Text(
-                        'Added Charges List:',
-                        style: TextStyle(
+                      Text(
+                        l10n.addedChargesList,
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -1335,8 +1352,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('CANCEL',
-                      style: TextStyle(color: AppColors.textSecondary)),
+                  child: Text(l10n.cancelCaps,
+                      style: const TextStyle(color: AppColors.textSecondary)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -1351,8 +1368,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     });
                     Navigator.of(context).pop();
                   },
-                  child: const Text('SUBMIT',
-                      style: TextStyle(
+                  child: Text(l10n.submitCaps,
+                      style: const TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
@@ -1364,6 +1381,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   void _showCargoPickupPhotoModal() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1396,21 +1414,21 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'CARGO PICKUP PHOTO',
-                            style: TextStyle(
+                            l10n.cargoPickupPhoto,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            'Photo of loaded cargo is MANDATORY to start trip',
-                            style: TextStyle(
+                            l10n.pickupPhotoMandatory,
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.error,
                               fontWeight: FontWeight.bold,
@@ -1437,18 +1455,18 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             child: Image.file(_pickupImageFile!,
                                 fit: BoxFit.cover),
                           )
-                        : const Column(
+                        : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.add_a_photo_outlined,
                                 color: AppColors.primary,
                                 size: 42,
                               ),
-                              SizedBox(height: 10),
+                              const SizedBox(height: 10),
                               Text(
-                                'Tap Camera or Gallery below to capture pickup photo',
-                                style: TextStyle(
+                                l10n.tapCameraOrGalleryPickup,
+                                style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w500,
@@ -1473,7 +1491,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ),
                           icon: const Icon(Icons.camera_alt_rounded,
                               color: AppColors.primary),
-                          label: const Text('Camera'),
+                          label: Text(l10n.camera),
                           onPressed: () async {
                             final picker = ImagePicker();
                             final picked = await picker.pickImage(
@@ -1499,7 +1517,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ),
                           icon: const Icon(Icons.photo_library_rounded,
                               color: AppColors.textSecondary),
-                          label: const Text('Gallery'),
+                          label: Text(l10n.gallery),
                           onPressed: () async {
                             final picker = ImagePicker();
                             final picked = await picker.pickImage(
@@ -1519,15 +1537,15 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   const SizedBox(height: 24),
 
                   GradientButton(
-                    text: 'CONFIRM PHOTO & START TRIP',
+                    text: l10n.confirmPhotoAndStartTrip,
                     isLoading: _isUploadingPickup || _isUpdatingStatus,
                     icon: Icons.play_arrow_rounded,
                     onPressed: () async {
                       if (_pickupImageFile == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text(
-                                'Please capture or select a pickup photo first!'),
+                                l10n.pickupPhotoMandatoryAlert),
                             backgroundColor: AppColors.error,
                             behavior: SnackBarBehavior.floating,
                           ),
@@ -1560,7 +1578,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                         await _updateStatus(
                           'in_transit',
-                          'Cargo pickup photo saved! Trip started.',
+                          l10n.cargoPickupSavedTripStarted,
                         );
                         // 🔔 Play pickup start sound when ride begins
                         AudioService.instance.playPickupStartAlert();
@@ -1572,7 +1590,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content:
-                                  Text('Failed to upload pickup photo: $e'),
+                                  Text(l10n.failedToUploadPickupPhoto(e.toString())),
                               backgroundColor: AppColors.error,
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -1591,6 +1609,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   void _showProofOfDeliveryModal() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1623,21 +1642,21 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'PROOF OF DELIVERY (POD)',
-                            style: TextStyle(
+                            l10n.proofOfDeliveryPod,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            'Take a photo of delivered goods (MANDATORY)',
-                            style: TextStyle(
+                            l10n.podPhotoMandatoryDesc,
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.error,
                               fontWeight: FontWeight.bold,
@@ -1673,9 +1692,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 color: AppColors.textMuted,
                               ),
                               const SizedBox(height: 8),
-                              const Text(
-                                'Proof of Delivery photo is MANDATORY',
-                                style: TextStyle(
+                              Text(
+                                l10n.proofOfDeliveryMandatory,
+                                style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.error,
                                   fontWeight: FontWeight.w600,
@@ -1696,7 +1715,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                     ),
                                     icon:
                                         const Icon(Icons.camera_alt, size: 16),
-                                    label: const Text('Camera'),
+                                    label: Text(l10n.camera),
                                     onPressed: () async {
                                       final picked =
                                           await ImagePicker().pickImage(
@@ -1721,8 +1740,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                     ),
                                     icon: const Icon(Icons.photo_library,
                                         size: 16, color: AppColors.textPrimary),
-                                    label: const Text('Gallery',
-                                        style: TextStyle(
+                                    label: Text(l10n.gallery,
+                                        style: const TextStyle(
                                             color: AppColors.textPrimary)),
                                     onPressed: () async {
                                       final picked =
@@ -1761,9 +1780,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       ),
                       icon: const Icon(Icons.add_circle_outline_rounded,
                           color: AppColors.primary),
-                      label: const Text(
-                        'ADD EXTRA CHARGES',
-                        style: TextStyle(
+                      label: Text(
+                        l10n.addExtraChargesCaps,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -1791,9 +1810,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'Driver Extra Charges:',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.driverExtraCharges,
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primaryDark,
@@ -1804,9 +1823,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                     _showAddExtraChargesPopup(
                                         modalContext, setModalState);
                                   },
-                                  child: const Text(
-                                    'Edit',
-                                    style: TextStyle(
+                                  child: Text(
+                                    l10n.edit,
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primary,
@@ -1851,15 +1870,15 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   const SizedBox(height: 20),
 
                   GradientButton(
-                    text: 'SUBMIT POD & UNLOAD CARGO',
+                    text: l10n.submitPodAndUnloadCargo,
                     icon: Icons.task_alt_rounded,
                     isLoading: _isUploadingPod,
                     onPressed: () async {
                       if (_podImageFile == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text(
-                                'Proof of Delivery photo is MANDATORY before completing delivery.'),
+                                l10n.podPhotoMandatoryBeforeComplete),
                             backgroundColor: AppColors.error,
                             behavior: SnackBarBehavior.floating,
                           ),
@@ -1892,7 +1911,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       Navigator.of(modalContext).pop();
                       await _loadBookingDetails();
                       await _updateStatus('drop_complete',
-                          '📦 Cargo unloaded & POD submitted! Awaiting payment.');
+                          l10n.cargoUnloadedPodSubmitted);
                       // 🔔 Play drop complete sound when cargo is unloaded
                       AudioService.instance.playDropCompleteAlert();
                     },
@@ -1907,6 +1926,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
   }
 
   void _showCustomerRatingModal() {
+    final l10n = AppLocalizations.of(context)!;
     double selectedRating = 5.0;
     final commentController = TextEditingController();
 
@@ -1919,23 +1939,23 @@ class _DriverPickupViewState extends State<DriverPickupView> {
             return AlertDialog(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20)),
-              title: const Column(
+              title: Column(
                 children: [
-                  Icon(Icons.star_rounded, color: Color(0xFFEAB308), size: 48),
-                  SizedBox(height: 8),
+                  const Icon(Icons.star_rounded, color: Color(0xFFEAB308), size: 48),
+                  const SizedBox(height: 8),
                   Text(
-                    'RATE THE CUSTOMER',
-                    style: TextStyle(
+                    l10n.rateTheCustomer,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'How was your experience with this trip?',
-                    style: TextStyle(
+                    l10n.howWasExperienceWithTrip,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -1970,7 +1990,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   TextField(
                     controller: commentController,
                     decoration: InputDecoration(
-                      hintText: 'Add optional comment...',
+                      hintText: l10n.addOptionalCommentHint,
                       filled: true,
                       fillColor: AppColors.background,
                       border: OutlineInputBorder(
@@ -1987,7 +2007,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     Navigator.of(dialogContext).pop();
                     GoRouter.of(context).go('/home');
                   },
-                  child: const Text('SKIP'),
+                  child: Text(l10n.skipCaps),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -2012,8 +2032,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       GoRouter.of(context).go('/home');
                     }
                   },
-                  child: const Text('SUBMIT RATING',
-                      style: TextStyle(color: Colors.white)),
+                  child: Text(l10n.submitRatingCaps,
+                      style: const TextStyle(color: Colors.white)),
                 ),
               ],
             );
@@ -2025,6 +2045,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currentStatus = _booking?.status ?? 'accepted';
     final isTransit = currentStatus == 'in_transit' ||
         currentStatus == 'drop_complete' ||
@@ -2038,23 +2059,23 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         ? (_booking?.dropAddress ?? '')
         : (_booking?.pickupAddress ?? '');
     final navTargetLabel =
-        isTransit ? 'Dropoff Location' : 'Customer Pickup Location';
+        isTransit ? l10n.dropoffLocation : l10n.customerPickupLocation;
 
     final customerPhone = _booking?.customerPhone ?? '';
-    final customerName = _booking?.customerName ?? 'Customer';
+    final customerName = _booking?.customerName ?? l10n.customer;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           currentStatus == 'amount_paid'
-              ? 'Payment Confirmed'
+              ? l10n.paymentConfirmedTitle
               : (currentStatus == 'drop_complete'
-                  ? 'Awaiting Payment'
+                  ? l10n.awaitingPaymentTitle
                   : (currentStatus == 'in_transit'
-                      ? 'Trip in Transit'
+                      ? l10n.tripInTransitTitle
                       : (currentStatus == 'arrived'
-                          ? 'Arrived at Pickup'
-                          : 'Pickup Navigation'))),
+                          ? l10n.arrivedAtPickupTitle
+                          : l10n.pickupNavigationTitle))),
         ),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -2077,9 +2098,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
               ),
               icon: const Icon(Icons.medical_services_rounded,
                   color: Colors.white, size: 16),
-              label: const Text(
-                'SOS (108)',
-                style: TextStyle(
+              label: Text(
+                l10n.sosButtonLabel,
+                style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 12),
@@ -2088,7 +2109,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
             ),
           ),
           IconButton(
-            tooltip: 'Cancel Trip',
+            tooltip: l10n.cancelTripTooltip,
             icon: const Icon(Icons.cancel_outlined, color: AppColors.error),
             onPressed: _showTripCancellationModal,
           ),
@@ -2158,16 +2179,16 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             children: [
                               Text(
                                 currentStatus == 'amount_paid'
-                                    ? 'PAYMENT RECEIVED'
+                                    ? l10n.paymentReceivedCaps
                                     : (currentStatus == 'drop_complete'
-                                        ? 'UNLOADED / AWAITING PAYMENT'
+                                        ? l10n.unloadedAwaitingPayment
                                         : (currentStatus == 'arrived_at_dropoff'
-                                            ? 'ARRIVED AT DROP-OFF LOCATION'
+                                            ? l10n.arrivedAtDropoffCaps
                                             : (currentStatus == 'arrived'
-                                                ? 'ARRIVED AT PICKUP LOCATION'
+                                                ? l10n.arrivedAtPickupCaps
                                                 : (currentStatus == 'in_transit'
-                                                    ? 'TRIP IN TRANSIT TO DROP POINT'
-                                                    : 'HEADING TO PICKUP')))),
+                                                    ? l10n.tripInTransitToDropPoint
+                                                    : l10n.headingToPickup)))),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -2190,16 +2211,16 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                               const SizedBox(height: 2),
                               Text(
                                 currentStatus == 'amount_paid'
-                                    ? 'Payment confirmed! Tap below to finalize trip completion.'
+                                    ? l10n.paymentConfirmedSubtitle
                                     : (currentStatus == 'drop_complete'
-                                        ? 'Collect cash payment or wait for customer online payment.'
+                                        ? l10n.collectCashOrWaitOnlineSubtitle
                                         : (currentStatus == 'arrived_at_dropoff'
-                                            ? 'Unloading timer active! Submit POD once unloading is complete.'
+                                            ? l10n.unloadingTimerActiveSubtitle
                                             : (currentStatus == 'arrived'
-                                                ? 'Loading timer active! Tap START TRIP once loaded.'
+                                                ? l10n.loadingTimerActiveSubtitle
                                                 : (currentStatus == 'in_transit'
-                                                    ? 'On the way to dropoff destination'
-                                                    : 'Follow GPS route to customer location')))),
+                                                    ? l10n.onTheWayToDropoffSubtitle
+                                                    : l10n.followGpsRouteSubtitle)))),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
@@ -2244,13 +2265,13 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 color: Colors.white, size: 22),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'EMERGENCY SOS',
-                                  style: TextStyle(
+                                  l10n.emergencySos,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -2258,8 +2279,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                   ),
                                 ),
                                 Text(
-                                  'Tap to call Ambulance (108) from dialer',
-                                  style: TextStyle(
+                                  l10n.tapToCallAmbulanceDesc,
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     color: Colors.white,
                                   ),
@@ -2355,7 +2376,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         Row(
                           children: [
                             IconButton(
-                              tooltip: 'Call Customer',
+                              tooltip: l10n.callCustomer,
                               style: IconButton.styleFrom(
                                 backgroundColor:
                                     AppColors.primary.withValues(alpha: 0.1),
@@ -2366,7 +2387,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             ),
                             const SizedBox(width: 8),
                             IconButton(
-                              tooltip: 'Send SMS',
+                              tooltip: l10n.sendSms,
                               style: IconButton.styleFrom(
                                 backgroundColor: const Color(0xFF0284C7)
                                     .withValues(alpha: 0.1),
@@ -2429,9 +2450,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'OPEN GOOGLE MAPS',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.openGoogleMapsCaps,
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white70,
@@ -2440,7 +2461,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Navigate to $navTargetLabel',
+                                  l10n.navigateToTarget(navTargetLabel),
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -2457,18 +2478,18 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
                                 Text(
-                                  'GO',
-                                  style: TextStyle(
+                                  l10n.goCaps,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF1A73E8),
                                   ),
                                 ),
-                                SizedBox(width: 4),
-                                Icon(
+                                const SizedBox(width: 4),
+                                const Icon(
                                   Icons.arrow_forward_rounded,
                                   size: 16,
                                   color: Color(0xFF1A73E8),
@@ -2505,7 +2526,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'BOOKING #${widget.bookingId.length > 8 ? widget.bookingId.substring(0, 8).toUpperCase() : widget.bookingId}',
+                              l10n.bookingIdWithNumber(widget.bookingId.length > 8 ? widget.bookingId.substring(0, 8).toUpperCase() : widget.bookingId.toUpperCase()),
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -2619,12 +2640,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                                     .isNotEmpty ==
                                                 true
                                             ? _booking!.pickupAddress
-                                            : 'Customer Pickup Point',
+                                            : l10n.customerPickupPoint,
                                         distanceKm: pickupDistKm,
                                       ),
                                     ),
                                     IconButton(
-                                      tooltip: 'Navigate to Pickup in GMaps',
+                                      tooltip: l10n.navigateToPickupGmaps,
                                       icon: const Icon(
                                           Icons.directions_outlined,
                                           color: Color(0xFF1A73E8)),
@@ -2728,14 +2749,14 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                                       address: stop.address
                                                               .isNotEmpty
                                                           ? stop.address
-                                                          : 'Intermediate Stop $idx',
+                                                          : l10n.intermediateStopNumber(idx.toString()),
                                                       distanceKm: stopDistKm,
                                                       stopIndex: idx,
                                                     ),
                                                   ),
                                                   IconButton(
                                                     tooltip:
-                                                        'Navigate to Stop $idx in GMaps',
+                                                        l10n.navigateToStopGmaps(idx.toString()),
                                                     icon: const Icon(
                                                         Icons
                                                             .directions_outlined,
@@ -2773,7 +2794,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                                               6),
                                                     ),
                                                     child: Text(
-                                                      '✓ STOP $idx COMPLETED',
+                                                      l10n.stopCompletedCaps(idx.toString()),
                                                       style: const TextStyle(
                                                         fontSize: 11,
                                                         fontWeight:
@@ -2808,7 +2829,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                                           color: Colors.white,
                                                           size: 16),
                                                       label: Text(
-                                                        'Complete Stop $idx',
+                                                        l10n.completeStopNumber(idx.toString()),
                                                         style: const TextStyle(
                                                             color: Colors.white,
                                                             fontWeight:
@@ -2846,7 +2867,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                                           color: Colors.white,
                                                           size: 16),
                                                       label: Text(
-                                                        'Reached Stop $idx',
+                                                        l10n.reachedStopNumber(idx.toString()),
                                                         style: const TextStyle(
                                                             color: Colors.white,
                                                             fontWeight:
@@ -2881,12 +2902,12 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                             _booking?.dropAddress.isNotEmpty ==
                                                     true
                                                 ? _booking!.dropAddress
-                                                : 'Customer Dropoff Point',
+                                                : l10n.customerDropoffPoint,
                                         distanceKm: dropDistKm,
                                       ),
                                     ),
                                     IconButton(
-                                      tooltip: 'Navigate to Dropoff in GMaps',
+                                      tooltip: l10n.navigateToDropoffGmaps,
                                       icon: const Icon(
                                           Icons.directions_outlined,
                                           color: Color(0xFF1A73E8)),
@@ -2916,26 +2937,26 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Total Delivery Fare:',
-                                      style: TextStyle(
+                                    Text(
+                                      l10n.totalDeliveryFareLabel,
+                                      style: const TextStyle(
                                           fontSize: 13,
                                           color: AppColors.textSecondary),
                                     ),
                                     InkWell(
                                       onTap: _showFareBreakdownModal,
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            'View Fare Breakdown',
-                                            style: TextStyle(
+                                            l10n.viewFareBreakdown,
+                                            style: const TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.primary,
                                             ),
                                           ),
-                                          Icon(Icons.chevron_right_rounded,
+                                          const Icon(Icons.chevron_right_rounded,
                                               size: 14,
                                               color: AppColors.primary),
                                         ],
@@ -2974,7 +2995,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                     Padding(
                                       padding: const EdgeInsets.only(top: 2),
                                       child: Text(
-                                        'Incl. ₹${_booking!.farDriverIncentive!.toStringAsFixed(0)} far driver incentive 🎁',
+                                        l10n.inclFarDriverIncentive(_booking!.farDriverIncentive!.toStringAsFixed(0)),
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: Color(0xFF10B981),
@@ -3005,19 +3026,19 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                       if (currentStatus == 'accepted') {
                         return GradientButton(
-                          text: 'ARRIVED AT PICKUP',
+                          text: l10n.arrivedAtPickup,
                           isLoading: _isUpdatingStatus,
                           icon: Icons.check_circle_outline_rounded,
                           onPressed: () => _updateStatus(
                             'arrived',
-                            'Customer notified: Driver arrived at pickup location! Loading timer started.',
+                            l10n.arrivedPickupNotify,
                           ),
                         );
                       }
 
                       if (currentStatus == 'arrived') {
                         return GradientButton(
-                          text: 'TAKE PICKUP PHOTO & START TRIP',
+                          text: l10n.takePickupPhotoAndStartTrip,
                           isLoading: _isUpdatingStatus,
                           icon: Icons.camera_alt_rounded,
                           onPressed: _showCargoPickupPhotoModal,
@@ -3035,7 +3056,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                         if (isReached) {
                           return GradientButton(
-                            text: 'COMPLETE STOP $stopNum',
+                            text: l10n.completeStopCaps(stopNum.toString()),
                             isLoading: _isUpdatingStatus,
                             icon: Icons.done_all_rounded,
                             onPressed: () => _handleIntermediateStopAction(
@@ -3045,7 +3066,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           );
                         } else {
                           return GradientButton(
-                            text: 'REACHED STOP $stopNum',
+                            text: l10n.reachedStopCaps(stopNum.toString()),
                             isLoading: _isUpdatingStatus,
                             icon: Icons.pin_drop_rounded,
                             onPressed: () => _handleIntermediateStopAction(
@@ -3060,19 +3081,19 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       if (currentStatus == 'in_transit' ||
                           currentStatus.startsWith('stop_')) {
                         return GradientButton(
-                          text: 'REACHED FINAL DESTINATION',
+                          text: l10n.reachedFinalDestination,
                           isLoading: _isUpdatingStatus,
                           icon: Icons.location_on_rounded,
                           onPressed: () => _updateStatus(
                             'arrived_at_dropoff',
-                            'Arrived at final drop-off location! Unloading timer started.',
+                            l10n.arrivedDropoffNotify,
                           ),
                         );
                       }
 
                       if (currentStatus == 'arrived_at_dropoff') {
                         return GradientButton(
-                          text: 'UNLOAD CARGO & SUBMIT POD',
+                          text: l10n.unloadCargoAndSubmitPod,
                           isLoading: _isUpdatingStatus,
                           icon: Icons.task_alt_rounded,
                           onPressed: _showProofOfDeliveryModal,
@@ -3091,7 +3112,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 .toDouble();
                         final double dropTotal = dropTripFare + dropIncentive;
                         return GradientButton(
-                          text: 'Collect Cash Payment (₹${dropTotal.toStringAsFixed(0)})',
+                          text: l10n.collectCashPaymentWithAmount(dropTotal.toStringAsFixed(0)),
                           isLoading: _isUpdatingStatus,
                           icon: Icons.payments_rounded,
                           onPressed: _handleReceivedPaymentClick,
@@ -3100,18 +3121,18 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                       if (currentStatus == 'amount_paid') {
                         return GradientButton(
-                          text: 'Confirm Trip Completed',
+                          text: l10n.confirmTripCompleted,
                           isLoading: _isUpdatingStatus,
                           icon: Icons.check_circle_rounded,
                           onPressed: () => _updateStatus(
                             'completed',
-                            '🎉 Delivery Completed Successfully!',
+                            l10n.deliveryCompletedSuccessfully,
                           ),
                         );
                       }
 
                       return GradientButton(
-                        text: 'BACK TO HOME',
+                        text: l10n.backToHome,
                         icon: Icons.home_rounded,
                         onPressed: () => context.go('/home'),
                       );
@@ -3133,9 +3154,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           ),
                           icon: const Icon(Icons.cancel_outlined,
                               color: AppColors.error, size: 18),
-                          label: const Text(
-                            'Cancel Trip',
-                            style: TextStyle(
+                          label: Text(
+                            l10n.cancelTrip,
+                            style: const TextStyle(
                               color: AppColors.error,
                               fontWeight: FontWeight.bold,
                             ),
@@ -3154,9 +3175,9 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () => context.go('/home'),
-                          child: const Text(
-                            'Dashboard',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.dashboard,
+                            style: const TextStyle(
                               color: AppColors.textSecondary,
                               fontWeight: FontWeight.bold,
                             ),

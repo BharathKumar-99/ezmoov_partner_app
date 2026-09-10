@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../models/booking_model.dart';
 import '../../viewmodels/ride_request_viewmodel.dart';
 import '../../viewmodels/profile_viewmodel.dart';
@@ -42,6 +43,8 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<RideRequestViewModel>(
       builder: (context, rideVm, child) {
         final profileVm = context.watch<ProfileViewModel>();
@@ -53,7 +56,7 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
         if (booking == null || pendingBid == null) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Bidding Status'),
+              title: Text(l10n.biddingStatus),
               backgroundColor: AppColors.surface,
             ),
             body: Center(
@@ -62,14 +65,14 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                 children: [
                   const Icon(Icons.info_outline, size: 48, color: AppColors.textMuted),
                   const SizedBox(height: 12),
-                  const Text(
-                    'No active pending bid found.',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.noActivePendingBidFound,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => context.go('/home'),
-                    child: const Text('Return to Home'),
+                    child: Text(l10n.returnToHome),
                   ),
                 ],
               ),
@@ -80,7 +83,7 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
         final customerDisplayName = (booking.customerName != null &&
                 booking.customerName!.isNotEmpty)
             ? booking.customerName!
-            : 'Outstation Customer';
+            : l10n.outstationCustomer;
 
         final baseFare = booking.fare > 0
             ? booking.fare
@@ -102,9 +105,9 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
               icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
               onPressed: () => context.go('/home'),
             ),
-            title: const Text(
-              'Bidding Status',
-              style: TextStyle(
+            title: Text(
+              l10n.biddingStatus,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -142,23 +145,23 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                           ),
                         ),
                         const SizedBox(width: 14),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'CUSTOMER IS DECIDING',
-                                style: TextStyle(
+                                l10n.customerIsDeciding,
+                                style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFB45309),
                                   letterSpacing: 0.5,
                                 ),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
-                                'Your bid is being reviewed by the customer. You can update your bid below at any time.',
-                                style: TextStyle(
+                                l10n.customerDecidingDesc,
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: Color(0xFF92400E),
                                 ),
@@ -232,9 +235,9 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Base Rate',
-                                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                Text(
+                                  l10n.baseRate,
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -250,9 +253,9 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Text(
-                                  'Your Active Bid',
-                                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                Text(
+                                  l10n.yourActiveBid,
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -291,9 +294,9 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'PICKUP ADDRESS',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.pickupAddressCaps,
+                                    style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textMuted,
@@ -303,7 +306,7 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                                   Text(
                                     booking.pickupAddress.isNotEmpty
                                         ? booking.pickupAddress
-                                        : 'Pickup Location',
+                                        : l10n.pickupLocation,
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -329,9 +332,9 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'DROP ADDRESS',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.dropAddressCaps,
+                                    style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textMuted,
@@ -341,7 +344,7 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                                   Text(
                                     booking.dropAddress.isNotEmpty
                                         ? booking.dropAddress
-                                        : 'Drop Location',
+                                        : l10n.dropoffLocation,
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -370,18 +373,18 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'SUBMIT A NEW BID AMOUNT (₹)',
-                          style: TextStyle(
+                        Text(
+                          l10n.submitNewBidAmount,
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Submit a lower or competitive price to increase your chances.',
-                          style: TextStyle(
+                        Text(
+                          l10n.submitLowerPriceDesc,
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),
@@ -408,7 +411,7 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                               ),
                             ),
                             prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                            hintText: 'Enter new bid amount',
+                            hintText: l10n.enterNewBidAmountHint,
                             filled: true,
                             fillColor: AppColors.background,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -423,18 +426,18 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Please enter a bid amount';
+                              return l10n.pleaseEnterBidAmount;
                             }
                             final parsed = double.tryParse(value.trim());
                             if (parsed == null || parsed <= 0) {
-                              return 'Enter a valid positive bid amount';
+                              return l10n.enterValidPositiveBid;
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 18),
                         GradientButton(
-                          text: 'UPDATE BID',
+                          text: l10n.updateBid,
                           isLoading: _isSubmitting,
                           icon: Icons.send_rounded,
                           onPressed: () async {
@@ -484,9 +487,9 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
                         ),
                       ),
                       icon: const Icon(Icons.close_rounded, color: AppColors.error, size: 18),
-                      label: const Text(
-                        'Withdraw / Cancel Bid',
-                        style: TextStyle(
+                      label: Text(
+                        l10n.withdrawCancelBid,
+                        style: const TextStyle(
                           color: AppColors.error,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,

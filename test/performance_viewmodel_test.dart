@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezmoov_partner_app/models/driver_login_time_model.dart';
+import 'package:ezmoov_partner_app/models/driver_ride_action_model.dart';
 import 'package:ezmoov_partner_app/viewmodels/performance_viewmodel.dart';
 
 void main() {
@@ -64,13 +65,60 @@ void main() {
     });
   });
 
-  group('PerformanceViewModel Date Navigation & Duration Aggregation Tests', () {
+  group('PerformanceViewModel Completion Score & Date Selection Tests', () {
     test('Calculates total hours across sessions correctly', () {
       final vm = PerformanceViewModel();
 
       expect(vm.formattedTodayLoginHoursShort, '0h 0m');
       expect(vm.formattedTodayLoginHoursDetailed, '0 mins');
       expect(vm.isSelectedDateToday, true);
+      expect(vm.completionScoreForSelectedDate, 100.0);
+      expect(vm.formattedCompletionScoreForSelectedDate, '100%');
+    });
+
+    test('Calculates 60% completion rate for 3 accepted and 2 declined requests', () {
+      final actions = [
+        DriverRideActionModel(
+          id: 1,
+          driverId: 'd-1',
+          action: 'accepted',
+          actionTime: DateTime.now(),
+        ),
+        DriverRideActionModel(
+          id: 2,
+          driverId: 'd-1',
+          action: 'accepted',
+          actionTime: DateTime.now(),
+        ),
+        DriverRideActionModel(
+          id: 3,
+          driverId: 'd-1',
+          action: 'accepted',
+          actionTime: DateTime.now(),
+        ),
+        DriverRideActionModel(
+          id: 4,
+          driverId: 'd-1',
+          action: 'declined',
+          actionTime: DateTime.now(),
+        ),
+        DriverRideActionModel(
+          id: 5,
+          driverId: 'd-1',
+          action: 'declined',
+          actionTime: DateTime.now(),
+        ),
+      ];
+
+      final total = actions.length; // 5
+      final accepted = actions.where((a) => a.isAccepted).length; // 3
+      final declined = actions.where((a) => a.isDeclined).length; // 2
+      final score = (accepted / total) * 100.0; // 60.0%
+
+      expect(total, 5);
+      expect(accepted, 3);
+      expect(declined, 2);
+      expect(score, 60.0);
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../models/booking_model.dart';
 
 class ActiveTripFloatingCard extends StatelessWidget {
@@ -14,6 +15,7 @@ class ActiveTripFloatingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final status = booking.status;
     final isTransit = status == 'in_transit';
     final isArrived = status == 'arrived';
@@ -29,22 +31,22 @@ class ActiveTripFloatingCard extends StatelessWidget {
       if (parts.length >= 3) {
         final stopNum = parts[1];
         final isReached = parts[2] == 'reached';
-        statusText = isReached ? 'REACHED STOP $stopNum' : 'COMPLETED STOP $stopNum';
+        statusText = isReached ? l10n.reachedStop(stopNum) : l10n.completedStop(stopNum);
         statusBgColor = isReached ? Colors.amber.shade800 : const Color(0xFF10B981);
         statusIcon = isReached ? Icons.nature_people_rounded : Icons.check_circle_rounded;
       } else {
-        statusText = 'AT INTERMEDIATE STOP';
+        statusText = l10n.atIntermediateStop;
         statusBgColor = Colors.amber.shade800;
         statusIcon = Icons.stop_circle_outlined;
       }
     } else {
       statusText = isAmountPaid
-          ? 'PAYMENT CONFIRMED'
+          ? l10n.paymentConfirmedCaps
           : (isDropComplete
-              ? 'UNLOADED / AWAITING PAYMENT'
+              ? l10n.unloadedAwaitingPayment
               : (isTransit
-                  ? 'IN TRANSIT TO DROPOFF'
-                  : (isArrived ? 'ARRIVED AT PICKUP' : 'HEADING TO PICKUP')));
+                  ? l10n.inTransitToDropoff
+                  : (isArrived ? l10n.arrivedAtPickup : l10n.headingToPickup)));
 
       statusBgColor = isAmountPaid
           ? const Color(0xFF10B981)
@@ -68,10 +70,10 @@ class ActiveTripFloatingCard extends StatelessWidget {
     final targetAddress = (isTransit || isDropComplete || isAmountPaid)
         ? (booking.dropAddress.isNotEmpty
             ? booking.dropAddress
-            : 'Dropoff Location')
+            : l10n.dropoffLocation)
         : (booking.pickupAddress.isNotEmpty
             ? booking.pickupAddress
-            : 'Pickup Location');
+            : l10n.pickupLocation);
 
     return Material(
       color: Colors.transparent,
@@ -153,7 +155,7 @@ class ActiveTripFloatingCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              '+${booking.stopsCount} STOPS',
+                              l10n.stopsBadgeCount(booking.stopsCount),
                               style: const TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
@@ -191,20 +193,20 @@ class ActiveTripFloatingCard extends StatelessWidget {
                   color: statusBgColor,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'RESUME',
-                      style: TextStyle(
+                      l10n.resumeCaps,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         letterSpacing: 0.5,
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(
+                    const SizedBox(width: 4),
+                    const Icon(
                       Icons.arrow_forward_rounded,
                       size: 14,
                       color: Colors.white,

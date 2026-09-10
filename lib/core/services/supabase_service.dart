@@ -13,6 +13,8 @@ import '../../models/earning_model.dart';
 import '../../models/vehicle_catalog_model.dart';
 import '../../models/wallet_model.dart';
 import '../../models/driver_login_time_model.dart';
+import '../../models/driver_ride_action_model.dart';
+import '../../models/partner_app_config_model.dart';
 
 class SupabaseService {
   SupabaseService._internal();
@@ -1416,5 +1418,290 @@ class SupabaseService {
       return 0;
     }
   }
+
+  /// Record a driver's accept or deny/decline action on a ride request
+  Future<Map<String, dynamic>> recordDriverRideAction({
+    required String driverId,
+    String? bookingId,
+    required String action, // 'accepted', 'declined', 'denied', 'timeout', 'cancelled'
+    String? reason,
+    String? pickupAddress,
+    String? dropAddress,
+    double? fare,
+    String? vehicleTypeId,
+    String? customerId,
+    String? customerName,
+    int? responseTimeSeconds,
+    double? driverLat,
+    double? driverLng,
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      final params = {
+        'p_driver_id': driverId,
+        'p_booking_id': bookingId,
+        'p_action': action,
+        'p_reason': reason,
+        'p_pickup_address': pickupAddress,
+        'p_drop_address': dropAddress,
+        'p_fare': fare,
+        'p_vehicle_type_id': vehicleTypeId,
+        'p_customer_id': customerId,
+        'p_customer_name': customerName,
+        'p_response_time_seconds': responseTimeSeconds,
+        'p_driver_lat': driverLat,
+        'p_driver_lng': driverLng,
+        'p_metadata': metadata ?? {},
+      };
+
+      final response = await client.rpc(
+        'record_driver_ride_action',
+        params: params,
+      );
+
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      return {'success': true};
+    } catch (e) {
+      debugPrint('Notice invoking record_driver_ride_action RPC: $e');
+      // Fallback: direct table insert if RPC is not deployed yet
+      try {
+        final insertData = <String, dynamic>{
+          'driver_id': driverId,
+          if (bookingId != null) 'booking_id': bookingId,
+          'action': action,
+          'action_time': DateTime.now().toUtc().toIso8601String(),
+          if (pickupAddress != null) 'pickup_address': pickupAddress,
+          if (dropAddress != null) 'drop_address': dropAddress,
+          if (fare != null) 'fare': fare,
+          if (vehicleTypeId != null) 'vehicle_type_id': vehicleTypeId,
+          if (customerId != null) 'customer_id': customerId,
+          if (customerName != null) 'customer_name': customerName,
+          if (reason != null) 'reason': reason,
+          if (responseTimeSeconds != null)
+            'response_time_seconds': responseTimeSeconds,
+          if (driverLat != null) 'driver_lat': driverLat,
+          if (driverLng != null) 'driver_lng': driverLng,
+          if (metadata != null) 'metadata': metadata,
+        };
+
+        final insertRes = await client
+            .from('driver_ride_actions')
+            .insert(insertData)
+            .select()
+            .single();
+
+        return {'success': true, 'id': insertRes['id']};
+      } catch (fallbackErr) {
+        debugPrint('Fallback insert into driver_ride_actions failed: $fallbackErr');
+        return {'success': false, 'error': e.toString()};
+      }
+    }
+  }
+
+  /// Fetch acceptance & rejection statistics for a driver
+  Future<DriverRideStatsModel> getDriverRideStats(String driverId) async {
+    try {
+      final response = await client.rpc(
+        'get_driver_ride_stats',
+        params: {'p_driver_id': driverId},
+      );
+
+      if (response is Map) {
+        return DriverRideStatsModel.fromJson(
+            Map<String, dynamic>.from(response));
+      }
+      return DriverRideStatsModel.empty(driverId);
+    } catch (e) {
+      debugPrint('Notice getting driver ride stats via RPC: $e');
+      // Fallback: calculate from raw records
+      try {
+        final records = await client
+            .from('driver_ride_actions')
+            .select()
+            .eq('driver_id', driverId);
+
+        final list = (records as List)
+            .map((item) => DriverRideActionModel.fromJson(
+                item as Map<String, dynamic>))
+            .toList();
+
+        final total = list.length;
+        final accepted = list.where((a) => a.isAccepted).length;
+        final declined = list.where((a) => a.isDeclined).length;
+        final timeout = list.where((a) => a.isTimeout).length;
+        final cancelled = list.where((a) => a.isCancelled).length;
+
+        final todayStart = DateTime.now();
+        final startOfDay = DateTime(todayStart.year, todayStart.month, todayStart.day);
+        final todayList = list.where((a) => a.actionTime.isAfter(startOfDay)).toList();
+        final todayAccepted = todayList.where((a) => a.isAccepted).length;
+        final todayDeclined = todayList.where((a) => a.isDeclined).length;
+
+        final rate = total > 0
+            ? double.parse(((accepted / total) * 100).toStringAsFixed(2))
+            : 100.00;
+
+        return DriverRideStatsModel(
+          driverId: driverId,
+          totalRequests: total,
+          acceptedCount: accepted,
+          declinedCount: declined,
+          timeoutCount: timeout,
+          cancelledCount: cancelled,
+          acceptanceRate: rate,
+          todayTotal: todayList.length,
+          todayAccepted: todayAccepted,
+          todayDeclined: todayDeclined,
+        );
+      } catch (fallbackErr) {
+        debugPrint('Fallback getDriverRideStats failed: $fallbackErr');
+        return DriverRideStatsModel.empty(driverId);
+      }
+    }
+  }
+
+  /// Get history of ride accept / deny actions for a driver
+  Future<List<DriverRideActionModel>> getDriverRideActions({
+    required String driverId,
+    int limit = 50,
+  }) async {
+    try {
+      final response = await client
+          .from('driver_ride_actions')
+          .select()
+          .eq('driver_id', driverId)
+          .order('action_time', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((item) => DriverRideActionModel.fromJson(
+              item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('Error fetching driver ride actions: $e');
+      return [];
+    }
+  }
+
+  /// Get driver ride actions for a specific date (local day range)
+  Future<List<DriverRideActionModel>> getDriverRideActionsForDate({
+    required String driverId,
+    required DateTime date,
+  }) async {
+    try {
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final response = await client
+          .from('driver_ride_actions')
+          .select()
+          .eq('driver_id', driverId)
+          .gte('action_time', startOfDay.toUtc().toIso8601String())
+          .lt('action_time', endOfDay.toUtc().toIso8601String())
+          .order('action_time', ascending: false);
+
+      return (response as List)
+          .map((item) => DriverRideActionModel.fromJson(
+              item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('Error fetching driver ride actions for date: $e');
+      return [];
+    }
+  }
+
+  /// Pay driver registration fee via RPC or table update
+  Future<Map<String, dynamic>> payDriverRegistrationFee(String driverId) async {
+    try {
+      final response = await client.rpc(
+        'pay_driver_registration_fee',
+        params: {'p_driver_id': driverId},
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      return {'success': true, 'message': 'Registration fee marked as paid.'};
+    } catch (e) {
+      debugPrint('Notice invoking pay_driver_registration_fee RPC: $e');
+      // Fallback: direct update
+      try {
+        await client
+            .from('drivers')
+            .update({
+              'registration_fee_paid': true,
+              'updated_at': DateTime.now().toUtc().toIso8601String(),
+            })
+            .eq('id', driverId);
+        return {'success': true, 'message': 'Registration fee updated.'};
+      } catch (fallbackErr) {
+        debugPrint('Fallback updating registration_fee_paid failed: $fallbackErr');
+        return {'success': false, 'message': e.toString()};
+      }
+    }
+  }
+
+  PartnerAppConfigModel _cachedPartnerAppConfig = PartnerAppConfigModel.defaultConfig();
+  PartnerAppConfigModel get cachedPartnerAppConfig => _cachedPartnerAppConfig;
+
+  /// Fetch partner app configuration from `public.partner_app_config` table or RPC
+  Future<PartnerAppConfigModel> getPartnerAppConfig({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedPartnerAppConfig != PartnerAppConfigModel.defaultConfig()) {
+      return _cachedPartnerAppConfig;
+    }
+
+    try {
+      final sc = safeClient;
+      if (sc == null) return _cachedPartnerAppConfig;
+
+      // Try RPC first if available
+      try {
+        final rpcRes = await sc.rpc('get_partner_app_config');
+        if (rpcRes is Map) {
+          final config = PartnerAppConfigModel.fromJson(Map<String, dynamic>.from(rpcRes));
+          _cachedPartnerAppConfig = config;
+          return config;
+        }
+      } catch (rpcErr) {
+        debugPrint('Notice calling get_partner_app_config RPC: $rpcErr');
+      }
+
+      // Direct table query fallback
+      final response = await sc
+          .from('partner_app_config')
+          .select()
+          .order('id', ascending: true)
+          .limit(1)
+          .maybeSingle();
+
+      if (response != null) {
+        final config = PartnerAppConfigModel.fromJson(Map<String, dynamic>.from(response));
+        _cachedPartnerAppConfig = config;
+        return config;
+      }
+    } catch (e) {
+      debugPrint('Error fetching partner_app_config from Supabase: $e');
+    }
+
+    return _cachedPartnerAppConfig;
+  }
+
+  /// Realtime Stream subscription to public.partner_app_config table
+  Stream<PartnerAppConfigModel> subscribeToPartnerAppConfig() {
+    final sc = safeClient;
+    if (sc == null) {
+      return Stream.value(_cachedPartnerAppConfig);
+    }
+    return sc.from('partner_app_config').stream(primaryKey: ['id']).map((data) {
+      if (data.isNotEmpty) {
+        final config = PartnerAppConfigModel.fromJson(data.first);
+        _cachedPartnerAppConfig = config;
+        return config;
+      }
+      return _cachedPartnerAppConfig;
+    });
+  }
 }
+
 

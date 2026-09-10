@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../models/booking_model.dart';
 import '../../../models/bid_model.dart';
 
@@ -16,6 +17,7 @@ class PendingBidFloatingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const statusBgColor = Color(0xFFF59E0B); // Amber / Gold color for pending bid
 
     return Material(
@@ -78,7 +80,7 @@ class PendingBidFloatingCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            'BID PENDING • ₹ ${bid.driverBid.toStringAsFixed(0)}',
+                            l10n.bidPendingWithAmount(bid.driverBid.toStringAsFixed(0)),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -98,7 +100,7 @@ class PendingBidFloatingCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              '+${booking.stopsCount} STOPS',
+                              l10n.stopsBadgeCount(booking.stopsCount),
                               style: const TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
@@ -110,9 +112,9 @@ class PendingBidFloatingCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Customer deciding... Tap to update bid',
-                      style: TextStyle(
+                    Text(
+                      l10n.customerDecidingTapUpdate,
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -136,20 +138,20 @@ class PendingBidFloatingCard extends StatelessWidget {
                   color: statusBgColor,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'VIEW BID',
-                      style: TextStyle(
+                      l10n.viewBidCaps,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         letterSpacing: 0.5,
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(
+                    const SizedBox(width: 4),
+                    const Icon(
                       Icons.arrow_forward_rounded,
                       size: 14,
                       color: Colors.white,

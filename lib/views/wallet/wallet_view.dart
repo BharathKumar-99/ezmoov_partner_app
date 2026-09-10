@@ -8,6 +8,7 @@ import '../../core/services/razorpay_service.dart';
 import '../../viewmodels/wallet_viewmodel.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/recharge_result_dialog.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class WalletView extends StatefulWidget {
   final String? driverId;
@@ -116,7 +117,7 @@ class _WalletViewState extends State<WalletView> {
     );
   }
 
-  void _showAddMoneyBottomSheet(BuildContext context, String driverId) {
+  void _showAddMoneyBottomSheet(BuildContext context, String driverId, AppLocalizations l10n) {
     final walletVm = context.read<WalletViewModel>();
     final amountController = TextEditingController(text: '200');
     double selectedAmount = 200.0;
@@ -153,9 +154,9 @@ class _WalletViewState extends State<WalletView> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      'Add Money to Wallet',
-                      style: TextStyle(
+                    Text(
+                      l10n.addMoneyToWallet,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -163,7 +164,7 @@ class _WalletViewState extends State<WalletView> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Recharge your wallet to pay daily vehicle fees and stay active for orders.',
+                      l10n.addMoneySubtitle,
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.textSecondary.withValues(alpha: 0.8),
@@ -304,33 +305,35 @@ class _WalletViewState extends State<WalletView> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF09A234),
-                          side: const BorderSide(
-                              color: Color(0xFF09A234), width: 1.5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                    if (!context.read<ProfileViewModel>().isFreeDriverLogin) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF09A234),
+                            side: const BorderSide(
+                                color: Color(0xFF09A234), width: 1.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
-                        ),
-                        onPressed: () {
-                          Navigator.of(modalContext).pop();
-                          _payDailyFeeWithoutWallet(context, driverId);
-                        },
-                        icon: const Icon(Icons.flash_on_rounded, size: 20),
-                        label: Text(
-                          'Recharge without Wallet (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)})',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                          onPressed: () {
+                            Navigator.of(modalContext).pop();
+                            _payDailyFeeWithoutWallet(context, driverId);
+                          },
+                          icon: const Icon(Icons.flash_on_rounded, size: 20),
+                          label: Text(
+                            'Recharge without Wallet (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)})',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -623,6 +626,7 @@ class _WalletViewState extends State<WalletView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final profileVm = context.watch<ProfileViewModel>();
     final effectiveDriverId = profileVm.driver?.id;
 
@@ -645,9 +649,9 @@ class _WalletViewState extends State<WalletView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header Title
-                      const Text(
-                        'Wallet',
-                        style: TextStyle(
+                      Text(
+                        l10n.myWallet,
+                        style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -679,9 +683,9 @@ class _WalletViewState extends State<WalletView> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        'Available Wallet Balance',
-                                        style: TextStyle(
+                                      Text(
+                                        l10n.walletBalance,
+                                        style: const TextStyle(
                                           fontSize: 13,
                                           color: Colors.white70,
                                           fontWeight: FontWeight.w500,
@@ -726,15 +730,15 @@ class _WalletViewState extends State<WalletView> {
                                       ),
                                       onPressed: () {
                                         _showAddMoneyBottomSheet(
-                                            context, effectiveDriverId);
+                                            context, effectiveDriverId, l10n);
                                       },
                                       icon: const Icon(
                                           Icons.add_circle_outline_rounded,
                                           size: 18,
                                           color: Color(0xFF09A234)),
-                                      label: const Text(
-                                        'Add Money',
-                                        style: TextStyle(
+                                      label: Text(
+                                        l10n.addMoney,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
                                           color: Color(0xFF09A234),
@@ -765,9 +769,9 @@ class _WalletViewState extends State<WalletView> {
                                       },
                                       icon: const Icon(Icons.north_east_rounded,
                                           size: 18, color: Colors.white),
-                                      label: const Text(
-                                        'Withdraw',
-                                        style: TextStyle(
+                                      label: Text(
+                                        l10n.withdraw,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
                                           color: Colors.white,
@@ -777,38 +781,41 @@ class _WalletViewState extends State<WalletView> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  style: OutlinedButton.styleFrom(
-                                    backgroundColor:
-                                        Colors.white.withValues(alpha: 0.15),
-                                    foregroundColor: Colors.white,
-                                    side: const BorderSide(
-                                        color: Colors.white, width: 1),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                              if (!walletVm.isPassActive &&
+                                  !profileVm.isFreeDriverLogin) ...[
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      backgroundColor:
+                                          Colors.white.withValues(alpha: 0.15),
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(
+                                          color: Colors.white, width: 1),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
                                     ),
-                                  ),
-                                  onPressed: () {
-                                    _payDailyFeeWithoutWallet(
-                                        context, effectiveDriverId);
-                                  },
-                                  icon: const Icon(Icons.flash_on_rounded,
-                                      size: 18, color: Colors.white),
-                                  label: Text(
-                                    'Recharge without Wallet (Pay ₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} Direct)',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: Colors.white,
+                                    onPressed: () {
+                                      _payDailyFeeWithoutWallet(
+                                          context, effectiveDriverId);
+                                    },
+                                    icon: const Icon(Icons.flash_on_rounded,
+                                        size: 18, color: Colors.white),
+                                    label: Text(
+                                      l10n.payDirectlyRazorpay(walletVm.vehicleDailyFee.toStringAsFixed(0)),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
 
                             const SizedBox(height: 20),
@@ -1022,10 +1029,10 @@ class _WalletViewState extends State<WalletView> {
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: walletVm.isBlocked
+                        color: (walletVm.isBlocked && !profileVm.isFreeDriverLogin)
                             ? Colors.red.withValues(alpha: 0.5)
                             : AppColors.border,
-                        width: walletVm.isBlocked ? 1.5 : 1.0,
+                        width: (walletVm.isBlocked && !profileVm.isFreeDriverLogin) ? 1.5 : 1.0,
                       ),
                     ),
                     child: Column(
@@ -1040,17 +1047,17 @@ class _WalletViewState extends State<WalletView> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: walletVm.isPassActive
+                                    color: (walletVm.isPassActive || profileVm.isFreeDriverLogin)
                                         ? const Color(0xFF09A234)
                                             .withValues(alpha: 0.1)
                                         : Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
-                                    walletVm.isPassActive
+                                    (walletVm.isPassActive || profileVm.isFreeDriverLogin)
                                         ? Icons.verified_user_rounded
                                         : Icons.timer_off_rounded,
-                                    color: walletVm.isPassActive
+                                    color: (walletVm.isPassActive || profileVm.isFreeDriverLogin)
                                         ? const Color(0xFF09A234)
                                         : Colors.red,
                                     size: 20,
@@ -1060,9 +1067,9 @@ class _WalletViewState extends State<WalletView> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Daily Pass',
-                                      style: TextStyle(
+                                    Text(
+                                      l10n.dailyVehicleFee,
+                                      style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.textPrimary,
@@ -1070,15 +1077,17 @@ class _WalletViewState extends State<WalletView> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      walletVm.isPassActive
-                                          ? 'Active (Expires ${walletVm.passExpiresAt != null ? DateFormat('MMM dd, hh:mm a').format(walletVm.passExpiresAt!) : ''})'
-                                          : (walletVm.passExpiresAt != null
-                                              ? 'Expired ${DateFormat('MMM dd, hh:mm a').format(walletVm.passExpiresAt!)} (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} / 24 hrs)'
-                                              : 'Pass Expired / Unpaid (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} / 24 hrs)'),
+                                      profileVm.isFreeDriverLogin
+                                          ? l10n.freeDriverLoginDesc
+                                          : (walletVm.isPassActive
+                                              ? '${l10n.dailyPassActive} (${l10n.passValidUntil(walletVm.passExpiresAt != null ? DateFormat('MMM dd, hh:mm a').format(walletVm.passExpiresAt!) : '')})'
+                                              : (walletVm.passExpiresAt != null
+                                                  ? '${l10n.dailyPassExpired} (${DateFormat('MMM dd, hh:mm a').format(walletVm.passExpiresAt!)}) • ₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} / 24 hrs'
+                                                  : '${l10n.dailyPassExpired} • ₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} / 24 hrs')),
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: walletVm.isPassActive
+                                        color: (walletVm.isPassActive || profileVm.isFreeDriverLogin)
                                             ? const Color(0xFF09A234)
                                             : Colors.red.shade700,
                                       ),
@@ -1091,21 +1100,21 @@ class _WalletViewState extends State<WalletView> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: walletVm.isPassActive
+                                color: (walletVm.isPassActive || profileVm.isFreeDriverLogin)
                                     ? const Color(0xFFDCFCE7)
                                     : const Color(0xFFFEE2E2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                walletVm.isPassActive
-                                    ? 'Pass Active'
-                                    : (walletVm.passExpiresAt != null
-                                        ? 'Pass Expired'
-                                        : 'Unpaid'),
+                                profileVm.isFreeDriverLogin
+                                    ? l10n.freePassBadge
+                                    : (walletVm.isPassActive
+                                        ? l10n.dailyPassActive
+                                        : l10n.dailyPassExpired),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: walletVm.isPassActive
+                                  color: (walletVm.isPassActive || profileVm.isFreeDriverLogin)
                                       ? const Color(0xFF09A234)
                                       : Colors.red,
                                 ),
@@ -1114,8 +1123,9 @@ class _WalletViewState extends State<WalletView> {
                           ],
                         ),
 
-                        // Pay Daily Fee Action Buttons if Pass is Expired/Unpaid
+                        // Pay Daily Fee Action Buttons if Pass is Expired/Unpaid and NOT free login
                         if (!walletVm.isPassActive &&
+                            !profileVm.isFreeDriverLogin &&
                             effectiveDriverId != null) ...[
                           const SizedBox(height: 12),
                           Row(
@@ -1154,8 +1164,8 @@ class _WalletViewState extends State<WalletView> {
                                           size: 16),
                                   label: Text(
                                     walletVm.isPayingFee
-                                        ? 'Paying...'
-                                        : 'Pay via Wallet',
+                                        ? l10n.updatingStatus
+                                        : l10n.payFromWallet(walletVm.vehicleDailyFee.toStringAsFixed(0)),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
@@ -1182,9 +1192,9 @@ class _WalletViewState extends State<WalletView> {
                                   ),
                                   icon: const Icon(Icons.flash_on_rounded,
                                       size: 16),
-                                  label: const Text(
-                                    'Recharge Without Wallet',
-                                    style: TextStyle(
+                                  label: Text(
+                                    l10n.payDirectlyRazorpay(walletVm.vehicleDailyFee.toStringAsFixed(0)),
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 11,
                                     ),
@@ -1310,29 +1320,13 @@ class _WalletViewState extends State<WalletView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'TRANSACTIONS',
-                        style: TextStyle(
+                      Text(
+                        l10n.transactionHistory.toUpperCase(),
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                           letterSpacing: 0.5,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: const Text(
-                          'View All',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF09A234),
-                          ),
                         ),
                       ),
                     ],
@@ -1345,7 +1339,7 @@ class _WalletViewState extends State<WalletView> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: walletVm.transactions.isEmpty
-                      ? _buildSampleTransactionsList()
+                      ? _buildSampleTransactionsList(l10n)
                       : Column(
                           children: walletVm.transactions.map((tx) {
                             String cleanTitle = tx.description;
@@ -1577,7 +1571,7 @@ class _WalletViewState extends State<WalletView> {
   }
 
   /// Empty state placeholder when DB has no transaction history yet
-  Widget _buildSampleTransactionsList() {
+  Widget _buildSampleTransactionsList(AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -1594,18 +1588,18 @@ class _WalletViewState extends State<WalletView> {
             color: AppColors.textMuted.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'No Transactions Yet',
-            style: TextStyle(
+          Text(
+            l10n.noTransactionsYet,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 2),
-          const Text(
-            'Your wallet recharges and daily fee deductions will appear here.',
-            style: TextStyle(
+          Text(
+            l10n.noTransactionsSubtitle,
+            style: const TextStyle(
               fontSize: 12,
               color: AppColors.textMuted,
             ),

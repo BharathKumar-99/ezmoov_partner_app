@@ -146,10 +146,16 @@ class RideRequestViewModel extends ChangeNotifier {
 
 
   /// Explicitly decline a ride request so it is never shown again to this driver
-  void declineRide(String bookingId, {String? driverId}) {
+  void declineRide(
+    String bookingId, {
+    String? driverId,
+    BookingModel? booking,
+    String? reason,
+  }) {
     if (bookingId.isEmpty) return;
     _declinedBookingIds.add(bookingId);
     _audioService.stopAlert();
+    final currentBooking = booking ?? (_activeBroadcastBooking?.id == bookingId ? _activeBroadcastBooking : null);
     if (_activeBroadcastBooking?.id == bookingId) {
       _activeBroadcastBooking = null;
     }
@@ -159,6 +165,18 @@ class RideRequestViewModel extends ChangeNotifier {
 
     if (driverId != null && driverId.isNotEmpty) {
       _supabaseService.recordDriverRejection(driverId);
+      _supabaseService.recordDriverRideAction(
+        driverId: driverId,
+        bookingId: bookingId,
+        action: 'declined',
+        reason: reason,
+        pickupAddress: currentBooking?.pickupAddress,
+        dropAddress: currentBooking?.dropAddress,
+        fare: currentBooking?.fare,
+        vehicleTypeId: currentBooking?.vehicleTypeId,
+        customerId: currentBooking?.customerId,
+        customerName: currentBooking?.customerName,
+      );
     }
   }
 

@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/services/supabase_service.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -130,7 +131,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     }
   }
 
-  void _showImagePickerModal() {
+  void _showImagePickerModal(AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -144,18 +145,18 @@ class _EditProfileViewState extends State<EditProfileView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Change Profile Picture 📸',
-              style: TextStyle(
+            Text(
+              l10n.changeProfilePicture,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Choose how you want to update your profile photo',
-              style: TextStyle(
+            Text(
+              l10n.choosePhotoSource,
+              style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.textSecondary,
               ),
@@ -173,7 +174,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                       ),
                     ),
                     icon: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
-                    label: const Text('Camera'),
+                    label: Text(l10n.camera),
                     onPressed: () {
                       Navigator.pop(ctx);
                       _pickImage(ImageSource.camera);
@@ -191,7 +192,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                       ),
                     ),
                     icon: const Icon(Icons.photo_library_rounded, color: AppColors.textSecondary),
-                    label: const Text('Gallery'),
+                    label: Text(l10n.gallery),
                     onPressed: () {
                       Navigator.pop(ctx);
                       _pickImage(ImageSource.gallery);
@@ -207,7 +208,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-  Future<void> _saveProfileChanges() async {
+  Future<void> _saveProfileChanges(AppLocalizations l10n) async {
     if (!_formKey.currentState!.validate()) return;
 
     final profileVM = context.read<ProfileViewModel>();
@@ -242,9 +243,9 @@ class _EditProfileViewState extends State<EditProfileView> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🎉 Profile updated successfully!'),
-          backgroundColor: Color(0xFF09A234),
+        SnackBar(
+          content: Text('🎉 ${l10n.profileUpdatedSuccess}'),
+          backgroundColor: const Color(0xFF09A234),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -271,12 +272,14 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(
+        title: Text(
+          l10n.editProfile,
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
@@ -304,7 +307,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                   alignment: Alignment.center,
                   children: [
                     GestureDetector(
-                      onTap: _showImagePickerModal,
+                      onTap: () => _showImagePickerModal(l10n),
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
@@ -345,7 +348,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                       right: 4,
                       bottom: 4,
                       child: GestureDetector(
-                        onTap: _showImagePickerModal,
+                        onTap: () => _showImagePickerModal(l10n),
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -374,11 +377,11 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               const SizedBox(height: 10),
               TextButton.icon(
-                onPressed: _showImagePickerModal,
+                onPressed: () => _showImagePickerModal(l10n),
                 icon: const Icon(Icons.edit_rounded, size: 16, color: AppColors.primary),
-                label: const Text(
-                  'Change Profile Photo',
-                  style: TextStyle(
+                label: Text(
+                  l10n.changeDocument,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
@@ -393,7 +396,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 controller: _nameController,
                 readOnly: true,
                 decoration: InputDecoration(
-                  labelText: 'Full Name',
+                  labelText: l10n.fullName,
                   prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.textMuted),
                   suffixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textMuted, size: 18),
                   filled: true,
@@ -416,7 +419,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 controller: _phoneController,
                 readOnly: true,
                 decoration: InputDecoration(
-                  labelText: 'Phone Number',
+                  labelText: l10n.mobileNumber,
                   prefixIcon: const Icon(Icons.phone_android_rounded, color: AppColors.textMuted),
                   suffixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textMuted, size: 18),
                   filled: true,
@@ -439,8 +442,8 @@ class _EditProfileViewState extends State<EditProfileView> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Email Address',
-                  hintText: 'enter your email address',
+                  labelText: l10n.emailAddress,
+                  hintText: l10n.emailAddress,
                   prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
                   filled: true,
                   fillColor: AppColors.surface,
@@ -476,8 +479,8 @@ class _EditProfileViewState extends State<EditProfileView> {
                 maxLines: 3,
                 keyboardType: TextInputType.streetAddress,
                 decoration: InputDecoration(
-                  labelText: 'Address',
-                  hintText: 'Enter your residential / business address',
+                  labelText: l10n.fullOperationalAddress,
+                  hintText: l10n.fullOperationalAddress,
                   alignLabelWithHint: true,
                   prefixIcon: const Padding(
                     padding: EdgeInsets.only(bottom: 40),
@@ -510,10 +513,10 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               // Save Changes Button
               GradientButton(
-                text: 'SAVE PROFILE CHANGES',
+                text: l10n.saveChanges.toUpperCase(),
                 isLoading: _isSaving || _isUploadingImage,
                 icon: Icons.check_circle_outline_rounded,
-                onPressed: _saveProfileChanges,
+                onPressed: () => _saveProfileChanges(l10n),
               ),
 
               const SizedBox(height: 20),

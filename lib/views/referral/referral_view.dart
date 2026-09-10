@@ -5,6 +5,7 @@ import '../../models/referral_model.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../viewmodels/referral_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class ReferralView extends StatefulWidget {
   final String? driverId;
@@ -43,7 +44,8 @@ class _ReferralViewState extends State<ReferralView> {
     super.dispose();
   }
 
-  void _showRedeemDialog(BuildContext context, String driverId, ReferralViewModel vm) {
+  void _showRedeemDialog(
+      BuildContext context, String driverId, ReferralViewModel vm, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (dialogCtx) {
@@ -60,10 +62,10 @@ class _ReferralViewState extends State<ReferralView> {
                 child: const Icon(Icons.card_giftcard_rounded, color: AppColors.primary, size: 24),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Have a Referral Code?',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  l10n.haveReferralCode,
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -72,16 +74,16 @@ class _ReferralViewState extends State<ReferralView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Enter the referral code given to you by another partner driver to link your accounts.',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              Text(
+                l10n.enterReferralCodeDialogDesc,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _redeemCodeController,
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(
-                  labelText: 'Referral Code (e.g. EZM9876)',
+                  labelText: l10n.referralCodeFieldLabel,
                   prefixIcon: const Icon(Icons.confirmation_number_outlined, color: AppColors.primary),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -92,7 +94,7 @@ class _ReferralViewState extends State<ReferralView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton(
               onPressed: vm.isSubmitting
@@ -114,7 +116,7 @@ class _ReferralViewState extends State<ReferralView> {
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              child: const Text('Apply Code', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(l10n.applyCode, style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -124,15 +126,16 @@ class _ReferralViewState extends State<ReferralView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final profileVm = context.watch<ProfileViewModel>();
     final effectiveDriverId = widget.driverId ?? profileVm.driver?.id ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Refer & Earn Partner Bonus',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.referAndEarnPartnerBonus,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: AppColors.surface,
@@ -190,9 +193,9 @@ class _ReferralViewState extends State<ReferralView> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Invite Partners & Earn ₹25!',
-                        style: TextStyle(
+                      Text(
+                        l10n.invitePartnersBannerTitle,
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -200,9 +203,9 @@ class _ReferralViewState extends State<ReferralView> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        'Earn ₹25 wallet cash for every driver partner who registers with your code!',
-                        style: TextStyle(
+                      Text(
+                        l10n.invitePartnersBannerDesc,
+                        style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white70,
                           height: 1.3,
@@ -233,9 +236,9 @@ class _ReferralViewState extends State<ReferralView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'YOUR UNIQUE REFERRAL CODE',
-                        style: TextStyle(
+                      Text(
+                        l10n.yourUniqueReferralCode,
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textMuted,
@@ -271,13 +274,13 @@ class _ReferralViewState extends State<ReferralView> {
                                   color: AppColors.primary,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   children: [
-                                    Icon(Icons.copy_rounded, color: Colors.white, size: 14),
-                                    SizedBox(width: 4),
+                                    const Icon(Icons.copy_rounded, color: Colors.white, size: 14),
+                                    const SizedBox(width: 4),
                                     Text(
-                                      'COPY',
-                                      style: TextStyle(
+                                      l10n.copyCode.toUpperCase(),
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
@@ -295,7 +298,7 @@ class _ReferralViewState extends State<ReferralView> {
                         children: [
                           Expanded(
                             child: GradientButton(
-                              text: 'Share on WhatsApp',
+                              text: l10n.shareOnWhatsApp,
                               icon: Icons.share_rounded,
                               onPressed: () => vm.shareViaWhatsApp(),
                             ),
@@ -329,46 +332,44 @@ class _ReferralViewState extends State<ReferralView> {
                           child: Icon(Icons.confirmation_number_rounded, color: Colors.amber.shade900, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Were you referred by a partner?',
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                l10n.wereYouReferred,
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
-                                'Enter their code to link your accounts.',
-                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                l10n.enterCodeToLink,
+                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                               ),
                             ],
                           ),
                         ),
                         TextButton(
-                          onPressed: () => _showRedeemDialog(context, effectiveDriverId, vm),
-                          child: const Text('Redeem', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                          onPressed: () => _showRedeemDialog(context, effectiveDriverId, vm, l10n),
+                          child: Text(l10n.redeem, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                         ),
                       ],
                     ),
                   ),
 
-
-
                 // 5. Referred Partners List
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Referred Partners',
-                      style: TextStyle(
+                    Text(
+                      l10n.referredPartners,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
                     ),
                     Text(
-                      '${vm.referrals.length} Partners',
+                      l10n.partnersCount(vm.referrals.length),
                       style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                     ),
                   ],
@@ -388,14 +389,14 @@ class _ReferralViewState extends State<ReferralView> {
                       children: [
                         Icon(Icons.person_add_disabled_rounded, size: 40, color: Colors.grey.shade400),
                         const SizedBox(height: 10),
-                        const Text(
-                          'No referrals yet',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        Text(
+                          l10n.noReferralsYet,
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Share your referral code with fellow drivers to start earning bonuses!',
-                          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                        Text(
+                          l10n.noReferralsDesc,
+                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -409,7 +410,7 @@ class _ReferralViewState extends State<ReferralView> {
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final item = vm.referrals[index];
-                      return _ReferralTile(referral: item);
+                      return _ReferralTile(referral: item, l10n: l10n);
                     },
                   ),
 
@@ -423,16 +424,15 @@ class _ReferralViewState extends State<ReferralView> {
   }
 }
 
-
-
 class _ReferralTile extends StatelessWidget {
   final ReferralModel referral;
+  final AppLocalizations l10n;
 
-  const _ReferralTile({required this.referral});
+  const _ReferralTile({required this.referral, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
-    final name = referral.referredDriverName ?? 'Partner Driver';
+    final name = referral.referredDriverName ?? l10n.partnerDriver;
     final phone = referral.referredDriverPhone ?? '';
 
     return Container(
@@ -477,7 +477,9 @@ class _ReferralTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              referral.isRewarded ? '₹${referral.rewardAmount.toStringAsFixed(0)} Rewarded' : 'Pending Verification',
+              referral.isRewarded
+                  ? l10n.rewardedStatus(referral.rewardAmount.toStringAsFixed(0))
+                  : l10n.pendingVerificationStatus,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,

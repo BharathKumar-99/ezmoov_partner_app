@@ -60,14 +60,24 @@ class WalletViewModel extends ChangeNotifier {
 
   int get platformCommissionPercent => 10;
 
-  bool get isPassActive => _dailyStatus?.isPassActive ?? false;
+  bool _isFreeDriverLogin = false;
+  bool get isFreeDriverLogin => _isFreeDriverLogin;
+
+  void setFreeDriverLogin(bool value) {
+    if (_isFreeDriverLogin != value) {
+      _isFreeDriverLogin = value;
+      notifyListeners();
+    }
+  }
+
+  bool get isPassActive => _isFreeDriverLogin || (_dailyStatus?.isPassActive ?? false);
   DateTime? get passExpiresAt => _dailyStatus?.passExpiresAt;
 
-  /// Driver is blocked if explicitly blocked in daily status, or if 2 rejections reached, or if 24-hour daily pass is expired/unpaid
+  /// Driver is blocked if explicitly blocked in daily status, or if 2 rejections reached, or if 24-hour daily pass is expired/unpaid (when free login is disabled)
   bool get isBlocked {
     if (_dailyStatus?.isBlocked == true) return true;
     if ((_dailyStatus?.rejectionsCount ?? 0) >= 2) return true;
-    if (!isPassActive) return true;
+    if (!_isFreeDriverLogin && !isPassActive) return true;
     return false;
   }
 
@@ -76,7 +86,7 @@ class WalletViewModel extends ChangeNotifier {
     if ((_dailyStatus?.rejectionsCount ?? 0) >= 2) {
       return 'exceeded_rejections';
     }
-    if (!isPassActive) {
+    if (!_isFreeDriverLogin && !isPassActive) {
       return 'daily_pass_required';
     }
     return _dailyStatus?.blockReason;

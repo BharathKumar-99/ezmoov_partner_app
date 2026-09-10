@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Reusable Waiting Time Widget displayed when driver arrives at location
 class WaitingTimeWidget extends StatefulWidget {
@@ -106,6 +107,11 @@ class _WaitingTimeWidgetState extends State<WaitingTimeWidget> {
         (displaySecs / ((widget.graceMins > 0 ? widget.graceMins : 90) * 60))
             .clamp(0.05, 1.0);
 
+    final l10n = AppLocalizations.of(context);
+    final waitingTitle = l10n?.waitingTime ?? 'Waiting Time';
+    final minLabel = l10n?.minShort ?? 'MIN';
+    final secLabel = l10n?.secShort ?? 'SEC';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -161,9 +167,9 @@ class _WaitingTimeWidgetState extends State<WaitingTimeWidget> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Text(
-                    'Waiting Time',
-                    style: TextStyle(
+                  Text(
+                    waitingTitle,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E293B),
@@ -187,24 +193,24 @@ class _WaitingTimeWidgetState extends State<WaitingTimeWidget> {
                     ),
                   ),
                   const SizedBox(height: 1),
-                  const Padding(
-                    padding: EdgeInsets.only(right: 2.0),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 2.0),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'MIN',
-                          style: TextStyle(
+                          minLabel,
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF64748B),
                             letterSpacing: 0.5,
                           ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Text(
-                          'SEC',
-                          style: TextStyle(
+                          secLabel,
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF64748B),

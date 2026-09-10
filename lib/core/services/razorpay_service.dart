@@ -43,9 +43,11 @@ class RazorpayService {
         ? cleanDigits.substring(cleanDigits.length - 10)
         : cleanDigits;
 
-    final descriptionText = paymentType == 'direct_daily_fee'
-        ? 'Daily Vehicle Platform Fee ₹${amount.toStringAsFixed(0)}'
-        : 'Wallet Recharge ₹${amount.toStringAsFixed(0)}';
+    final descriptionText = paymentType == 'registration_fee'
+        ? 'Partner Registration Fee ₹${amount.toStringAsFixed(0)}'
+        : (paymentType == 'direct_daily_fee'
+            ? 'Daily Vehicle Platform Fee ₹${amount.toStringAsFixed(0)}'
+            : 'Wallet Recharge ₹${amount.toStringAsFixed(0)}');
 
     var options = {
       'key': keyId,

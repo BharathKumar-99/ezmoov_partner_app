@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../viewmodels/performance_viewmodel.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../models/driver_login_time_model.dart';
+import '../../models/driver_ride_action_model.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 class PerformanceView extends StatefulWidget {
@@ -146,9 +147,14 @@ class _PerformanceViewState extends State<PerformanceView> {
                   // 2. HERO TOTAL LOGIN HOURS CARD
                   _buildHeroTotalHoursCard(context, vm, isToday, l10n),
 
+                  const SizedBox(height: 16),
+
+                  // 3. COMPLETION SCORE & RIDE ACTIONS STATS CARD
+                  _buildCompletionScoreCard(context, vm, l10n),
+
                   const SizedBox(height: 24),
 
-                  // 3. SESSIONS BREAKDOWN HEADER
+                  // 4. SESSIONS BREAKDOWN HEADER
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -181,7 +187,7 @@ class _PerformanceViewState extends State<PerformanceView> {
 
                   const SizedBox(height: 12),
 
-                  // 4. SESSIONS LIST / EMPTY STATE
+                  // 5. SESSIONS LIST / EMPTY STATE
                   if (vm.isLoading)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40),
@@ -199,6 +205,11 @@ class _PerformanceViewState extends State<PerformanceView> {
                       return _buildSessionCard(
                           context, session, index + 1, l10n);
                     }),
+
+                  // 6. RIDE REQUEST ACTIONS HISTORY FOR SELECTED DATE
+                  _buildRideActionsSection(context, vm, l10n),
+
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -246,7 +257,7 @@ class _PerformanceViewState extends State<PerformanceView> {
                 icon: const Icon(Icons.chevron_left_rounded,
                     color: AppColors.primary, size: 28),
                 onPressed: () => vm.goToPreviousDay(driverId),
-                tooltip: 'Previous Day',
+                tooltip: l10n.previousDay,
               ),
               Expanded(
                 child: InkWell(
@@ -300,7 +311,7 @@ class _PerformanceViewState extends State<PerformanceView> {
                   size: 28,
                 ),
                 onPressed: isToday ? null : () => vm.goToNextDay(driverId),
-                tooltip: 'Next Day',
+                tooltip: l10n.nextDay,
               ),
             ],
           ),
@@ -508,7 +519,7 @@ class _PerformanceViewState extends State<PerformanceView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$sessionsCount ${sessionsCount == 1 ? "Session" : "Sessions"} Recorded',
+                l10n.sessionsRecorded(sessionsCount),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -524,6 +535,217 @@ class _PerformanceViewState extends State<PerformanceView> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Completion Score Card for Date Selection
+  Widget _buildCompletionScoreCard(
+      BuildContext context, PerformanceViewModel vm, AppLocalizations l10n) {
+    final score = vm.completionScoreForSelectedDate;
+    final totalRequests = vm.totalRequestsForSelectedDate;
+    final acceptedCount = vm.acceptedRequestsForSelectedDate;
+    final declinedCount = vm.declinedRequestsForSelectedDate;
+    final formattedScore = vm.formattedCompletionScoreForSelectedDate;
+
+    Color progressColor;
+    String statusLabel;
+    if (score >= 80) {
+      progressColor = const Color(0xFF10B981); // Emerald
+      statusLabel = l10n.excellentAcceptance;
+    } else if (score >= 50) {
+      progressColor = const Color(0xFFF59E0B); // Amber
+      statusLabel = l10n.goodPerformance;
+    } else {
+      progressColor = const Color(0xFFEF4444); // Red
+      statusLabel = l10n.highDeclineRate;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFDCB0A).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.star_rounded,
+                      color: Color(0xFFD97706),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    l10n.completionScore.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: progressColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: progressColor.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: progressColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                formattedScore,
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.w900,
+                  color: progressColor,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  totalRequests > 0
+                      ? l10n.acceptedOfOrders(acceptedCount, totalRequests)
+                      : l10n.baselineNoOrders,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: totalRequests > 0
+                  ? (score / 100.0).clamp(0.0, 1.0)
+                  : 1.0,
+              minHeight: 8,
+              backgroundColor: AppColors.background,
+              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.border),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMetricTile(
+                  label: l10n.totalOffered,
+                  value: '$totalRequests',
+                  icon: Icons.list_alt_rounded,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildMetricTile(
+                  label: l10n.accepted,
+                  value: '$acceptedCount',
+                  icon: Icons.check_circle_rounded,
+                  color: const Color(0xFF10B981),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildMetricTile(
+                  label: l10n.declined,
+                  value: '$declinedCount',
+                  icon: Icons.cancel_rounded,
+                  color: const Color(0xFFEF4444),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricTile({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -609,7 +831,7 @@ class _PerformanceViewState extends State<PerformanceView> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  isOngoing ? l10n.ongoing : 'Completed',
+                  isOngoing ? l10n.ongoing : l10n.completed,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -631,9 +853,9 @@ class _PerformanceViewState extends State<PerformanceView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'START TIME',
-                      style: TextStyle(
+                    Text(
+                      l10n.startTime,
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textMuted,
@@ -658,9 +880,9 @@ class _PerformanceViewState extends State<PerformanceView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
-                      'END TIME',
-                      style: TextStyle(
+                    Text(
+                      l10n.endTime,
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textMuted,
@@ -721,6 +943,167 @@ class _PerformanceViewState extends State<PerformanceView> {
     );
   }
 
+  /// Section displaying ride acceptance/decline actions on selected date
+  Widget _buildRideActionsSection(
+      BuildContext context, PerformanceViewModel vm, AppLocalizations l10n) {
+    final actions = vm.rideActionsForSelectedDate;
+    if (actions.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.rideRequestHistory,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                l10n.requestsCount(actions.length),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...actions.asMap().entries.map((entry) {
+          final action = entry.value;
+          return _buildRideActionTile(context, action, l10n);
+        }),
+      ],
+    );
+  }
+
+  Widget _buildRideActionTile(
+      BuildContext context, DriverRideActionModel action, AppLocalizations l10n) {
+    final isAccepted = action.isAccepted;
+    final color =
+        isAccepted ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+    final icon =
+        isAccepted ? Icons.check_circle_rounded : Icons.cancel_rounded;
+    final title = isAccepted ? l10n.rideAccepted : l10n.rideDeclined;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 16, color: color),
+                  const SizedBox(width: 6),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                action.formattedTimeOnly,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          if (action.pickupAddress != null &&
+              action.pickupAddress!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.my_location_rounded,
+                    size: 13, color: AppColors.primary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    action.pickupAddress!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textPrimary),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (action.dropAddress != null &&
+              action.dropAddress!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.location_on_rounded,
+                    size: 13, color: Color(0xFFEF4444)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    action.dropAddress!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textPrimary),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (action.fare != null && action.fare! > 0) ...[
+            const SizedBox(height: 6),
+            Text(
+              '₹ ${action.fare!.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryDark,
+              ),
+            ),
+          ],
+          if (action.reason != null && action.reason!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              l10n.reasonLabel(action.reason!),
+              style: const TextStyle(
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   /// Empty state when no sessions found for the date
   Widget _buildEmptyState(AppLocalizations l10n) {
     return Container(
@@ -749,10 +1132,10 @@ class _PerformanceViewState extends State<PerformanceView> {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Go online from the Home dashboard to track your active login hours.',
+          Text(
+            l10n.goOnlineToTrackHours,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               color: AppColors.textMuted,
             ),

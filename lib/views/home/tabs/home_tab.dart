@@ -8,6 +8,8 @@ import '../../../viewmodels/home_viewmodel.dart';
 import '../../../viewmodels/wallet_viewmodel.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../viewmodels/performance_viewmodel.dart';
+import '../../../models/driver_model.dart';
+import '../widgets/registration_fee_dialog.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class HomeTab extends StatefulWidget {
@@ -18,6 +20,8 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
+  bool _isRegistrationDialogShowing = false;
+
   @override
   void initState() {
     super.initState();
@@ -29,11 +33,29 @@ class _HomeTabState extends State<HomeTab> {
         context.read<WalletViewModel>().fetchWalletData(profileVm.driver!.id!);
         context.read<PerformanceViewModel>().fetchTodayLoginTime(profileVm.driver!.id!);
         context.read<PerformanceViewModel>().fetchLoginDaysThisMonth(profileVm.driver!.id!);
+
+        // Check registration fee status on home load
+        _checkRegistrationFeeStatus(profileVm.driver);
       }
     });
   }
 
+  void _checkRegistrationFeeStatus(DriverModel? driver) {
+    if (driver == null) return;
+    final profileVm = context.read<ProfileViewModel>();
+    final feeAmount = profileVm.appConfig.registrationFee;
+    if (feeAmount <= 0) return;
+
+    if (!driver.registrationFeePaid && !_isRegistrationDialogShowing && mounted) {
+      _isRegistrationDialogShowing = true;
+      showRegistrationFeeDialog(context).then((_) {
+        _isRegistrationDialogShowing = false;
+      });
+    }
+  }
+
   void _showPassRequiredDialog(BuildContext context, String driverId, double fee) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogCtx) {
@@ -50,22 +72,22 @@ class _HomeTabState extends State<HomeTab> {
                 child: Icon(Icons.warning_amber_rounded, color: Colors.amber.shade900, size: 24),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Daily Pass Required ⚠️',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  l10n.dailyPassRequiredTitle,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
           content: Text(
-            'You must pay your daily fee (₹${fee.toStringAsFixed(0)}) to activate your 24-hour pass before going online.',
+            l10n.dailyPassRequiredDesc(fee.toStringAsFixed(0)),
             style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton.icon(
               onPressed: () {
@@ -80,7 +102,7 @@ class _HomeTabState extends State<HomeTab> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               icon: const Icon(Icons.flash_on_rounded, size: 16),
-              label: Text('Pay Daily Fee (₹${fee.toStringAsFixed(0)})'),
+              label: Text(l10n.payDailyFee(fee.toStringAsFixed(0))),
             ),
           ],
         );
@@ -96,6 +118,12 @@ class _HomeTabState extends State<HomeTab> {
       builder: (context, vm, child) {
         final driver = vm.driver;
         final allTrips = vm.trips;
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && driver != null && !driver.registrationFeePaid) {
+            _checkRegistrationFeeStatus(driver);
+          }
+        });
 
         final now = DateTime.now();
         final todayStart = DateTime(now.year, now.month, now.day);
@@ -287,6 +315,7 @@ class _HomeTabState extends State<HomeTab> {
                   if (!walletVm.isBlocked) return const SizedBox.shrink();
 
                   final isPassRequired = walletVm.blockReason == 'daily_pass_required';
+                  if (isPassRequired && vm.isFreeDriverLogin) return const SizedBox.shrink();
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 20),
@@ -313,8 +342,8 @@ class _HomeTabState extends State<HomeTab> {
                             Expanded(
                               child: Text(
                                 isPassRequired
-                                    ? '24-Hour Pass Required ⚠️'
-                                    : 'Orders Paused for Today ⛔',
+                                    ? l10n.dailyPassRequiredTitle
+                                    : l10n.ordersPausedTitle,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -327,8 +356,8 @@ class _HomeTabState extends State<HomeTab> {
                         const SizedBox(height: 6),
                         Text(
                           isPassRequired
-                              ? 'Your 24-hour daily pass is expired or unpaid. Pay ₹${walletVm.vehicleDailyFee.toStringAsFixed(0)} to activate your pass and go online for 24 hours.'
-                              : 'You rejected 2 order requests today. Order allocation is paused for the remainder of today.',
+                              ? l10n.dailyPassRequiredDesc(walletVm.vehicleDailyFee.toStringAsFixed(0))
+                              : l10n.ordersPausedDesc,
                           style: TextStyle(
                             fontSize: 12,
                             color: isPassRequired ? Colors.amber.shade900 : Colors.red.shade800,
@@ -370,9 +399,9 @@ class _HomeTabState extends State<HomeTab> {
                             label: Text(
                               isPassRequired
                                   ? (walletVm.isPayingFee
-                                      ? 'Activating Pass...'
-                                      : 'Pay Daily Fee (₹${walletVm.vehicleDailyFee.toStringAsFixed(0)})')
-                                  : 'View Wallet Details',
+                                      ? l10n.activatingPass
+                                      : l10n.payDailyFee(walletVm.vehicleDailyFee.toStringAsFixed(0)))
+                                  : l10n.viewWalletDetails,
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ),
@@ -446,7 +475,7 @@ class _HomeTabState extends State<HomeTab> {
                                   children: [
                                     Text(
                                       vm.isTogglingOnline
-                                          ? 'UPDATING STATUS...'
+                                          ? l10n.updatingStatus
                                           : (vm.isOnline
                                               ? l10n.youAreOnlineCaps
                                               : l10n.youAreOfflineCaps),
@@ -463,7 +492,7 @@ class _HomeTabState extends State<HomeTab> {
                                     const SizedBox(height: 2),
                                     Text(
                                       vm.isTogglingOnline
-                                          ? 'Updating online status...'
+                                          ? l10n.updatingOnlineStatus
                                           : (vm.isOnline
                                               ? l10n.readyToReceiveRideRequests
                                               : l10n.switchOnlineToStartEarning),
@@ -499,7 +528,7 @@ class _HomeTabState extends State<HomeTab> {
                                 onChanged: (val) {
                                   final walletVm =
                                       context.read<WalletViewModel>();
-                                  if (val && !walletVm.isPassActive) {
+                                  if (val && !walletVm.isPassActive && !vm.isFreeDriverLogin) {
                                     _showPassRequiredDialog(
                                         context,
                                         driver?.id ?? '',
@@ -651,9 +680,9 @@ class _HomeTabState extends State<HomeTab> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        'My Performance',
-                                        style: TextStyle(
+                                      Text(
+                                        l10n.myPerformance,
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
@@ -737,9 +766,9 @@ class _HomeTabState extends State<HomeTab> {
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                 ),
-                                                child: const Text(
-                                                  'LIVE',
-                                                  style: TextStyle(
+                                                child: Text(
+                                                  l10n.live,
+                                                  style: const TextStyle(
                                                     fontSize: 8,
                                                     fontWeight: FontWeight.bold,
                                                     color: Colors.white,
@@ -759,9 +788,9 @@ class _HomeTabState extends State<HomeTab> {
                                           ),
                                         ),
                                         const SizedBox(height: 0),
-                                        const Text(
-                                          'Login Hours',
-                                          style: TextStyle(
+                                        Text(
+                                          l10n.loginHours,
+                                          style: const TextStyle(
                                             fontSize: 11,
                                             color: AppColors.textSecondary,
                                             fontWeight: FontWeight.w500,
@@ -803,18 +832,18 @@ class _HomeTabState extends State<HomeTab> {
                                           ),
                                         ),
                                         const SizedBox(height: 2),
-                                        const Text(
-                                          '– –',
-                                          style: TextStyle(
+                                        Text(
+                                          perfVm.formattedTodayCompletionScore,
+                                          style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.textPrimary,
                                           ),
                                         ),
                                         const SizedBox(height: 0),
-                                        const Text(
-                                          'Completion Score',
-                                          style: TextStyle(
+                                        Text(
+                                          l10n.completionScore,
+                                          style: const TextStyle(
                                             fontSize: 11,
                                             color: AppColors.textSecondary,
                                             fontWeight: FontWeight.w500,

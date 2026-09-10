@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/constants/app_colors.dart';
 import '../core/services/supabase_service.dart';
 import '../core/services/fcm_service.dart';
 import '../models/driver_model.dart';
@@ -16,6 +17,7 @@ import '../models/booking_model.dart';
 import 'ride_request_viewmodel.dart';
 import 'wallet_viewmodel.dart';
 import '../models/wallet_model.dart';
+import '../models/partner_app_config_model.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
@@ -34,11 +36,18 @@ class ProfileViewModel extends ChangeNotifier {
   List<RatingModel> get ratings => _ratings;
   List<BookingModel> get trips => _trips;
 
+  PartnerAppConfigModel _appConfig = PartnerAppConfigModel.defaultConfig();
+  PartnerAppConfigModel get appConfig => _appConfig;
+  bool get isFreeDriverLogin => _appConfig.isFreeDriverLogin;
+
   bool _isOnline = false;
   bool get isOnline => _isOnline;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  bool _isPayingRegistrationFee = false;
+  bool get isPayingRegistrationFee => _isPayingRegistrationFee;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
@@ -110,6 +119,9 @@ class ProfileViewModel extends ChangeNotifier {
     _errorMessage = null;
 
     try {
+      // Fetch latest app configuration asynchronously
+      fetchAppConfig();
+
       DriverModel? loadedDriver;
       if (driverIdOrPhone.startsWith('+') ||
           RegExp(r'^\d+$').hasMatch(driverIdOrPhone)) {
@@ -145,9 +157,10 @@ class ProfileViewModel extends ChangeNotifier {
 
         if (_isOnline && context != null && context.mounted) {
           final walletVm = Provider.of<WalletViewModel>(context, listen: false);
+          walletVm.setFreeDriverLogin(isFreeDriverLogin);
           await walletVm.fetchWalletData(loadedDriver.id!);
 
-          if (walletVm.isBlocked || !walletVm.isPassActive) {
+          if ((walletVm.isBlocked || !walletVm.isPassActive) && !isFreeDriverLogin) {
             debugPrint('🚨 Daily Pass expired or driver blocked! Auto-offlining driver.');
             _isOnline = false;
             await _supabaseService.updateOnlineStatus(loadedDriver.id!, false);
@@ -361,17 +374,17 @@ class ProfileViewModel extends ChangeNotifier {
         final walletBalance = wallet?.balance ?? 0.0;
 
         final isRejectionBlock = (dailyStatus?.rejectionsCount ?? 0) >= 2 || dailyStatus?.blockReason == 'exceeded_rejections';
-        bool isPassActive = dailyStatus?.isPassActive ?? false;
+        bool isPassActive = isFreeDriverLogin || (dailyStatus?.isPassActive ?? false);
 
-        // Auto-activate 24-hour pass if wallet has sufficient balance and pass is not active
-        if (!isPassActive && !isRejectionBlock && walletBalance >= vehicleDailyFee && context.mounted) {
+        // Auto-activate 24-hour pass if wallet has sufficient balance and pass is not active (when not free login)
+        if (!isFreeDriverLogin && !isPassActive && !isRejectionBlock && walletBalance >= vehicleDailyFee && context.mounted) {
           final paid = await context.read<WalletViewModel>().payDailyFee(driverId: _driver!.id!, context: context);
           if (paid) {
             isPassActive = true;
           }
         }
 
-        if (isRejectionBlock || !isPassActive || dailyStatus?.isBlocked == true) {
+        if (isRejectionBlock || (!isFreeDriverLogin && !isPassActive) || dailyStatus?.isBlocked == true) {
           _isOnline = false;
           await _supabaseService.updateOnlineStatus(_driver!.id!, false);
 
@@ -641,6 +654,86 @@ class ProfileViewModel extends ChangeNotifier {
     } catch (e) {
       debugPrint('Notice clearing session: $e');
     }
+  }
+
+  /// Pay driver registration fee and update local driver state
+  Future<bool> payRegistrationFee(BuildContext context) async {
+    if (_driver?.id == null) return false;
+    _isPayingRegistrationFee = true;
+    notifyListeners();
+
+    try {
+      final res = await _supabaseService.payDriverRegistrationFee(_driver!.id!);
+      final success = res['success'] as bool? ?? false;
+      if (success) {
+        _driver = _driver?.copyWith(registrationFeePaid: true);
+        notifyListeners();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('🎉 Registration fee paid successfully! Partner account is active.'),
+              backgroundColor: const Color(0xFF09A234),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+        return true;
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(res['message']?.toString() ?? 'Failed to pay registration fee.'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+        return false;
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error paying registration fee: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+      return false;
+    } finally {
+      _isPayingRegistrationFee = false;
+      notifyListeners();
+    }
+  }
+
+  /// Re-fetch profile to check if registration fee has been paid externally/by admin
+  Future<void> refreshRegistrationStatus(BuildContext context) async {
+    if (_driver?.id == null) return;
+    await fetchProfile(_driver!.id!, context);
+  }
+
+  /// Sets app configuration directly (e.g. for testing or override)
+  void setAppConfig(PartnerAppConfigModel config) {
+    _appConfig = config;
+    notifyListeners();
+  }
+
+  Future<PartnerAppConfigModel> fetchAppConfig([BuildContext? context]) async {
+    try {
+      _appConfig = await _supabaseService.getPartnerAppConfig();
+      if (context != null && context.mounted) {
+        context.read<WalletViewModel>().setFreeDriverLogin(_appConfig.isFreeDriverLogin);
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Notice fetching app config in profile vm: $e');
+    }
+    return _appConfig;
   }
 
   void _showSnackBar(BuildContext context, String message) {

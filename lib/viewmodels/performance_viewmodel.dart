@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/services/supabase_service.dart';
 import '../models/driver_login_time_model.dart';
+import '../models/driver_ride_action_model.dart';
 
 class PerformanceViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
@@ -13,6 +14,13 @@ class PerformanceViewModel extends ChangeNotifier {
 
   List<DriverLoginTimeModel> _todaySessions = [];
   List<DriverLoginTimeModel> get todaySessions => _todaySessions;
+
+  List<DriverRideActionModel> _rideActionsForSelectedDate = [];
+  List<DriverRideActionModel> get rideActionsForSelectedDate =>
+      _rideActionsForSelectedDate;
+
+  List<DriverRideActionModel> _todayRideActions = [];
+  List<DriverRideActionModel> get todayRideActions => _todayRideActions;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -34,6 +42,70 @@ class PerformanceViewModel extends ChangeNotifier {
     return _selectedDate.year == now.year &&
         _selectedDate.month == now.month &&
         _selectedDate.day == now.day;
+  }
+
+  // ── Selected Date Stats ──
+
+  /// Total ride requests offered on selected date
+  int get totalRequestsForSelectedDate => _rideActionsForSelectedDate.length;
+
+  /// Accepted requests count on selected date
+  int get acceptedRequestsForSelectedDate =>
+      _rideActionsForSelectedDate.where((a) => a.isAccepted).length;
+
+  /// Declined / Denied requests count on selected date
+  int get declinedRequestsForSelectedDate =>
+      _rideActionsForSelectedDate.where((a) => a.isDeclined).length;
+
+  /// Timeout requests count on selected date
+  int get timeoutRequestsForSelectedDate =>
+      _rideActionsForSelectedDate.where((a) => a.isTimeout).length;
+
+  /// Completion Score (%) on selected date: (accepted / total) * 100
+  /// If 3 accepted and 2 declined (total = 5), completion score = (3 / 5) * 100 = 60%
+  double get completionScoreForSelectedDate {
+    if (totalRequestsForSelectedDate == 0) return 100.0;
+    final score =
+        (acceptedRequestsForSelectedDate / totalRequestsForSelectedDate) * 100.0;
+    return double.parse(score.toStringAsFixed(1));
+  }
+
+  /// Formatted completion score for selected date (e.g. "60%" or "100%")
+  String get formattedCompletionScoreForSelectedDate {
+    final score = completionScoreForSelectedDate;
+    if (score == score.toInt()) {
+      return '${score.toInt()}%';
+    }
+    return '${score.toStringAsFixed(1)}%';
+  }
+
+  // ── Today's Stats (Home Tab Quick Display) ──
+
+  /// Total ride requests offered today
+  int get todayTotalRequests => _todayRideActions.length;
+
+  /// Accepted requests count today
+  int get todayAcceptedCount =>
+      _todayRideActions.where((a) => a.isAccepted).length;
+
+  /// Declined / Denied requests count today
+  int get todayDeclinedCount =>
+      _todayRideActions.where((a) => a.isDeclined).length;
+
+  /// Completion score today (%)
+  double get todayCompletionScore {
+    if (todayTotalRequests == 0) return 100.0;
+    final score = (todayAcceptedCount / todayTotalRequests) * 100.0;
+    return double.parse(score.toStringAsFixed(1));
+  }
+
+  /// Formatted completion score today (e.g. "60%" or "100%")
+  String get formattedTodayCompletionScore {
+    final score = todayCompletionScore;
+    if (score == score.toInt()) {
+      return '${score.toInt()}%';
+    }
+    return '${score.toStringAsFixed(1)}%';
   }
 
   /// Total duration for selected date
@@ -105,7 +177,7 @@ class PerformanceViewModel extends ChangeNotifier {
     }
   }
 
-  /// Fetch today's login time for Home Dashboard card
+  /// Fetch today's login time & completion score for Home Dashboard card
   Future<void> fetchTodayLoginTime(String driverId) async {
     if (driverId.isEmpty) return;
     _currentDriverId = driverId;
@@ -116,12 +188,19 @@ class PerformanceViewModel extends ChangeNotifier {
       final results = await _supabaseService.getTodayDriverLoginTimes(driverId);
       _todaySessions = results;
 
-      // If selected date is today, update loginSessions too
+      final todayActions = await _supabaseService.getDriverRideActionsForDate(
+        driverId: driverId,
+        date: DateTime.now(),
+      );
+      _todayRideActions = todayActions;
+
+      // If selected date is today, update selected date sessions & actions too
       if (isSelectedDateToday) {
         _loginSessions = results;
+        _rideActionsForSelectedDate = todayActions;
       }
     } catch (e) {
-      debugPrint('Error fetching today login time: $e');
+      debugPrint('Error fetching today performance data: $e');
     } finally {
       _isFetchingToday = false;
       notifyListeners();
@@ -132,9 +211,10 @@ class PerformanceViewModel extends ChangeNotifier {
   Future<void> fetchLoginDaysThisMonth(String driverId) async {
     if (driverId.isEmpty) return;
     _currentDriverId = driverId;
-    
+
     try {
-      _loginDaysThisMonth = await _supabaseService.getDriverLoginDaysCountThisMonth(driverId);
+      _loginDaysThisMonth =
+          await _supabaseService.getDriverLoginDaysCountThisMonth(driverId);
     } catch (e) {
       debugPrint('Error fetching login days this month: $e');
     } finally {
@@ -142,7 +222,7 @@ class PerformanceViewModel extends ChangeNotifier {
     }
   }
 
-  /// Fetch login times for a specific selected date
+  /// Fetch login times & ride actions for a specific selected date
   Future<void> fetchLoginTimesForDate(String driverId, DateTime date) async {
     if (driverId.isEmpty) return;
     _currentDriverId = driverId;
@@ -158,13 +238,20 @@ class PerformanceViewModel extends ChangeNotifier {
       );
       _loginSessions = results;
 
-      // If fetching today's date, also sync _todaySessions
+      final actions = await _supabaseService.getDriverRideActionsForDate(
+        driverId: driverId,
+        date: date,
+      );
+      _rideActionsForSelectedDate = actions;
+
+      // If fetching today's date, also sync _todaySessions & _todayRideActions
       if (isSelectedDateToday) {
         _todaySessions = results;
+        _todayRideActions = actions;
       }
     } catch (e) {
       _errorMessage = e.toString();
-      debugPrint('Error fetching login times for date: $e');
+      debugPrint('Error fetching performance data for date: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

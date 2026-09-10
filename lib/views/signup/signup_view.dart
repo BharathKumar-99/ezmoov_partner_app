@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,9 +10,17 @@ import '../../viewmodels/auth_viewmodel.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/gradient_button.dart';
 import '../../widgets/language_selector_button.dart';
+import 'widgets/terms_and_conditions_dialog.dart';
 
-class SignupView extends StatelessWidget {
+class SignupView extends StatefulWidget {
   const SignupView({super.key});
+
+  @override
+  State<SignupView> createState() => _SignupViewState();
+}
+
+class _SignupViewState extends State<SignupView> {
+  bool _isTermsAccepted = false;
 
   void _showImagePicker(BuildContext context, AuthViewModel vm) {
     showModalBottomSheet(
@@ -69,6 +78,25 @@ class SignupView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showTermsModal({
+    int initialTabIndex = 0,
+    bool autoProceed = false,
+    required AuthViewModel vm,
+  }) async {
+    final accepted = await showTermsAndConditionsDialog(
+      context,
+      initialTabIndex: initialTabIndex,
+    );
+    if (accepted == true && mounted) {
+      setState(() {
+        _isTermsAccepted = true;
+      });
+      if (autoProceed) {
+        vm.handleSignup(context);
+      }
+    }
   }
 
   @override
@@ -140,7 +168,7 @@ class SignupView extends StatelessWidget {
                             ],
                           ),
                           child: vm.profilePicPath != null
-                              ? ClipOval(
+                                  ? ClipOval(
                                   child: Image.file(
                                     File(vm.profilePicPath!),
                                     fit: BoxFit.cover,
@@ -190,6 +218,7 @@ class SignupView extends StatelessWidget {
                       ],
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomTextField(
                           controller: vm.signupNameController,
@@ -221,12 +250,100 @@ class SignupView extends StatelessWidget {
                           hint: 'e.g. EZM9876',
                           prefixIcon: Icons.confirmation_number_outlined,
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 18),
+
+                        // Terms and Conditions Checkbox Row
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _isTermsAccepted = !_isTermsAccepted;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Checkbox(
+                                    value: _isTermsAccepted,
+                                    activeColor: AppColors.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                     side: BorderSide(
+                                      color: _isTermsAccepted
+                                          ? AppColors.primary
+                                          : AppColors.textMuted,
+                                      width: 1.5,
+                                    ),
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _isTermsAccepted = val ?? false;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                        height: 1.4,
+                                      ),
+                                      children: [
+                                        TextSpan(text: l10n.iAgreeTo),
+                                        TextSpan(
+                                          text: l10n.driverPartnerAgreement,
+                                          style: const TextStyle(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.bold,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () =>
+                                                _showTermsModal(initialTabIndex: 0, vm: vm),
+                                        ),
+                                        TextSpan(text: l10n.and),
+                                        TextSpan(
+                                          text: l10n.termsAndConditions,
+                                          style: const TextStyle(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.bold,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () =>
+                                                _showTermsModal(initialTabIndex: 1, vm: vm),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
                         GradientButton(
                           text: l10n.signUpAndContinue,
                           isLoading: vm.isLoading,
                           icon: Icons.arrow_forward_rounded,
-                          onPressed: () => vm.handleSignup(context),
+                          onPressed: () {
+                            if (!_isTermsAccepted) {
+                              _showTermsModal(autoProceed: true, vm: vm);
+                            } else {
+                              vm.handleSignup(context);
+                            }
+                          },
                         ),
                       ],
                     ),

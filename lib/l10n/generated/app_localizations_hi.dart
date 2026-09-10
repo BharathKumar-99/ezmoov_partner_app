@@ -55,7 +55,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pickupLocation => 'पिकअप स्थान';
 
   @override
-  String get dropoffLocation => 'ड्रॉपऑफ़ स्थान';
+  String get dropoffLocation => 'ड्रॉप-ऑफ स्थान';
 
   @override
   String get vehicleAndEquipment => 'वाहन और उपकरण';
@@ -473,6 +473,75 @@ class AppLocalizationsHi extends AppLocalizations {
   String get signUpAndContinue => 'साइन अप करें और आगे बढ़ें';
 
   @override
+  String get iAgreeTo => 'मैं ';
+
+  @override
+  String get termsAndConditions => 'नियम और शर्तें';
+
+  @override
+  String get and => ' और ';
+
+  @override
+  String get privacyPolicy => 'गोपनीयता नीति';
+
+  @override
+  String get driverPartnerAgreement => 'ड्राइवर पार्टनर अनुबंध';
+
+  @override
+  String get platformTermsOfUse => 'प्लेटफ़ॉर्म उपयोग की शर्तें';
+
+  @override
+  String get acceptTermsToContinue =>
+      'जारी रखने के लिए कृपया नियम और शर्तें स्वीकार करें।';
+
+  @override
+  String get partnerTermsAndConditionsTitle => 'नियम और शर्तें';
+
+  @override
+  String get partnerAgreement => 'EZMoov पार्टनर अनुबंध';
+
+  @override
+  String get acceptAndContinue => 'स्वीकार करें और आगे बढ़ें';
+
+  @override
+  String get acceptTerms => 'नियम स्वीकार करें';
+
+  @override
+  String get decline => 'अस्वीकार करें';
+
+  @override
+  String get pleaseReadAndAcceptTerms =>
+      'अपना पंजीकरण पूरा करने के लिए कृपया हमारे पार्टनर नियम और शर्तों की समीक्षा करें और स्वीकार करें।';
+
+  @override
+  String get termsSection1Title => '1. ड्राइवर पार्टनर अनुबंध';
+
+  @override
+  String get termsSection1Desc =>
+      'पंजीकरण करके, आप EZMoov मानकों के अनुसार सुरक्षित और पेशेवर रूप से परिवहन सेवाएं प्रदान करने के लिए सहमत हैं।';
+
+  @override
+  String get termsSection2Title => '2. दस्तावेज़ और सत्यापन';
+
+  @override
+  String get termsSection2Desc =>
+      'आप वैध ड्राइविंग लाइसेंस, वाहन पंजीकरण और परमिट प्रदान करने के लिए सहमत हैं। गलत जानकारी से खाता बंद हो सकता है।';
+
+  @override
+  String get termsSection3Title => '3. किराया और प्लेटफ़ॉर्म भुगतान';
+
+  @override
+  String get termsSection3Desc =>
+      'भुगतान और सेवा शुल्क EZMoov प्लेटफ़ॉर्म नीति का पालन करते हैं। कमाई आपके सत्यापित बैंक खाते में जमा की जाएगी।';
+
+  @override
+  String get termsSection4Title => '4. सुरक्षा और आचरण';
+
+  @override
+  String get termsSection4Desc =>
+      'ड्राइवरों को सभी ट्रैफ़िक नियमों का पालन करना चाहिए, वाहन की फिटनेस बनाए रखनी चाहिए और ग्राहकों के साथ सम्मानपूर्वक व्यवहार करना चाहिए।';
+
+  @override
   String get alreadyHaveAccount => 'क्या आपके पास पहले से एक खाता मौजूद है? ';
 
   @override
@@ -679,7 +748,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get emergencySos => 'आपातकालीन एसओएस';
 
   @override
-  String get callAmbulance108 => 'एम्बुलेंस (108) को कॉल करें';
+  String get callAmbulance108 => 'एम्बुलेंस को कॉल करें (108)';
 
   @override
   String get sosButtonText => 'एसओएस (108)';
@@ -688,16 +757,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get tapToCallAmbulance => 'डायल करने के लिए टैप करें एम्बुलेंस (108)';
 
   @override
-  String get cancelTrip => 'ट्रिप रद्द करें';
+  String get cancelTrip => 'यात्रा रद्द करें';
 
   @override
   String get confirmCashPayment => 'नकद भुगतान की पुष्टि करें';
 
   @override
-  String get yesReceivedCash => 'हां, नकद प्राप्त हुआ';
+  String get yesReceivedCash => 'हाँ, नकद प्राप्त हुआ';
 
   @override
-  String get cargoPickupPhoto => 'कार्गो पिकअप फोटो';
+  String get cargoPickupPhoto => 'सामान पिकअप फोटो';
 
   @override
   String get cargoPhotoMandatory =>
@@ -770,4 +839,1112 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get yesterday => 'कल';
+
+  @override
+  String get systemStatus => 'सिस्टम स्थिति';
+
+  @override
+  String get scheduledDowntime => 'निर्धारित रखरखाव';
+
+  @override
+  String get appUnderMaintenance => 'ऐप रखरखाव के अधीन है';
+
+  @override
+  String get maintenanceInProgressDesc =>
+      'पार्टनर सिस्टम को अपग्रेड करने के लिए निर्धारित रखरखाव चल रहा है। ड्राइवर सेवाएं और बुकिंग अस्थायी रूप से रुकी हुई हैं। हम जल्द ही वापस आएंगे!';
+
+  @override
+  String get whatYouNeedToKnow => 'आपको क्या जानना आवश्यक है';
+
+  @override
+  String get walletAndEarningsSafe => 'वॉलेट और कमाई 100% सुरक्षित हैं';
+
+  @override
+  String get walletAndEarningsSafeDesc =>
+      'सभी शेष राशि, भुगतान और ट्रिप विवरण पूरी तरह सुरक्षित हैं।';
+
+  @override
+  String get autoServiceResumption => 'स्वचालित सेवा बहाली';
+
+  @override
+  String get autoServiceResumptionDesc =>
+      'रखरखाव समाप्त होते ही आप तुरंत ऑनलाइन जा सकेंगे।';
+
+  @override
+  String get realtimeReconnection => 'रीयल-टाइम रीकनेक्शन';
+
+  @override
+  String get realtimeReconnectionDesc =>
+      'सर्वर कनेक्शन जांचने के लिए नीचे रिफ्रेश पर टैप करें।';
+
+  @override
+  String get checkServerStatus => 'सर्वर स्थिति जांचें';
+
+  @override
+  String get contactPartnerHelpline => 'पार्टनर हेल्पलाइन से संपर्क करें';
+
+  @override
+  String get maintenanceCompleteMsg =>
+      '🎉 रखरखाव पूरा हुआ! वापसी पर स्वागत है।';
+
+  @override
+  String get maintenanceStillOngoingMsg =>
+      'सिस्टम का रखरखाव अभी भी जारी है। कृपया कुछ देर बाद पुनः प्रयास करें।';
+
+  @override
+  String get appUpdate => 'ऐप अपडेट';
+
+  @override
+  String get mandatoryUpdate => 'अनिवार्य अपडेट';
+
+  @override
+  String get newVersionAvailable => 'नया संस्करण उपलब्ध है';
+
+  @override
+  String currentVersionLabel(Object version) {
+    return 'वर्तमान: $version';
+  }
+
+  @override
+  String latestVersionLabel(Object version) {
+    return 'नवीनतम: $version';
+  }
+
+  @override
+  String get updateAvailable => 'अपडेट उपलब्ध है';
+
+  @override
+  String get updateAvailableDesc =>
+      'इज़ीमूव पार्टनर का नया और बेहतर संस्करण उपलब्ध है। बेहतर राइड आवंटन, बैटरी अनुकूलन और प्रदर्शन सुधार का लाभ उठाने के लिए अभी अपडेट करें।';
+
+  @override
+  String get whatsNewInThisVersion => 'इस संस्करण में नया क्या है';
+
+  @override
+  String get fasterOrderMatching => 'तेज़ ऑर्डर मिलान गति';
+
+  @override
+  String get fasterOrderMatchingDesc =>
+      'बिना किसी देरी के तुरंत आस-पास की राइड प्राप्त करें।';
+
+  @override
+  String get batteryGpsOptimization => 'बैटरी और जीपीएस अनुकूलन';
+
+  @override
+  String get batteryGpsOptimizationDesc =>
+      'स्मार्ट बैकग्राउंड ट्रैकिंग 35% कम बैटरी उपयोग करती है।';
+
+  @override
+  String get realtimeEarningUpdates => 'रीयल-टाइम कमाई अपडेट';
+
+  @override
+  String get realtimeEarningUpdatesDesc => 'सटीक गणना और त्वरित भुगतान स्थिति।';
+
+  @override
+  String get performanceStabilityPatches => 'प्रदर्शन और स्थिरता सुधार';
+
+  @override
+  String get performanceStabilityPatchesDesc =>
+      'आसान नेविगेशन और उन्नत विश्वसनीयता।';
+
+  @override
+  String get updateNow => 'अभी अपडेट करें';
+
+  @override
+  String get remindMeLater => 'बाद में याद दिलाएं';
+
+  @override
+  String get mandatoryUpdateNotice =>
+      '⚠️ ऑर्डर प्राप्त करना जारी रखने के लिए यह अपडेट आवश्यक है।';
+
+  @override
+  String get registrationFeeRequired => 'पंजीकरण शुल्क आवश्यक है';
+
+  @override
+  String get partnerAccountPending => 'पार्टनर खाता लंबित';
+
+  @override
+  String get registrationFeeExplanation =>
+      'इज़ीमूव पार्टनर में आपका स्वागत है! अपनी ड्राइवर प्रोफ़ाइल सक्रिय करने, ऑनलाइन जाने और राइड अनुरोध प्राप्त करने के लिए कृपया एकमुश्त पंजीकरण शुल्क का भुगतान करें।';
+
+  @override
+  String get verifiedPartnerBadge => 'सत्यापित इज़ीमूव पार्टनर बैज';
+
+  @override
+  String get instantRideDeliveryAllocation => 'त्वरित राइड और डिलीवरी आवंटन';
+
+  @override
+  String get fullDailyEarningsPayouts =>
+      'पूरी दैनिक कमाई और सीधा बैंक ट्रांसफर';
+
+  @override
+  String get payRegistrationFee => 'पंजीकरण शुल्क का भुगतान करें';
+
+  @override
+  String payRegistrationFeeAmount(Object amount) {
+    return 'पंजीकरण शुल्क का भुगतान करें (₹$amount)';
+  }
+
+  @override
+  String get refreshStatus => 'स्थिति ताज़ा करें';
+
+  @override
+  String get registrationFeePaidSuccess =>
+      '🎉 पंजीकरण शुल्क का सफलतापूर्वक भुगतान किया गया! पार्टनर खाता सक्रिय है।';
+
+  @override
+  String get registrationFeePaidFailed =>
+      'पंजीकरण शुल्क भुगतान विफल रहा। कृपया पुन: प्रयास करें।';
+
+  @override
+  String get myPerformance => 'मेरा प्रदर्शन';
+
+  @override
+  String get completionScore => 'पूर्णता स्कोर';
+
+  @override
+  String get completionRate => 'पूर्णता दर';
+
+  @override
+  String get ordersOverview => 'ऑर्डर अवलोकन';
+
+  @override
+  String get accepted => 'स्वीकृत';
+
+  @override
+  String get declined => 'अस्वीकृत';
+
+  @override
+  String get timeout => 'समय समाप्त';
+
+  @override
+  String get cancelled => 'रद्द';
+
+  @override
+  String get totalOffered => 'कुल प्रस्तुत';
+
+  @override
+  String get loginHours => 'लॉगिन घंटे';
+
+  @override
+  String get live => 'लाइव';
+
+  @override
+  String get dailyPassRequiredTitle => 'दैनिक पास आवश्यक ⚠️';
+
+  @override
+  String dailyPassRequiredDesc(Object fee) {
+    return 'आपका 24-घंटे का दैनिक पास समाप्त या अवैतनिक है। पास सक्रिय करने और 24 घंटे ऑनलाइन जाने के लिए ₹$fee का भुगतान करें।';
+  }
+
+  @override
+  String payDailyFee(Object fee) {
+    return 'दैनिक शुल्क का भुगतान करें (₹$fee)';
+  }
+
+  @override
+  String get activatingPass => 'पास सक्रिय हो रहा है...';
+
+  @override
+  String get ordersPausedTitle => 'आज के लिए ऑर्डर रोक दिए गए ⛔';
+
+  @override
+  String get ordersPausedDesc =>
+      'आपने आज 2 ऑर्डर अनुरोध अस्वीकार कर दिए। आज के शेष समय के लिए ऑर्डर आवंटन रोक दिया गया है।';
+
+  @override
+  String get viewWallet => 'वॉलेट देखें';
+
+  @override
+  String get viewWalletDetails => 'वॉलेट विवरण देखें';
+
+  @override
+  String get updatingStatus => 'स्थिति अपडेट हो रही है...';
+
+  @override
+  String get updatingOnlineStatus => 'ऑनलाइन स्थिति अपडेट हो रही है...';
+
+  @override
+  String get previousDay => 'पिछला दिन';
+
+  @override
+  String get nextDay => 'अगला दिन';
+
+  @override
+  String sessionsRecorded(num count) {
+    return '$count सत्र रिकॉर्ड किए गए';
+  }
+
+  @override
+  String get excellentAcceptance => 'उत्कृष्ट स्वीकृति';
+
+  @override
+  String get goodPerformance => 'अच्छा प्रदर्शन';
+
+  @override
+  String get highDeclineRate => 'उच्च अस्वीकृति दर';
+
+  @override
+  String acceptedOfOrders(Object accepted, Object total) {
+    return '($total प्रस्तुत में से $accepted स्वीकृत)';
+  }
+
+  @override
+  String get baselineNoOrders => '(आधार 100% • कोई ऑर्डर नहीं मिला)';
+
+  @override
+  String get startTime => 'प्रारंभ समय';
+
+  @override
+  String get endTime => 'समाप्ति समय';
+
+  @override
+  String get rideRequestHistory => 'राइड अनुरोध इतिहास';
+
+  @override
+  String requestsCount(num count) {
+    return '$count अनुरोध';
+  }
+
+  @override
+  String get rideAccepted => 'राइड स्वीकृत';
+
+  @override
+  String get rideDeclined => 'राइड अस्वीकृत';
+
+  @override
+  String reasonLabel(Object reason) {
+    return 'कारण: $reason';
+  }
+
+  @override
+  String get goOnlineToTrackHours =>
+      'अपने सक्रिय लॉगिन घंटों को ट्रैक करने के लिए होम डैशबोर्ड से ऑनलाइन जाएं।';
+
+  @override
+  String get myWallet => 'मेरा वॉलेट';
+
+  @override
+  String get walletBalance => 'वॉलेट शेष';
+
+  @override
+  String get addMoney => 'पैसे जोड़ें';
+
+  @override
+  String get addMoneyToWallet => 'वॉलेट में पैसे जोड़ें';
+
+  @override
+  String get addMoneySubtitle =>
+      'दैनिक वाहन शुल्क का भुगतान करने और ऑर्डर के लिए सक्रिय रहने के लिए अपना वॉलेट रिचार्ज करें।';
+
+  @override
+  String get enterAmount => 'राशि दर्ज करें';
+
+  @override
+  String get rechargeWallet => 'वॉलेट रिचार्ज करें';
+
+  @override
+  String get transactionHistory => 'लेन-देन इतिहास';
+
+  @override
+  String get noTransactionsYet => 'अभी तक कोई लेन-देन नहीं';
+
+  @override
+  String get noTransactionsSubtitle =>
+      'आपके वॉलेट रिचार्ज और दैनिक शुल्क कटौती यहां दिखाई देंगे।';
+
+  @override
+  String get dailyPassActive => 'दैनिक पास सक्रिय है';
+
+  @override
+  String get dailyPassExpired => 'दैनिक पास निष्क्रिय है';
+
+  @override
+  String passValidUntil(Object time) {
+    return '$time तक मान्य';
+  }
+
+  @override
+  String get dailyVehicleFee => 'दैनिक वाहन शुल्क';
+
+  @override
+  String payFromWallet(Object amount) {
+    return 'वॉलेट से भुगतान करें (₹$amount)';
+  }
+
+  @override
+  String payDirectlyRazorpay(Object amount) {
+    return 'यूपीआई / रेजरपे से भुगतान करें (₹$amount)';
+  }
+
+  @override
+  String get invitePartnersBannerTitle =>
+      'पार्टनर्स को आमंत्रित करें और ₹25 कमाएं!';
+
+  @override
+  String get invitePartnersBannerDesc =>
+      'आपके कोड से पंजीकरण करने वाले प्रत्येक ड्राइवर पार्टनर के लिए ₹25 वॉलेट नकद कमाएं!';
+
+  @override
+  String get yourUniqueReferralCode => 'आपका अद्वितीय रेफ़रल कोड';
+
+  @override
+  String get shareOnWhatsApp => 'व्हाट्सएप पर साझा करें';
+
+  @override
+  String get wereYouReferred => 'क्या आपको किसी साथी ने रेफ़र किया था?';
+
+  @override
+  String get enterCodeToLink =>
+      'अपने खातों को लिंक करने के लिए उनका कोड दर्ज करें।';
+
+  @override
+  String get redeem => 'उपयोग करें';
+
+  @override
+  String get referredPartners => 'रेफ़र किए गए पार्टनर्स';
+
+  @override
+  String partnersCount(num count) {
+    return '$count पार्टनर्स';
+  }
+
+  @override
+  String get noReferralsYet => 'अभी तक कोई रेफ़रल नहीं';
+
+  @override
+  String get noReferralsDesc =>
+      'बोनस कमाना शुरू करने के लिए साथी ड्राइवरों के साथ अपना रेफ़रल कोड साझा करें!';
+
+  @override
+  String rewardedStatus(Object amount) {
+    return '₹$amount पुरस्कृत';
+  }
+
+  @override
+  String get pendingVerificationStatus => 'सत्यापन लंबित';
+
+  @override
+  String get enterReferralCodeDialogDesc =>
+      'अपने खातों को लिंक करने के लिए किसी अन्य पार्टनर ड्राइवर द्वारा दिए गए रेफ़रल कोड को दर्ज करें।';
+
+  @override
+  String get referralCodeFieldLabel => 'रेफ़रल कोड (उदा. EZM9876)';
+
+  @override
+  String get editProfile => 'प्रोफ़ाइल संपादित करें';
+
+  @override
+  String get changeProfilePicture => 'प्रोफ़ाइल फ़ोटो बदलें 📸';
+
+  @override
+  String get choosePhotoSource =>
+      'चुनें कि आप अपनी प्रोफ़ाइल फ़ोटो कैसे अपडेट करना चाहते हैं';
+
+  @override
+  String get camera => 'कैमरा';
+
+  @override
+  String get gallery => 'गैलरी';
+
+  @override
+  String get saveChanges => 'बदलाव सहेजें';
+
+  @override
+  String get profileUpdatedSuccess => 'प्रोफ़ाइल सफलतापूर्वक अपडेट की गई!';
+
+  @override
+  String get customerDeliveryRequest => 'ग्राहक डिलीवरी अनुरोध';
+
+  @override
+  String withinDistance(Object distance) {
+    return '$distance के भीतर';
+  }
+
+  @override
+  String get outstationBidding => 'आउटस्टेशन बोली';
+
+  @override
+  String get biddingStatus => 'बोली स्थिति';
+
+  @override
+  String get customerIsDeciding => 'ग्राहक निर्णय ले रहा है';
+
+  @override
+  String get activeTrip => 'सक्रिय ट्रिप';
+
+  @override
+  String get arrivedAtPickup => 'पिकअप पर पहुंचे';
+
+  @override
+  String get startTripCaps => 'ट्रिप शुरू करें';
+
+  @override
+  String get arrivedAtDropoff => 'ड्रॉप स्थान पर पहुंचे';
+
+  @override
+  String get completeTripCaps => 'ट्रिप पूरा करें';
+
+  @override
+  String get callCustomer => 'ग्राहक को कॉल करें';
+
+  @override
+  String get navigation => 'नेविगेशन';
+
+  @override
+  String get rideCancelledByCustomer => '⚠️ ग्राहक द्वारा राइड रद्द कर दी गई';
+
+  @override
+  String get noActivePendingBidFound => 'कोई सक्रिय लंबित बोली नहीं मिली।';
+
+  @override
+  String get returnToHome => 'होम पर लौटें';
+
+  @override
+  String get customerDecidingDesc =>
+      'आपकी बोली की ग्राहक द्वारा समीक्षा की जा रही है। आप नीचे कभी भी अपनी बोली अपडेट कर सकते हैं।';
+
+  @override
+  String get outstationCustomer => 'आउटस्टेशन ग्राहक';
+
+  @override
+  String get baseRate => 'आधार दर';
+
+  @override
+  String get yourActiveBid => 'आपकी सक्रिय बोली';
+
+  @override
+  String get pickupAddressCaps => 'पिकअप पता';
+
+  @override
+  String get dropAddressCaps => 'ड्रॉप पता';
+
+  @override
+  String get submitNewBidAmount => 'नई बोली राशि दर्ज करें (₹)';
+
+  @override
+  String get submitLowerPriceDesc =>
+      'अपने अवसर बढ़ाने के लिए कम या प्रतिस्पर्धी मूल्य दर्ज करें।';
+
+  @override
+  String get enterNewBidAmountHint => 'नई बोली राशि दर्ज करें';
+
+  @override
+  String get pleaseEnterBidAmount => 'कृपया बोली राशि दर्ज करें';
+
+  @override
+  String get enterValidPositiveBid => 'मान्य बोली राशि दर्ज करें';
+
+  @override
+  String get updateBid => 'बोली अपडेट करें';
+
+  @override
+  String get withdrawCancelBid => 'बोली वापस लें / रद्द करें';
+
+  @override
+  String get incomingRideRequestCaps => 'आने वाली राइड अनुरोध';
+
+  @override
+  String get within3km => '3 किमी के भीतर';
+
+  @override
+  String get within10km => '10 किमी के भीतर';
+
+  @override
+  String get standardDeliveryOrder => 'मानक डिलीवरी ऑर्डर';
+
+  @override
+  String inclIncentive(Object amount) {
+    return '₹$amount प्रोत्साहन सहित 🎁';
+  }
+
+  @override
+  String intermediateStopsBadge(Object charge, num count) {
+    return '$count मध्यवर्ती स्टॉप (+₹$charge)';
+  }
+
+  @override
+  String get acceptRideCaps => 'राइड स्वीकार करें';
+
+  @override
+  String get outstationBiddingRideCaps => 'आउटस्टेशन बोली राइड';
+
+  @override
+  String get outstationBooking => 'आउटस्टेशन बुकिंग';
+
+  @override
+  String get enterYourBidAmountCaps => 'अपनी बोली राशि दर्ज करें (₹)';
+
+  @override
+  String get bidAmountHint => 'उदा. 1500';
+
+  @override
+  String get submitBidCaps => 'बोली सबमिट करें';
+
+  @override
+  String reachedStop(Object stop) {
+    return 'स्टॉप $stop पर पहुंचे';
+  }
+
+  @override
+  String completedStop(Object stop) {
+    return 'स्टॉप $stop पूरा हुआ';
+  }
+
+  @override
+  String get atIntermediateStop => 'मध्यवर्ती स्टॉप पर';
+
+  @override
+  String get paymentConfirmedCaps => 'भुगतान की पुष्टि हुई';
+
+  @override
+  String get unloadedAwaitingPayment => 'अनलोड / भुगतान की प्रतीक्षा';
+
+  @override
+  String get inTransitToDropoff => 'ड्रॉप स्थान की ओर जा रहे हैं';
+
+  @override
+  String get headingToPickup => 'पिकअप स्थान की ओर जा रहे हैं';
+
+  @override
+  String get resumeCaps => 'जारी रखें';
+
+  @override
+  String bidPendingWithAmount(Object amount) {
+    return 'बोली लंबित • ₹ $amount';
+  }
+
+  @override
+  String get customerDecidingTapUpdate =>
+      'ग्राहक निर्णय ले रहा है... बोली बदलने के लिए टैप करें';
+
+  @override
+  String get viewBidCaps => 'बोली देखें';
+
+  @override
+  String stopsBadgeCount(Object count) {
+    return '+$count स्टॉप';
+  }
+
+  @override
+  String get tripFareBreakdown => 'ट्रिप किराया विवरण';
+
+  @override
+  String get baseFareIncludes1km => 'आधार किराया (पहला 1 किमी शामिल)';
+
+  @override
+  String get distanceChargesBeyond1km => 'दूरी शुल्क (1 किमी से अधिक)';
+
+  @override
+  String stopsChargeLabel(num count) {
+    return 'स्टॉप शुल्क ($count स्टॉप @ ₹25 प्रत्येक)';
+  }
+
+  @override
+  String get waitingCharges => 'प्रतीक्षा शुल्क';
+
+  @override
+  String get taxesAndGst => 'कर और जीएसटी';
+
+  @override
+  String get totalDeliveryFee => 'कुल डिलीवरी शुल्क';
+
+  @override
+  String get closeCaps => 'बंद करें';
+
+  @override
+  String get onlinePaymentPending => 'ऑनलाइन भुगतान लंबित';
+
+  @override
+  String get onlinePaymentPendingDesc =>
+      'ग्राहक ने ऑनलाइन भुगतान (रेज़रपे) चुना है। भुगतान की अभी पुष्टि नहीं हुई है।\n\nकृपया ग्राहक से अपने फोन पर भुगतान पूरा करने के लिए कहें। भुगतान होने के बाद स्थिति स्वचालित रूप से \"भुगतान प्राप्त\" में अपडेट हो जाएगी।';
+
+  @override
+  String get waitForPaymentCaps => 'भुगतान की प्रतीक्षा करें';
+
+  @override
+  String get receivedCashInsteadCaps => 'इसके बजाय नकद प्राप्त हुआ';
+
+  @override
+  String didYouCollectCash(Object amount) {
+    return 'क्या आपने ग्राहक से सीधे ₹$amount नकद प्राप्त किए?';
+  }
+
+  @override
+  String get tripFare => 'ट्रिप किराया';
+
+  @override
+  String get farDriverIncentive => 'दूरी ड्राइवर प्रोत्साहन 🎁';
+
+  @override
+  String get totalToCollect => 'कुल प्राप्त करने योग्य राशि';
+
+  @override
+  String get cancelCaps => 'रद्द करें';
+
+  @override
+  String get cancelTripRequest => 'ट्रिप अनुरोध रद्द करें';
+
+  @override
+  String get selectCancellationReason => 'कृपया रद्द करने का कारण चुनें';
+
+  @override
+  String get reasonNoShow => 'पिकअप पर ग्राहक उपस्थित नहीं हुआ';
+
+  @override
+  String get reasonOversized => 'अधिक आकार का सामान';
+
+  @override
+  String get reasonBreakdown => 'वाहन खराब हो गया';
+
+  @override
+  String get reasonCustomerRequested => 'ग्राहक ने रद्द करने का अनुरोध किया';
+
+  @override
+  String get reasonOther => 'अन्य समस्या';
+
+  @override
+  String get confirmCancellationCaps => 'रद्दीकरण की पुष्टि करें';
+
+  @override
+  String get tripCancelled => 'ट्रिप रद्द कर दी गई।';
+
+  @override
+  String get addExtraChargesCaps => 'अतिरिक्त शुल्क जोड़ें';
+
+  @override
+  String get addExtraExpensesDesc =>
+      'अतिरिक्त यात्रा खर्च जोड़ें (उदा. टोल, गैस, पार्किंग):';
+
+  @override
+  String get chargeName => 'शुल्क का नाम';
+
+  @override
+  String get chargeNameHint => 'उदा. टोल';
+
+  @override
+  String get chargeAmount => 'शुल्क राशि (₹)';
+
+  @override
+  String get chargeAmountHint => 'उदा. 55';
+
+  @override
+  String get addCaps => 'जोड़ें';
+
+  @override
+  String get addedChargesList => 'जोड़े गए शुल्कों की सूची:';
+
+  @override
+  String get submitCaps => 'सबमिट करें';
+
+  @override
+  String get tapCameraOrGalleryPickup =>
+      'पिकअप फोटो लेने के लिए नीचे कैमरा या गैलरी पर टैप करें';
+
+  @override
+  String get confirmPhotoAndStartTrip =>
+      'फोटो की पुष्टि करें और ट्रिप शुरू करें';
+
+  @override
+  String get pickupPhotoMandatoryAlert =>
+      'कृपया पहले एक पिकअप फोटो लें या चुनें!';
+
+  @override
+  String get proofOfDeliveryMandatory =>
+      'ट्रिप पूरा करने के लिए डिलीवरी का प्रमाण (POD) फोटो/हस्ताक्षर अनिवार्य है';
+
+  @override
+  String get tapCameraOrGalleryPod =>
+      'POD फोटो लेने के लिए नीचे कैमरा या गैलरी पर टैप करें';
+
+  @override
+  String get customerSignature => 'ग्राहक के हस्ताक्षर';
+
+  @override
+  String get clearSignature => 'हस्ताक्षर साफ़ करें';
+
+  @override
+  String get confirmPodAndCompleteTrip =>
+      'POD की पुष्टि करें और ट्रिप पूरा करें';
+
+  @override
+  String get podMandatoryAlert =>
+      'कृपया पहले एक POD फोटो लें या ग्राहक के हस्ताक्षर प्राप्त करें!';
+
+  @override
+  String get rateCustomer => 'ग्राहक को रेट करें';
+
+  @override
+  String get howWasExperienceWithCustomer =>
+      'ग्राहक के साथ आपका अनुभव कैसा रहा?';
+
+  @override
+  String get submitRatingCaps => 'रेटिंग सबमिट करें';
+
+  @override
+  String get customerPhoneNotAvailable => 'ग्राहक का फ़ोन नंबर उपलब्ध नहीं है';
+
+  @override
+  String reachedStopMsg(Object stop) {
+    return 'स्टॉप $stop पर पहुंचे!';
+  }
+
+  @override
+  String completedStopMsg(Object stop) {
+    return 'स्टॉप $stop पूरा हुआ!';
+  }
+
+  @override
+  String get collectPaymentAndComplete => 'भुगतान प्राप्त करें और पूरा करें';
+
+  @override
+  String get paymentSuccessful => 'भुगतान सफल रहा! 🎉';
+
+  @override
+  String get paymentFailed => 'भुगतान विफल रहा ❌';
+
+  @override
+  String get paymentProcessedDesc =>
+      'आपका भुगतान सफलतापूर्वक संसाधित किया गया! कृपया ध्यान दें: बैंक/UPI पुष्टि के आधार पर आपके वॉलेट में अपडेटेड बैलेंस दिखने में 30 मिनट तक का समय लग सकता है।';
+
+  @override
+  String get gotIt => 'समझ गया!';
+
+  @override
+  String get ok => 'ठीक है';
+
+  @override
+  String get waitingTime => 'प्रतीक्षा समय';
+
+  @override
+  String get minShort => 'मिनट';
+
+  @override
+  String get secShort => 'सेकंड';
+
+  @override
+  String get startNavigation => 'नेविगेशन शुरू करें';
+
+  @override
+  String get pickupOtpVerified => 'पिकअप ओटीपी सत्यापित';
+
+  @override
+  String get enterPickupOtp => '4-अंकीय पिकअप ओटीपी दर्ज करें';
+
+  @override
+  String get verifyPickupOtp => 'ओटीपी सत्यापित करें';
+
+  @override
+  String get invalidOtp => 'अमान्य ओटीपी। कृपया पुन: प्रयास करें।';
+
+  @override
+  String couldNotMakeCall(Object error) {
+    return 'कॉल नहीं किया जा सका: $error';
+  }
+
+  @override
+  String couldNotLaunchDialer(Object error) {
+    return '108 के लिए डायलर नहीं खोला जा सका: $error';
+  }
+
+  @override
+  String couldNotOpenSms(Object error) {
+    return 'एसएमएस नहीं खोला जा सका: $error';
+  }
+
+  @override
+  String get locationCoordsNotAvailable =>
+      'स्थान के निर्देशांक या पता उपलब्ध नहीं है';
+
+  @override
+  String couldNotOpenGoogleMaps(Object error) {
+    return 'Google Maps नहीं खोला जा सका: $error';
+  }
+
+  @override
+  String failedToUpdateStatus(Object error) {
+    return 'स्थिति अपडेट करने में विफल: $error';
+  }
+
+  @override
+  String errorUpdatingStopStatus(Object error) {
+    return 'स्टॉप स्थिति अपडेट करने में त्रुटि: $error';
+  }
+
+  @override
+  String errorCancellingTrip(Object error) {
+    return 'यात्रा रद्द करने में त्रुटि: $error';
+  }
+
+  @override
+  String get enterChargeNameAlert => 'कृपया एक शुल्क नाम दर्ज करें (उदा. टोल)';
+
+  @override
+  String get enterValidChargeAmountAlert =>
+      'कृपया एक मान्य संख्यात्मक शुल्क राशि दर्ज करें';
+
+  @override
+  String failedToUploadPickupPhoto(Object error) {
+    return 'पिकअप फोटो अपलोड करने में विफल: $error';
+  }
+
+  @override
+  String get arrivedPickupNotify =>
+      'ग्राहक को सूचित किया गया: ड्राइवर पिकअप स्थान पर पहुंच गया! लोडिंग टाइमर शुरू हो गया।';
+
+  @override
+  String get cargoPickupSavedTripStarted =>
+      'सामान पिकअप फोटो सहेजी गई! यात्रा शुरू हुई।';
+
+  @override
+  String get arrivedDropoffNotify =>
+      'अंतिम ड्रॉप स्थान पर पहुंचे! अनलोडिंग टाइमर शुरू हो गया।';
+
+  @override
+  String get cargoUnloadedPodSubmitted =>
+      '📦 सामान अनलोड किया गया और POD सबमिट किया गया! भुगतान की प्रतीक्षा है।';
+
+  @override
+  String get cashPaymentReceivedNotify =>
+      'नकद भुगतान प्राप्त हुआ! कृपया यात्रा पूर्णता की पुष्टि करें।';
+
+  @override
+  String get deliveryCompletedSuccessfully =>
+      '🎉 डिलीवरी सफलतापूर्वक पूरी हुई!';
+
+  @override
+  String get emergencyQuestion => 'क्या आप किसी आपात स्थिति में हैं?';
+
+  @override
+  String get emergencyAmbulanceDesc =>
+      '\"एम्बुलेंस 108 को कॉल करें\" पर टैप करने से आपातकालीन एम्बुलेंस सेवाओं (108) को सीधे कॉल करने के लिए आपका फ़ोन डायलर खुल जाएगा।';
+
+  @override
+  String get tapToCallAmbulanceDesc =>
+      'डायलर से एम्बुलेंस (108) को कॉल करने के लिए टैप करें';
+
+  @override
+  String get sosButtonLabel => 'एसओएस (108)';
+
+  @override
+  String get pickupPhotoMandatory =>
+      'यात्रा शुरू करने के लिए लोड किए गए सामान की फोटो अनिवार्य है';
+
+  @override
+  String get proofOfDeliveryPod => 'डिलीवरी का प्रमाण (POD)';
+
+  @override
+  String get podPhotoMandatoryDesc =>
+      'डिलीवर किए गए सामान की एक फोटो लें (अनिवार्य)';
+
+  @override
+  String get driverExtraCharges => 'ड्राइवर अतिरिक्त शुल्क:';
+
+  @override
+  String get submitPodAndUnloadCargo => 'POD सबमिट करें और सामान अनलोड करें';
+
+  @override
+  String get podPhotoMandatoryBeforeComplete =>
+      'डिलीवरी पूरी करने से पहले डिलीवरी का प्रमाण (POD) फोटो अनिवार्य है।';
+
+  @override
+  String get rateTheCustomer => 'ग्राहक को रेट करें';
+
+  @override
+  String get howWasExperienceWithTrip =>
+      'इस यात्रा के साथ आपका अनुभव कैसा रहा?';
+
+  @override
+  String get addOptionalCommentHint => 'वैकल्पिक टिप्पणी जोड़ें...';
+
+  @override
+  String get skipCaps => 'छोड़ें';
+
+  @override
+  String get paymentConfirmedTitle => 'भुगतान की पुष्टि हुई';
+
+  @override
+  String get awaitingPaymentTitle => 'भुगतान की प्रतीक्षा है';
+
+  @override
+  String get tripInTransitTitle => 'यात्रा मार्ग में है';
+
+  @override
+  String get arrivedAtPickupTitle => 'पिकअप पर पहुंचे';
+
+  @override
+  String get pickupNavigationTitle => 'पिकअप नेविगेशन';
+
+  @override
+  String get cancelTripTooltip => 'यात्रा रद्द करें';
+
+  @override
+  String get paymentReceivedCaps => 'भुगतान प्राप्त हुआ';
+
+  @override
+  String get arrivedAtDropoffCaps => 'ड्रॉप-ऑफ स्थान पर पहुंचे';
+
+  @override
+  String get arrivedAtPickupCaps => 'पिकअप स्थान पर पहुंचे';
+
+  @override
+  String get tripInTransitToDropPoint =>
+      'ड्रॉप बिंदु के लिए यात्रा मार्ग में है';
+
+  @override
+  String get paymentConfirmedSubtitle =>
+      'भुगतान की पुष्टि हो गई! यात्रा पूरी करने के लिए नीचे टैप करें।';
+
+  @override
+  String get collectCashOrWaitOnlineSubtitle =>
+      'नकद भुगतान प्राप्त करें या ग्राहक के ऑनलाइन भुगतान की प्रतीक्षा करें।';
+
+  @override
+  String get unloadingTimerActiveSubtitle =>
+      'अनलोडिंग टाइमर सक्रिय! अनलोडिंग पूरी होने पर POD सबमिट करें।';
+
+  @override
+  String get loadingTimerActiveSubtitle =>
+      'लोडिंग टाइमर सक्रिय! लोड होने के बाद \'यात्रा शुरू करें\' पर टैप करें।';
+
+  @override
+  String get onTheWayToDropoffSubtitle => 'ड्रॉप-ऑफ गंतव्य के रास्ते में';
+
+  @override
+  String get followGpsRouteSubtitle =>
+      'ग्राहक स्थान के लिए जीपीएस मार्ग का पालन करें';
+
+  @override
+  String get customer => 'ग्राहक';
+
+  @override
+  String get sendSms => 'एसएमएस भेजें';
+
+  @override
+  String get openGoogleMapsCaps => 'गूगल मैप्स खोलें';
+
+  @override
+  String navigateToTarget(Object target) {
+    return '$target पर नेविगेट करें';
+  }
+
+  @override
+  String get customerPickupLocation => 'ग्राहक पिकअप स्थान';
+
+  @override
+  String get goCaps => 'जाएं';
+
+  @override
+  String bookingIdWithNumber(Object id) {
+    return 'बुकिंग #$id';
+  }
+
+  @override
+  String get customerPickupPoint => 'ग्राहक पिकअप बिंदु';
+
+  @override
+  String get navigateToPickupGmaps => 'Google Maps में पिकअप पर नेविगेट करें';
+
+  @override
+  String intermediateStopNumber(Object index) {
+    return 'मध्यवर्ती स्टॉप $index';
+  }
+
+  @override
+  String navigateToStopGmaps(Object index) {
+    return 'Google Maps में स्टॉप $index पर नेविगेट करें';
+  }
+
+  @override
+  String stopCompletedCaps(Object index) {
+    return '✓ स्टॉप $index पूरा हुआ';
+  }
+
+  @override
+  String completeStopNumber(Object index) {
+    return 'स्टॉप $index पूरा करें';
+  }
+
+  @override
+  String reachedStopNumber(Object index) {
+    return 'स्टॉप $index पर पहुंचे';
+  }
+
+  @override
+  String get customerDropoffPoint => 'ग्राहक ड्रॉप बिंदु';
+
+  @override
+  String get navigateToDropoffGmaps => 'Google Maps में ड्रॉप पर नेविगेट करें';
+
+  @override
+  String get totalDeliveryFareLabel => 'कुल डिलीवरी किराया:';
+
+  @override
+  String get viewFareBreakdown => 'किराया विवरण देखें';
+
+  @override
+  String inclFarDriverIncentive(Object amount) {
+    return '₹$amount दूर ड्राइवर प्रोत्साहन शामिल 🎁';
+  }
+
+  @override
+  String get takePickupPhotoAndStartTrip =>
+      'पिकअप फोटो लें और यात्रा शुरू करें';
+
+  @override
+  String completeStopCaps(Object index) {
+    return 'स्टॉप $index पूरा करें';
+  }
+
+  @override
+  String reachedStopCaps(Object index) {
+    return 'स्टॉप $index पर पहुंचे';
+  }
+
+  @override
+  String get reachedFinalDestination => 'अंतिम गंतव्य पर पहुंचे';
+
+  @override
+  String get unloadCargoAndSubmitPod => 'सामान अनलोड करें और POD सबमिट करें';
+
+  @override
+  String collectCashPaymentWithAmount(Object amount) {
+    return 'नकद भुगतान प्राप्त करें (₹$amount)';
+  }
+
+  @override
+  String get confirmTripCompleted => 'यात्रा पूर्ण होने की पुष्टि करें';
+
+  @override
+  String get backToHome => 'होम पर वापस जाएं';
+
+  @override
+  String get dashboard => 'डैशबोर्ड';
+
+  @override
+  String stopLocationWithIndex(Object index) {
+    return 'स्टॉप $index स्थान';
+  }
+
+  @override
+  String get intermediateStop => 'मध्यवर्ती स्टॉप';
+
+  @override
+  String get finalDropLocation => 'अंतिम ड्रॉप स्थान';
+
+  @override
+  String get addressDetailsUnavailable => 'पते का विवरण उपलब्ध नहीं है';
+
+  @override
+  String get edit => 'संपादित करें';
+
+  @override
+  String get freeDriverLoginActive => 'मुफ्त ड्राइवर लॉगिन सक्रिय 🎉';
+
+  @override
+  String get freeDriverLoginDesc =>
+      'मुफ्त ड्राइवर लॉगिन सक्षम • ऑनलाइन जाने के लिए दैनिक शुल्क की आवश्यकता नहीं है';
+
+  @override
+  String get freePassBadge => 'मुफ्त पास';
 }

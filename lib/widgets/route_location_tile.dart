@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 
+import '../l10n/generated/app_localizations.dart';
+
 enum LocationTileType {
   pickup,
   stop,
@@ -52,23 +54,26 @@ class RouteLocationTile extends StatelessWidget {
     this.stopIndex,
   });
 
-  String _getDefaultTitle() {
+  String _getDefaultTitle(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     switch (type) {
       case LocationTileType.pickup:
-        return 'PICKUP LOCATION';
+        return l10n?.pickupLocation ?? 'PICKUP LOCATION';
       case LocationTileType.stop:
-        return stopIndex != null ? 'STOP $stopIndex LOCATION' : 'INTERMEDIATE STOP';
+        return stopIndex != null
+            ? (l10n?.stopLocationWithIndex(stopIndex.toString()) ?? 'STOP $stopIndex LOCATION')
+            : (l10n?.intermediateStop ?? 'INTERMEDIATE STOP');
       case LocationTileType.drop:
-        return 'FINAL DROP LOCATION';
+        return l10n?.finalDropLocation ?? 'FINAL DROP LOCATION';
     }
   }
 
-  String _formatAreaHeader(String fullAddress) {
+  String _formatAreaHeader(BuildContext context, String fullAddress) {
     if (customTitle != null && customTitle!.isNotEmpty) {
       return customTitle!.toUpperCase();
     }
     final trimmed = fullAddress.trim();
-    if (trimmed.isEmpty) return _getDefaultTitle();
+    if (trimmed.isEmpty) return _getDefaultTitle(context);
 
     final parts = trimmed.split(',');
     if (parts.isNotEmpty) {
@@ -78,12 +83,13 @@ class RouteLocationTile extends StatelessWidget {
       }
       return first.toUpperCase();
     }
-    return _getDefaultTitle();
+    return _getDefaultTitle(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final areaHeader = _formatAreaHeader(address);
+    final l10n = AppLocalizations.of(context);
+    final areaHeader = _formatAreaHeader(context, address);
     final distanceText = '${distanceKm > 0 ? distanceKm.toStringAsFixed(1) : '0.0'} KM';
 
     Color pillBg;
@@ -182,7 +188,7 @@ class RouteLocationTile extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 4),
           child: Text(
-            address.isNotEmpty ? address : 'Address details unavailable',
+            address.isNotEmpty ? address : (l10n?.addressDetailsUnavailable ?? 'Address details unavailable'),
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w400,

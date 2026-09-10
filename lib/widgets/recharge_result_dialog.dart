@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class RechargeResultDialog extends StatefulWidget {
   final bool isSuccess;
@@ -78,6 +79,7 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isSuccess = widget.isSuccess;
     final primaryColor = isSuccess ? const Color(0xFF09A234) : const Color(0xFFEF4444);
     final bgLightColor = isSuccess ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2);
@@ -138,7 +140,7 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
 
             // Title
             Text(
-              isSuccess ? 'Payment Successful! 🎉' : 'Payment Failed ❌',
+              isSuccess ? l10n.paymentSuccessful : l10n.paymentFailed,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 20,
@@ -192,12 +194,12 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
                   Expanded(
                     child: Text(
                       isSuccess
-                          ? 'Your payment was processed successfully! Please note: It may take up to 30 minutes for the updated balance to reflect in your wallet depending on bank/UPI confirmation.'
+                          ? l10n.paymentProcessedDesc
                           : (widget.errorMessage != null &&
                                   widget.errorMessage != 'undefined' &&
                                   widget.errorMessage!.trim().isNotEmpty)
                               ? widget.errorMessage!
-                              : 'Payment Failed',
+                              : l10n.paymentFailed,
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.4,
@@ -226,7 +228,7 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
                 ),
                 onPressed: widget.onDismiss,
                 child: Text(
-                  isSuccess ? 'Got it!' : 'OK',
+                  isSuccess ? l10n.gotIt : l10n.ok,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
