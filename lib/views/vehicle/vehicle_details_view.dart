@@ -244,7 +244,7 @@ class VehicleDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 18),
 
-                        // 3. Vehicle Owner Name (Optional)
+                        // 3. Vehicle Owner Name (Mandatory)
                         CustomTextField(
                           controller: vm.ownerNameController,
                           label: l10n.vehicleOwnerName,

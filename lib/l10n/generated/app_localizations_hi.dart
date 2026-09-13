@@ -364,11 +364,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get vehicleDetails => 'वाहन विवरण';
 
   @override
-  String get vehicleOwnerName => 'वाहन स्वामी का नाम (वैकल्पिक)';
+  String get vehicleOwnerName => 'वाहन स्वामी का नाम';
 
   @override
-  String get vehicleOwnerHint =>
-      'यदि वाहन किसी अन्य के नाम पर पंजीकृत है तो स्वामी का नाम दर्ज करें';
+  String get vehicleOwnerHint => 'आरसी के अनुसार वाहन स्वामी का नाम दर्ज करें';
 
   @override
   String get uploadRcPicture => 'आरसी की फोटो अपलोड करें *';
@@ -1943,7 +1942,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get freeDriverLoginDesc =>
-      'मुफ्त ड्राइवर लॉगिन सक्षम • ऑनलाइन जाने के लिए दैनिक शुल्क की आवश्यकता नहीं है';
+      'ऑनलाइन जाने के लिए दैनिक शुल्क की आवश्यकता नहीं है';
 
   @override
   String get freePassBadge => 'मुफ्त पास';

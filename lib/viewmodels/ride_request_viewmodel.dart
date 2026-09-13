@@ -12,7 +12,6 @@ import '../models/vehicle_type_model.dart';
 import '../views/home/widgets/incoming_ride_dialog.dart';
 import '../views/home/widgets/bidding_outstation_dialog.dart';
 
-
 class RideRequestViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
   final AudioService _audioService = AudioService.instance;
@@ -33,7 +32,8 @@ class RideRequestViewModel extends ChangeNotifier {
 
   BookingModel? get activePendingBidBooking => _activePendingBidBooking;
   BidModel? get activePendingBid => _activePendingBid;
-  bool get hasPendingBid => _activePendingBid != null && _activePendingBidBooking != null;
+  bool get hasPendingBid =>
+      _activePendingBid != null && _activePendingBidBooking != null;
 
   void withdrawBid() {
     _activePendingBidBooking = null;
@@ -109,14 +109,17 @@ class RideRequestViewModel extends ChangeNotifier {
 
     // 1. Direct match (case-insensitive)
     if (bookingVeh.toLowerCase() == dType.toLowerCase() ||
-        (dTypeId.isNotEmpty && bookingVeh.toLowerCase() == dTypeId.toLowerCase())) {
+        (dTypeId.isNotEmpty &&
+            bookingVeh.toLowerCase() == dTypeId.toLowerCase())) {
       return true;
     }
 
     // 2. Normalized alphanumeric match (e.g., "3 Wheeler" vs "3wheeler" vs "3")
-    final normB = bookingVeh.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+    final normB =
+        bookingVeh.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
     final normD = dType.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
-    final normDId = dTypeId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+    final normDId =
+        dTypeId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
 
     if (normB == normD || (normDId.isNotEmpty && normB == normDId)) {
       return true;
@@ -131,10 +134,12 @@ class RideRequestViewModel extends ChangeNotifier {
 
     for (final vt in _vehicleTypes) {
       final vtId = vt.id.trim();
-      final vtNameNorm = vt.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+      final vtNameNorm =
+          vt.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
 
       final bookingMatchesVt = (bookingVeh == vtId || normB == vtNameNorm);
-      final driverMatchesVt = (dType == vt.name || dTypeId == vtId || normD == vtNameNorm);
+      final driverMatchesVt =
+          (dType == vt.name || dTypeId == vtId || normD == vtNameNorm);
 
       if (bookingMatchesVt && driverMatchesVt) {
         return true;
@@ -143,7 +148,6 @@ class RideRequestViewModel extends ChangeNotifier {
 
     return false;
   }
-
 
   /// Explicitly decline a ride request so it is never shown again to this driver
   void declineRide(
@@ -155,7 +159,10 @@ class RideRequestViewModel extends ChangeNotifier {
     if (bookingId.isEmpty) return;
     _declinedBookingIds.add(bookingId);
     _audioService.stopAlert();
-    final currentBooking = booking ?? (_activeBroadcastBooking?.id == bookingId ? _activeBroadcastBooking : null);
+    final currentBooking = booking ??
+        (_activeBroadcastBooking?.id == bookingId
+            ? _activeBroadcastBooking
+            : null);
     if (_activeBroadcastBooking?.id == bookingId) {
       _activeBroadcastBooking = null;
     }
@@ -223,7 +230,8 @@ class RideRequestViewModel extends ChangeNotifier {
   }
 
   /// Check status of active pending bid in public.bids and public.bookings. Clear banner if no longer pending (accepted, rejected, closed, cancelled)
-  Future<void> checkPendingBidStatus(String driverId, BuildContext context) async {
+  Future<void> checkPendingBidStatus(
+      String driverId, BuildContext context) async {
     if (_activePendingBidBooking == null || _activePendingBid == null) return;
     try {
       final bookingId = _activePendingBidBooking!.id;
@@ -239,11 +247,13 @@ class RideRequestViewModel extends ChangeNotifier {
           .maybeSingle();
 
       if (bidResponse != null) {
-        final bidStatus = (bidResponse['status'] as String?)?.toLowerCase() ?? 'pending';
+        final bidStatus =
+            (bidResponse['status'] as String?)?.toLowerCase() ?? 'pending';
 
         if (bidStatus == 'accepted') {
           debugPrint('🎉 Bid accepted by customer!');
-          final bidAmount = (bidResponse['driver_bid'] as num?)?.toDouble() ?? 0.0;
+          final bidAmount =
+              (bidResponse['driver_bid'] as num?)?.toDouble() ?? 0.0;
           withdrawBid(); // Clear pending floating banner
           await checkActiveDriverTrip(driverId);
           if (context.mounted) {
@@ -256,7 +266,8 @@ class RideRequestViewModel extends ChangeNotifier {
           return;
         } else if (bidStatus != 'pending') {
           // 'rejected', 'closed', 'cancelled', etc.
-          debugPrint('🔒 Bid status updated to $bidStatus (no longer pending). Clearing banner...');
+          debugPrint(
+              '🔒 Bid status updated to $bidStatus (no longer pending). Clearing banner...');
           withdrawBid();
           if (context.mounted) {
             _showSnackBar(
@@ -272,7 +283,8 @@ class RideRequestViewModel extends ChangeNotifier {
       // 2. Check booking status in public.bookings
       final currentBooking = await _supabaseService.getBookingById(bookingId);
       if (currentBooking == null || currentBooking.status != 'searching') {
-        debugPrint('🔒 Outstation booking #$bookingId is no longer searching (${currentBooking?.status}). Clearing banner...');
+        debugPrint(
+            '🔒 Outstation booking #$bookingId is no longer searching (${currentBooking?.status}). Clearing banner...');
         withdrawBid();
         if (context.mounted) {
           _showSnackBar(
@@ -315,7 +327,8 @@ class RideRequestViewModel extends ChangeNotifier {
         notifyListeners();
 
         if (context.mounted) {
-          _showSnackBar(context, '⚡ Active trip in progress: Tap Resume Trip to return');
+          _showSnackBar(
+              context, '⚡ Active trip in progress: Tap Resume Trip to return');
         }
       }
     } catch (e) {
@@ -419,7 +432,6 @@ class RideRequestViewModel extends ChangeNotifier {
     for (final booking in bookings) {
       if (booking.status == 'searching' &&
           !_declinedBookingIds.contains(booking.id)) {
-
         // 1. VEHICLE TYPE MATCHING GUARD:
         // Do NOT show alert dialog if booking's vehicle type does not match partner's vehicle type!
         if (!_isVehicleTypeMatching(booking)) {
@@ -433,8 +445,15 @@ class RideRequestViewModel extends ChangeNotifier {
         debugPrint(
             '⚡ Booking #${booking.id} searching! Distance to pickup: ${dist.toStringAsFixed(2)} km');
 
-        final serviceName = booking.service?.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_') ?? '';
-        final isLocalAdda = serviceName.isEmpty || serviceName == 'local_adda' || serviceName == 'localadda';
+        final serviceName = booking.service
+                ?.toLowerCase()
+                .trim()
+                .replaceAll('-', '_')
+                .replaceAll(' ', '_') ??
+            '';
+        final isLocalAdda = serviceName.isEmpty ||
+            serviceName == 'local_adda' ||
+            serviceName == 'localadda';
 
         // 1. Local Adda distance check: ONLY alert driver within 3.0 km
         if (isLocalAdda) {
@@ -527,7 +546,8 @@ class RideRequestViewModel extends ChangeNotifier {
       if (context.mounted) {
         _supabaseService.getDriverDailyStatus(driverId).then((status) {
           if (status != null && status.isBlocked) {
-            debugPrint('⛔ Driver $driverId is blocked today (${status.blockReason}). Suppressing ride request dialog.');
+            debugPrint(
+                '⛔ Driver $driverId is blocked today (${status.blockReason}). Suppressing ride request dialog.');
             _isModalOpen = false;
             _activeShowingBookingId = null;
             return;
@@ -535,16 +555,18 @@ class RideRequestViewModel extends ChangeNotifier {
 
           final currentBooking = matchingBooking;
           if (currentBooking != null && context.mounted) {
-            debugPrint('🎉 POP-UP TRIGGERED for booking #${currentBooking.id}!');
+            debugPrint(
+                '🎉 POP-UP TRIGGERED for booking #${currentBooking.id}!');
 
             // Play audio alert ringtone
             _audioService.playRideRequestAlert();
 
             final double baseFare = currentBooking.fare;
-            final double incentive = (currentBooking.farDriverIncentive != null &&
-                    currentBooking.farDriverIncentive! > 0)
-                ? currentBooking.farDriverIncentive!
-                : 0.0;
+            final double incentive =
+                (currentBooking.farDriverIncentive != null &&
+                        currentBooking.farDriverIncentive! > 0)
+                    ? currentBooking.farDriverIncentive!
+                    : 0.0;
 
             // Trigger system heads-up push notification
             NotificationService.instance.showIncomingRideNotification(
@@ -555,8 +577,14 @@ class RideRequestViewModel extends ChangeNotifier {
               customerPhone: currentBooking.customerPhone,
             );
 
-            final serviceName = currentBooking.service?.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_') ?? '';
-            final isBiddingOutstation = serviceName == 'bidding_outstation' || serviceName == 'biddingoutstation';
+            final serviceName = currentBooking.service
+                    ?.toLowerCase()
+                    .trim()
+                    .replaceAll('-', '_')
+                    .replaceAll(' ', '_') ??
+                '';
+            final isBiddingOutstation = serviceName == 'bidding_outstation' ||
+                serviceName == 'biddingoutstation';
 
             if (isBiddingOutstation) {
               showBiddingOutstationDialog(context, currentBooking, driverId);

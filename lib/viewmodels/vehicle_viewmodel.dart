@@ -192,6 +192,13 @@ class VehicleViewModel extends ChangeNotifier {
       return;
     }
 
+    if (ownerName.isEmpty) {
+      if (context.mounted) {
+        _showSnackBar(context, 'Please enter vehicle owner name');
+      }
+      return;
+    }
+
     if (rcNumber.isEmpty) {
       if (context.mounted) {
         _showSnackBar(context, 'Please enter TC / RC permit number');
@@ -223,7 +230,7 @@ class VehicleViewModel extends ChangeNotifier {
         rcPicUrl: rcPicUrl,
         vehicleTypeId: _selectedVehicleType?.id,
         vehicleTypeName: _selectedVehicleType?.name,
-        ownerName: ownerName.isNotEmpty ? ownerName : null,
+        ownerName: ownerName,
         bodyType: _selectedBodyType,
         fuelType: _selectedFuelType,
         cityOfOperation: _selectedCity,

@@ -37,8 +37,8 @@ class _PerformanceViewState extends State<PerformanceView> {
     });
   }
 
-  Future<void> _pickCustomDate(
-      BuildContext context, PerformanceViewModel vm, String effectiveDriverId) async {
+  Future<void> _pickCustomDate(BuildContext context, PerformanceViewModel vm,
+      String effectiveDriverId) async {
     final now = DateTime.now();
     final initialDate = vm.selectedDate.isAfter(now) ? now : vm.selectedDate;
 
@@ -129,8 +129,8 @@ class _PerformanceViewState extends State<PerformanceView> {
           ),
           body: RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () => vm.fetchLoginTimesForDate(
-                effectiveDriverId, vm.selectedDate),
+            onRefresh: () =>
+                vm.fetchLoginTimesForDate(effectiveDriverId, vm.selectedDate),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
@@ -192,8 +192,8 @@ class _PerformanceViewState extends State<PerformanceView> {
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40),
                       child: Center(
-                        child: CircularProgressIndicator(
-                            color: AppColors.primary),
+                        child:
+                            CircularProgressIndicator(color: AppColors.primary),
                       ),
                     )
                   else if (sessions.isEmpty)
@@ -264,8 +264,8 @@ class _PerformanceViewState extends State<PerformanceView> {
                   onTap: () => _pickCustomDate(context, vm, driverId),
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 6, horizontal: 4),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                     child: Column(
                       children: [
                         Text(
@@ -289,7 +289,9 @@ class _PerformanceViewState extends State<PerformanceView> {
                             Text(
                               isToday
                                   ? l10n.today
-                                  : (isYesterday ? l10n.yesterday : l10n.selectDate),
+                                  : (isYesterday
+                                      ? l10n.yesterday
+                                      : l10n.selectDate),
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -665,9 +667,7 @@ class _PerformanceViewState extends State<PerformanceView> {
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: totalRequests > 0
-                  ? (score / 100.0).clamp(0.0, 1.0)
-                  : 1.0,
+              value: totalRequests > 0 ? (score / 100.0).clamp(0.0, 1.0) : 1.0,
               minHeight: 8,
               backgroundColor: AppColors.background,
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
@@ -822,8 +822,7 @@ class _PerformanceViewState extends State<PerformanceView> {
                 ],
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: isOngoing
                       ? const Color(0xFFDCFCE7)
@@ -990,13 +989,12 @@ class _PerformanceViewState extends State<PerformanceView> {
     );
   }
 
-  Widget _buildRideActionTile(
-      BuildContext context, DriverRideActionModel action, AppLocalizations l10n) {
+  Widget _buildRideActionTile(BuildContext context,
+      DriverRideActionModel action, AppLocalizations l10n) {
     final isAccepted = action.isAccepted;
     final color =
         isAccepted ? const Color(0xFF10B981) : const Color(0xFFEF4444);
-    final icon =
-        isAccepted ? Icons.check_circle_rounded : Icons.cancel_rounded;
+    final icon = isAccepted ? Icons.check_circle_rounded : Icons.cancel_rounded;
     final title = isAccepted ? l10n.rideAccepted : l10n.rideDeclined;
 
     return Container(
@@ -1057,8 +1055,7 @@ class _PerformanceViewState extends State<PerformanceView> {
               ],
             ),
           ],
-          if (action.dropAddress != null &&
-              action.dropAddress!.isNotEmpty) ...[
+          if (action.dropAddress != null && action.dropAddress!.isNotEmpty) ...[
             const SizedBox(height: 4),
             Row(
               children: [

@@ -106,8 +106,8 @@
   "verificationInProgressTitle": "⏳ ధృవీకరణ జరుగుతోంది",
   "verificationInProgressMsg": "మీ డ్రైవర్ పత్రాలు అడ్మిన్ పరిశీలనలో ఉన్నాయి.",
   "vehicleDetails": "వాహన వివరాలు",
-  "vehicleOwnerName": "వాహన యజమాని పేరు (ఐచ్ఛికం)",
-  "vehicleOwnerHint": "వాహనం వేరొకరి పేరిట నమోదు చేయబడితే యజమాని పేరు నమోదు చేయండి",
+  "vehicleOwnerName": "వాహన యజమాని పేరు",
+  "vehicleOwnerHint": "ఆర్‌సీ ప్రకారం వాహన యజమాని పేరును నమోదు చేయండి",
   "uploadRcPicture": "ఆర్సీ ఫోటోను అప్‌లోడ్ చేయండి *",
   "vehicleRcPhoto": "వాహన ఆర్సీ ఫోటో",
   "uploaded": "అప్‌లోడ్ చేయబడింది",
@@ -585,6 +585,6 @@
   "addressDetailsUnavailable": "చిరునామా వివరాలు అందుబాటులో లేవు",
   "edit": "సవరించండి",
   "freeDriverLoginActive": "ఉచిత డ్రైవర్ లాగిన్ సక్రియంగా ఉంది 🎉",
-  "freeDriverLoginDesc": "ఉచిత డ్రైవర్ లాగిన్ ప్రారంభించబడింది • ఆన్‌లైన్‌లోకి వెళ్లడానికి రోజువారీ రుసుము అవసరం లేదు",
+  "freeDriverLoginDesc": "ఆన్‌లైన్‌లోకి వెళ్లడానికి రోజువారీ రుసుము అవసరం లేదు",
   "freePassBadge": "ఉచిత పాస్"
 }

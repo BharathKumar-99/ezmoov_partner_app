@@ -366,11 +366,11 @@ class AppLocalizationsTe extends AppLocalizations {
   String get vehicleDetails => 'వాహన వివరాలు';
 
   @override
-  String get vehicleOwnerName => 'వాహన యజమాని పేరు (ఐచ్ఛికం)';
+  String get vehicleOwnerName => 'వాహన యజమాని పేరు';
 
   @override
   String get vehicleOwnerHint =>
-      'వాహనం వేరొకరి పేరిట నమోదు చేయబడితే యజమాని పేరు నమోదు చేయండి';
+      'ఆర్‌సీ ప్రకారం వాహన యజమాని పేరును నమోదు చేయండి';
 
   @override
   String get uploadRcPicture => 'ఆర్సీ ఫోటోను అప్‌లోడ్ చేయండి *';
@@ -1957,7 +1957,7 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get freeDriverLoginDesc =>
-      'ఉచిత డ్రైవర్ లాగిన్ ప్రారంభించబడింది • ఆన్‌లైన్‌లోకి వెళ్లడానికి రోజువారీ రుసుము అవసరం లేదు';
+      'ఆన్‌లైన్‌లోకి వెళ్లడానికి రోజువారీ రుసుము అవసరం లేదు';
 
   @override
   String get freePassBadge => 'ఉచిత పాస్';

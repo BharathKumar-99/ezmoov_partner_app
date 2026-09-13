@@ -745,13 +745,13 @@ abstract class AppLocalizations {
   /// No description provided for @vehicleOwnerName.
   ///
   /// In en, this message translates to:
-  /// **'Vehicle Owner Name (Optional)'**
+  /// **'Vehicle Owner Name'**
   String get vehicleOwnerName;
 
   /// No description provided for @vehicleOwnerHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter owner name if vehicle is registered to someone else'**
+  /// **'Enter vehicle owner name as per RC'**
   String get vehicleOwnerHint;
 
   /// No description provided for @uploadRcPicture.
@@ -3559,7 +3559,7 @@ abstract class AppLocalizations {
   /// No description provided for @freeDriverLoginDesc.
   ///
   /// In en, this message translates to:
-  /// **'Free driver login enabled • No daily fee required to go online'**
+  /// **'No daily fee required to go online'**
   String get freeDriverLoginDesc;
 
   /// No description provided for @freePassBadge.

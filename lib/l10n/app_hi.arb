@@ -106,8 +106,8 @@
   "verificationInProgressTitle": "⏳ सत्यापन प्रगति पर है",
   "verificationInProgressMsg": "आपके ड्राइवर दस्तावेजों की व्यवस्थापक द्वारा समीक्षा की जा रही है।",
   "vehicleDetails": "वाहन विवरण",
-  "vehicleOwnerName": "वाहन स्वामी का नाम (वैकल्पिक)",
-  "vehicleOwnerHint": "यदि वाहन किसी अन्य के नाम पर पंजीकृत है तो स्वामी का नाम दर्ज करें",
+  "vehicleOwnerName": "वाहन स्वामी का नाम",
+  "vehicleOwnerHint": "आरसी के अनुसार वाहन स्वामी का नाम दर्ज करें",
   "uploadRcPicture": "आरसी की फोटो अपलोड करें *",
   "vehicleRcPhoto": "वाहन आरसी फोटो",
   "uploaded": "अपलोड किया गया",
@@ -585,6 +585,6 @@
   "addressDetailsUnavailable": "पते का विवरण उपलब्ध नहीं है",
   "edit": "संपादित करें",
   "freeDriverLoginActive": "मुफ्त ड्राइवर लॉगिन सक्रिय 🎉",
-  "freeDriverLoginDesc": "मुफ्त ड्राइवर लॉगिन सक्षम • ऑनलाइन जाने के लिए दैनिक शुल्क की आवश्यकता नहीं है",
+  "freeDriverLoginDesc": "ऑनलाइन जाने के लिए दैनिक शुल्क की आवश्यकता नहीं है",
   "freePassBadge": "मुफ्त पास"
 }

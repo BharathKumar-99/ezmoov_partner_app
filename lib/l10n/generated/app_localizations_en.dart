@@ -370,11 +370,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleDetails => 'Vehicle Details';
 
   @override
-  String get vehicleOwnerName => 'Vehicle Owner Name (Optional)';
+  String get vehicleOwnerName => 'Vehicle Owner Name';
 
   @override
-  String get vehicleOwnerHint =>
-      'Enter owner name if vehicle is registered to someone else';
+  String get vehicleOwnerHint => 'Enter vehicle owner name as per RC';
 
   @override
   String get uploadRcPicture => 'Upload RC Picture *';
@@ -1970,8 +1969,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get freeDriverLoginActive => 'Free Driver Login Active 🎉';
 
   @override
-  String get freeDriverLoginDesc =>
-      'Free driver login enabled • No daily fee required to go online';
+  String get freeDriverLoginDesc => 'No daily fee required to go online';
 
   @override
   String get freePassBadge => 'FREE PASS';

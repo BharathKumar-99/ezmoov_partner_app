@@ -106,8 +106,8 @@
   "verificationInProgressTitle": "⏳ Verification In Progress",
   "verificationInProgressMsg": "Your driver documentation is under admin review.",
   "vehicleDetails": "Vehicle Details",
-  "vehicleOwnerName": "Vehicle Owner Name (Optional)",
-  "vehicleOwnerHint": "Enter owner name if vehicle is registered to someone else",
+  "vehicleOwnerName": "Vehicle Owner Name",
+  "vehicleOwnerHint": "Enter vehicle owner name as per RC",
   "uploadRcPicture": "Upload RC Picture *",
   "vehicleRcPhoto": "Vehicle RC Photo",
   "uploaded": "Uploaded",
@@ -585,6 +585,6 @@
   "addressDetailsUnavailable": "Address details unavailable",
   "edit": "Edit",
   "freeDriverLoginActive": "Free Driver Login Active 🎉",
-  "freeDriverLoginDesc": "Free driver login enabled • No daily fee required to go online",
+  "freeDriverLoginDesc": "No daily fee required to go online",
   "freePassBadge": "FREE PASS"
 }
