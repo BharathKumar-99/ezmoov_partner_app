@@ -87,12 +87,21 @@ class HomeViewModel extends ChangeNotifier {
     _errorMessage = null;
 
     try {
-      _driver = await _supabaseService.getDriverById(driverId);
+      _driver = await _supabaseService
+          .getDriverById(driverId)
+          .timeout(const Duration(seconds: 8))
+          .catchError((_) => null);
+
       if (_driver != null) {
         _isOnline = _driver!.isOnline;
-        _vehicle = await _supabaseService.getVehicleByDriverId(driverId);
-        _documents = await _supabaseService.getDocumentsByDriverId(driverId);
-        _bankDetails = await _supabaseService.getBankDetailsByDriverId(driverId);
+        final results = await Future.wait([
+          _supabaseService.getVehicleByDriverId(driverId).catchError((_) => null),
+          _supabaseService.getDocumentsByDriverId(driverId).catchError((_) => null),
+          _supabaseService.getBankDetailsByDriverId(driverId).catchError((_) => null),
+        ]);
+        _vehicle = results[0] as VehicleModel?;
+        _documents = results[1] as DocumentModel?;
+        _bankDetails = results[2] as BankDetailsModel?;
       }
       await fetchEarnings(driverId);
       setLoading(false);
@@ -109,12 +118,24 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final trips = await _supabaseService.getDriverTrips(driverId);
-      final earnings = await _supabaseService.getDriverEarnings(driverId);
-      final payouts = await _supabaseService.getDriverPayouts(driverId);
+      final results = await Future.wait([
+        _supabaseService
+            .getDriverTrips(driverId)
+            .timeout(const Duration(seconds: 8))
+            .catchError((_) => <BookingModel>[]),
+        _supabaseService
+            .getDriverEarnings(driverId)
+            .timeout(const Duration(seconds: 8))
+            .catchError((_) => <EarningModel>[]),
+        _supabaseService
+            .getDriverPayouts(driverId)
+            .timeout(const Duration(seconds: 8))
+            .catchError((_) => <Map<String, dynamic>>[]),
+      ]);
 
-      _driverTrips = trips;
-      _driverEarnings = earnings;
+      _driverTrips = results[0] as List<BookingModel>;
+      _driverEarnings = results[1] as List<EarningModel>;
+      final payouts = results[2] as List<Map<String, dynamic>>;
 
       double withdrawnSum = 0.0;
       for (final payout in payouts) {

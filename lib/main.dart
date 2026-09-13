@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -56,7 +57,21 @@ Future<void> main() async {
         '⚠️ Warning: SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is not defined in .env');
   }
 
-  // Initialize Firebase & FCM
+  final profileViewModel = ProfileViewModel();
+
+  // Instant local cache restore from flash storage (< 5ms)
+  await profileViewModel.restoreFromLocalCache();
+
+  // Run app UI immediately without blocking on network or external services
+  runApp(EzMoovPartnerApp(profileViewModel: profileViewModel));
+
+  // Run non-critical background services & network profile sync asynchronously
+  unawaited(_initializeBackgroundServices(profileViewModel));
+}
+
+/// Asynchronously initialize Firebase, notifications, background tasks and refresh profile from Supabase
+Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) async {
+  // 1. Initialize Firebase & FCM
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -66,35 +81,28 @@ Future<void> main() async {
     debugPrint('Firebase initialization notice: $e');
   }
 
-  // Initialize Notification and Background Services
-  await NotificationService.instance.initialize();
-  await BackgroundServiceManager.instance.initialize();
+  // 2. Initialize Notification and Background Services
+  try {
+    await NotificationService.instance.initialize();
+    await BackgroundServiceManager.instance.initialize();
+  } catch (e) {
+    debugPrint('Background services initialization notice: $e');
+  }
 
-  final profileViewModel = ProfileViewModel();
-
-  // Restore saved driver profile session on app launch before UI renders
+  // 3. Refresh driver profile from network in background
   try {
     final currentAuthUser = Supabase.instance.client.auth.currentUser;
     final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
+    final driverId = currentAuthUser?.id ?? savedSession ?? profileViewModel.driver?.id;
 
-    if (currentAuthUser != null) {
-      await profileViewModel.fetchProfile(currentAuthUser.id);
-    }
-    if (profileViewModel.driver == null &&
-        savedSession != null &&
-        savedSession.isNotEmpty) {
-      await profileViewModel.fetchProfile(savedSession);
-    }
-    if (profileViewModel.driver == null &&
-        currentAuthUser?.phone != null &&
-        currentAuthUser!.phone!.isNotEmpty) {
+    if (driverId != null && driverId.isNotEmpty) {
+      await profileViewModel.fetchProfile(driverId);
+    } else if (currentAuthUser?.phone != null && currentAuthUser!.phone!.isNotEmpty) {
       await profileViewModel.fetchProfile(currentAuthUser.phone!);
     }
   } catch (e) {
-    debugPrint('Notice restoring session on startup: $e');
+    debugPrint('Background profile refresh notice: $e');
   }
-
-  runApp(EzMoovPartnerApp(profileViewModel: profileViewModel));
 }
 
 class EzMoovPartnerApp extends StatelessWidget {

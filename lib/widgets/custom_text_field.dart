@@ -12,6 +12,8 @@ class CustomTextField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final int? limit;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
 
   const CustomTextField({
     super.key,
@@ -25,6 +27,8 @@ class CustomTextField extends StatelessWidget {
     this.limit,
     this.readOnly = false,
     this.onTap,
+    this.textInputAction,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -44,9 +48,13 @@ class CustomTextField extends StatelessWidget {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          textInputAction: textInputAction ?? TextInputAction.next,
           maxLength: limit,
           readOnly: readOnly,
           onTap: onTap,
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
+          onFieldSubmitted:
+              onFieldSubmitted ?? (_) => FocusScope.of(context).unfocus(),
           validator: validator,
           style: const TextStyle(
             color: AppColors.textPrimary,

@@ -48,7 +48,8 @@ class SupabaseService {
           .select()
           .eq('phone', withPlus91)
           .limit(1)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (response == null) return null;
       return DriverModel.fromJson(response);
@@ -65,7 +66,8 @@ class SupabaseService {
           .from('drivers')
           .select()
           .eq('id', driverId)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (response == null) return null;
       return DriverModel.fromJson(response);
@@ -264,7 +266,8 @@ class SupabaseService {
           .select()
           .eq('driver_id', driverId)
           .order('created_at', ascending: true)
-          .limit(1);
+          .limit(1)
+          .timeout(const Duration(seconds: 10));
 
       if (response.isEmpty) return null;
       return VehicleModel.fromJson(response.first);
@@ -305,7 +308,8 @@ class SupabaseService {
           .select()
           .eq('driver_id', driverId)
           .order('created_at', ascending: true)
-          .limit(1);
+          .limit(1)
+          .timeout(const Duration(seconds: 10));
 
       if (response.isEmpty) return null;
       return DocumentModel.fromJson(response.first);
@@ -345,7 +349,8 @@ class SupabaseService {
           .from('bank_details')
           .select()
           .eq('driver_id', driverId)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (response == null) return null;
       return BankDetailsModel.fromJson(response);
@@ -383,7 +388,8 @@ class SupabaseService {
           .from('driver_ratings')
           .select()
           .eq('driver_id', driverId)
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .timeout(const Duration(seconds: 10));
 
       final list = response as List<dynamic>;
       return list.map((json) => RatingModel.fromJson(json)).toList();
@@ -400,7 +406,8 @@ class SupabaseService {
           .from('bookings')
           .select()
           .eq('driver_id', driverId)
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .timeout(const Duration(seconds: 10));
 
       final list = response as List<dynamic>;
       return list.map((json) => BookingModel.fromJson(json)).toList();
@@ -417,7 +424,8 @@ class SupabaseService {
           .from('earning')
           .select()
           .eq('driver_id', driverId)
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .timeout(const Duration(seconds: 10));
 
       final list = response as List<dynamic>;
       return list.map((json) => EarningModel.fromJson(json)).toList();
@@ -437,7 +445,8 @@ class SupabaseService {
           .not('status', 'in', '(completed,cancelled,expired,rejected,searching)')
           .order('created_at', ascending: false)
           .limit(1)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (response == null) return null;
       return BookingModel.fromJson(response);
@@ -990,7 +999,8 @@ class SupabaseService {
           .from('driver_wallets')
           .select()
           .eq('driver_id', driverId)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (response == null) {
         // Create initial wallet with 0.0 balance if not exists
@@ -998,7 +1008,8 @@ class SupabaseService {
             .from('driver_wallets')
             .insert({'driver_id': driverId, 'balance': 0.0})
             .select()
-            .single();
+            .single()
+            .timeout(const Duration(seconds: 10));
         return DriverWalletModel.fromJson(newWallet);
       }
       return DriverWalletModel.fromJson(response);
@@ -1016,7 +1027,8 @@ class SupabaseService {
           .from('wallet_transactions')
           .select()
           .eq('driver_id', driverId)
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .timeout(const Duration(seconds: 10));
 
       final list = response as List<dynamic>;
       return list.map((json) => WalletTransactionModel.fromJson(json)).toList();
@@ -1036,7 +1048,8 @@ class SupabaseService {
           .order('status_date', ascending: false)
           .order('created_at', ascending: false)
           .limit(1)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (response == null) return null;
       return DriverDailyStatusModel.fromJson(response);
@@ -1657,7 +1670,7 @@ class SupabaseService {
 
       // Try RPC first if available
       try {
-        final rpcRes = await sc.rpc('get_partner_app_config');
+        final rpcRes = await sc.rpc('get_partner_app_config').timeout(const Duration(seconds: 5));
         if (rpcRes is Map) {
           final config = PartnerAppConfigModel.fromJson(Map<String, dynamic>.from(rpcRes));
           _cachedPartnerAppConfig = config;
@@ -1673,7 +1686,8 @@ class SupabaseService {
           .select()
           .order('id', ascending: true)
           .limit(1)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 5));
 
       if (response != null) {
         final config = PartnerAppConfigModel.fromJson(Map<String, dynamic>.from(response));

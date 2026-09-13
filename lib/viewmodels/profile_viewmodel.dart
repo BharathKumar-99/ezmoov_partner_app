@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
@@ -120,14 +121,20 @@ class ProfileViewModel extends ChangeNotifier {
 
     try {
       // Fetch latest app configuration asynchronously
-      fetchAppConfig();
+      unawaited(fetchAppConfig());
 
       DriverModel? loadedDriver;
       if (driverIdOrPhone.startsWith('+') ||
           RegExp(r'^\d+$').hasMatch(driverIdOrPhone)) {
-        loadedDriver = await _supabaseService.getDriverByPhone(driverIdOrPhone);
+        loadedDriver = await _supabaseService
+            .getDriverByPhone(driverIdOrPhone)
+            .timeout(const Duration(seconds: 8))
+            .catchError((_) => null);
       } else {
-        loadedDriver = await _supabaseService.getDriverById(driverIdOrPhone);
+        loadedDriver = await _supabaseService
+            .getDriverById(driverIdOrPhone)
+            .timeout(const Duration(seconds: 8))
+            .catchError((_) => null);
       }
 
       if (loadedDriver != null) {
@@ -142,18 +149,38 @@ class ProfileViewModel extends ChangeNotifier {
           _longitude = loadedDriver.longitude!;
         }
 
-        // Fetch linked tables
-        _vehicle = await _supabaseService.getVehicleByDriverId(
-          loadedDriver.id!,
-        );
-        _documents = await _supabaseService.getDocumentsByDriverId(
-          loadedDriver.id!,
-        );
-        _bankDetails = await _supabaseService.getBankDetailsByDriverId(
-          loadedDriver.id!,
-        );
-        _ratings = await _supabaseService.getDriverRatings(loadedDriver.id!);
-        _trips = await _supabaseService.getDriverTrips(loadedDriver.id!);
+        // Fetch linked tables concurrently in parallel
+        final results = await Future.wait([
+          _supabaseService
+              .getVehicleByDriverId(loadedDriver.id!)
+              .timeout(const Duration(seconds: 8))
+              .catchError((_) => _vehicle),
+          _supabaseService
+              .getDocumentsByDriverId(loadedDriver.id!)
+              .timeout(const Duration(seconds: 8))
+              .catchError((_) => _documents),
+          _supabaseService
+              .getBankDetailsByDriverId(loadedDriver.id!)
+              .timeout(const Duration(seconds: 8))
+              .catchError((_) => _bankDetails),
+          _supabaseService
+              .getDriverRatings(loadedDriver.id!)
+              .timeout(const Duration(seconds: 8))
+              .catchError((_) => _ratings),
+          _supabaseService
+              .getDriverTrips(loadedDriver.id!)
+              .timeout(const Duration(seconds: 8))
+              .catchError((_) => _trips),
+        ]);
+
+        _vehicle = results[0] as VehicleModel?;
+        _documents = results[1] as DocumentModel?;
+        _bankDetails = results[2] as BankDetailsModel?;
+        _ratings = (results[3] as List<RatingModel>?) ?? _ratings;
+        _trips = (results[4] as List<BookingModel>?) ?? _trips;
+
+        // Persist to local disk cache for instant offline startup
+        await saveToLocalCache();
 
         if (_isOnline && context != null && context.mounted) {
           final walletVm = Provider.of<WalletViewModel>(context, listen: false);
@@ -222,7 +249,7 @@ class ProfileViewModel extends ChangeNotifier {
         if (loadedDriver.id != null) {
           subscribeToDriverRealtime(loadedDriver.id!, (context != null && context.mounted) ? context : null);
         }
-      } else {
+      } else if (_driver == null) {
         _driver = null;
         _vehicle = null;
         _documents = null;
@@ -242,9 +269,10 @@ class ProfileViewModel extends ChangeNotifier {
       notifyListeners();
       return _driver;
     } catch (e) {
+      debugPrint('Notice during fetchProfile: $e');
       _errorMessage = e.toString();
       notifyListeners();
-      return null;
+      return _driver;
     }
   }
 
@@ -325,6 +353,7 @@ class ProfileViewModel extends ChangeNotifier {
   void updateDriverLocal(DriverModel driverModel) {
     _driver = driverModel;
     _isOnline = driverModel.isOnline;
+    saveToLocalCache();
     notifyListeners();
   }
 
@@ -629,6 +658,77 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
+  /// Restore complete cached driver profile, vehicles, documents, bank details, and config from local flash storage
+  Future<void> restoreFromLocalCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      final driverJsonStr = prefs.getString('cached_driver_json');
+      if (driverJsonStr != null && driverJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(driverJsonStr) as Map<String, dynamic>;
+        _driver = DriverModel.fromJson(decoded);
+        _isOnline = _driver?.isOnline ?? false;
+        if (_driver?.latitude != null && _driver?.longitude != null) {
+          _latitude = _driver!.latitude!;
+          _longitude = _driver!.longitude!;
+        }
+      }
+
+      final vehicleJsonStr = prefs.getString('cached_vehicle_json');
+      if (vehicleJsonStr != null && vehicleJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(vehicleJsonStr) as Map<String, dynamic>;
+        _vehicle = VehicleModel.fromJson(decoded);
+      }
+
+      final documentsJsonStr = prefs.getString('cached_documents_json');
+      if (documentsJsonStr != null && documentsJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(documentsJsonStr) as Map<String, dynamic>;
+        _documents = DocumentModel.fromJson(decoded);
+      }
+
+      final bankJsonStr = prefs.getString('cached_bank_details_json');
+      if (bankJsonStr != null && bankJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(bankJsonStr) as Map<String, dynamic>;
+        _bankDetails = BankDetailsModel.fromJson(decoded);
+      }
+
+      final configJsonStr = prefs.getString('cached_app_config_json');
+      if (configJsonStr != null && configJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(configJsonStr) as Map<String, dynamic>;
+        _appConfig = PartnerAppConfigModel.fromJson(decoded);
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Notice restoring profile from local cache: $e');
+    }
+  }
+
+  /// Persist complete profile, vehicle, document, bank details, and config to SharedPreferences
+  Future<void> saveToLocalCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_driver != null) {
+        await prefs.setString('cached_driver_json', jsonEncode(_driver!.toJson()));
+        if (_driver!.id != null) {
+          await prefs.setString('saved_driver_session', _driver!.id!);
+        }
+      }
+      if (_vehicle != null) {
+        await prefs.setString('cached_vehicle_json', jsonEncode(_vehicle!.toJson()));
+      }
+      if (_documents != null) {
+        await prefs.setString('cached_documents_json', jsonEncode(_documents!.toJson()));
+      }
+      if (_bankDetails != null) {
+        await prefs.setString('cached_bank_details_json', jsonEncode(_bankDetails!.toJson()));
+      }
+      await prefs.setString('cached_app_config_json', jsonEncode(_appConfig.toJson()));
+    } catch (e) {
+      debugPrint('Notice saving profile to local cache: $e');
+    }
+  }
+
   Future<void> saveSessionPhoneOrId(String val) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -651,6 +751,11 @@ class ProfileViewModel extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('saved_driver_session');
+      await prefs.remove('cached_driver_json');
+      await prefs.remove('cached_vehicle_json');
+      await prefs.remove('cached_documents_json');
+      await prefs.remove('cached_bank_details_json');
+      await prefs.remove('cached_app_config_json');
     } catch (e) {
       debugPrint('Notice clearing session: $e');
     }
