@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/razorpay_service.dart';
+import '../../core/services/supabase_service.dart';
 import '../../viewmodels/wallet_viewmodel.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/recharge_result_dialog.dart';
@@ -21,6 +22,7 @@ class WalletView extends StatefulWidget {
 
 class _WalletViewState extends State<WalletView> {
   double _pendingRechargeAmount = 0.0;
+  String? _pendingPaymentType;
 
   @override
   void initState() {
@@ -48,24 +50,62 @@ class _WalletViewState extends State<WalletView> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    debugPrint(
-        '💳 Razorpay Payment Success! Payment ID: ${response.paymentId}. Wallet balance update will be processed asynchronously via Edge Function Webhook.');
+    final paymentId = response.paymentId;
+    if (paymentId == null || paymentId.trim().isEmpty) {
+      debugPrint('⚠️ Warning: Razorpay success callback fired with null/empty paymentId!');
+      if (!mounted) return;
+      _pendingRechargeAmount = 0.0;
+      _pendingPaymentType = null;
+      RechargeResultDialog.show(
+        context: context,
+        isSuccess: false,
+        errorMessage: 'Payment verification failed: Invalid Payment ID received.',
+      );
+      return;
+    }
+
+    debugPrint('💳 Razorpay Payment Verified Success! Payment ID: $paymentId');
     if (!mounted) return;
     final profileVm = context.read<ProfileViewModel>();
     final walletVm = context.read<WalletViewModel>();
     final driverId = widget.driverId ?? profileVm.driver?.id ?? '';
 
     final rechargedAmt = _pendingRechargeAmount;
+    final paymentType = _pendingPaymentType;
     _pendingRechargeAmount = 0.0;
+    _pendingPaymentType = null;
 
-    // Refresh wallet UI and schedule a short delayed refresh for when Edge Function webhook completes
+    if (paymentType == 'direct_daily_fee') {
+      if (driverId.isNotEmpty) {
+        final success = await walletVm.payDailyFee(driverId: driverId, context: context);
+        if (!success && mounted) {
+          RechargeResultDialog.show(
+            context: context,
+            isSuccess: false,
+            errorMessage: 'Payment received but failed to activate Daily Pass. Reference: $paymentId',
+          );
+          return;
+        }
+      }
+    } else if (rechargedAmt > 0 && driverId.isNotEmpty) {
+      final res = await SupabaseService.instance.rechargeDriverWallet(
+        driverId: driverId,
+        amount: rechargedAmt,
+      );
+      final success = res['success'] as bool? ?? false;
+      if (!success && mounted) {
+        RechargeResultDialog.show(
+          context: context,
+          isSuccess: false,
+          errorMessage: res['message']?.toString() ?? 'Payment received but wallet credit failed. Ref: $paymentId',
+        );
+        return;
+      }
+    }
+
+    // Refresh wallet UI
     if (driverId.isNotEmpty && mounted) {
       walletVm.fetchWalletData(driverId, showLoading: false);
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          walletVm.fetchWalletData(driverId, showLoading: false);
-        }
-      });
     }
 
     if (mounted) {
@@ -80,11 +120,14 @@ class _WalletViewState extends State<WalletView> {
   void _handlePaymentFailure(PaymentFailureResponse response) {
     debugPrint(
         '💳 Razorpay Payment Failed: ${response.code} - ${response.message}');
+    _pendingRechargeAmount = 0.0;
+    _pendingPaymentType = null;
     if (!mounted) return;
+
     final msg = (response.message == null ||
             response.message == 'undefined' ||
             response.message!.trim().isEmpty)
-        ? "Payment Failed"
+        ? "Payment was cancelled or failed."
         : response.message;
 
     if (mounted) {
@@ -98,6 +141,18 @@ class _WalletViewState extends State<WalletView> {
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     debugPrint('💳 External Wallet Selected: ${response.walletName}');
+    _pendingRechargeAmount = 0.0;
+    _pendingPaymentType = null;
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('External wallet ${response.walletName ?? ''} selected. Complete payment in the wallet app.'),
+        backgroundColor: Colors.black87,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   void _payDailyFeeWithoutWallet(BuildContext context, String driverId) {
@@ -106,6 +161,7 @@ class _WalletViewState extends State<WalletView> {
     final dailyFee = walletVm.vehicleDailyFee;
 
     _pendingRechargeAmount = dailyFee;
+    _pendingPaymentType = 'direct_daily_fee';
 
     RazorpayService.instance.openCheckout(
       amount: dailyFee,
@@ -278,6 +334,7 @@ class _WalletViewState extends State<WalletView> {
                                 if (amt <= 0) return;
 
                                 _pendingRechargeAmount = amt;
+                                _pendingPaymentType = 'wallet_recharge';
                                 final profile =
                                     context.read<ProfileViewModel>().driver;
 
@@ -289,6 +346,7 @@ class _WalletViewState extends State<WalletView> {
                                   driverName: profile?.name ?? 'EZMoov Partner',
                                   driverPhone: profile?.phone ?? '',
                                   driverEmail: profile?.email ?? '',
+                                  paymentType: 'wallet_recharge',
                                 );
                               },
                         child: walletVm.isRecharging

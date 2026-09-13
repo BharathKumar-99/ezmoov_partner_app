@@ -44,8 +44,22 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    debugPrint(
-        '💳 Razorpay Registration Fee Payment Success! Payment ID: ${response.paymentId}');
+    final paymentId = response.paymentId;
+    if (paymentId == null || paymentId.trim().isEmpty) {
+      debugPrint('⚠️ Registration fee payment success callback fired but paymentId is empty/null');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Payment verification failed: Invalid Payment ID received.'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
+    debugPrint('💳 Razorpay Registration Fee Payment Success! Payment ID: $paymentId');
     if (!mounted) return;
     final vm = context.read<ProfileViewModel>();
     final success = await vm.payRegistrationFee(context);
@@ -61,7 +75,7 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
     final msg = (response.message == null ||
             response.message == 'undefined' ||
             response.message!.trim().isEmpty)
-        ? "Payment Failed"
+        ? "Payment was cancelled or failed."
         : response.message;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -76,6 +90,15 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     debugPrint('💳 External Wallet Selected: ${response.walletName}');
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('External wallet ${response.walletName ?? ''} selected. Complete payment in wallet app.'),
+        backgroundColor: Colors.black87,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   void _initiatePayment(ProfileViewModel vm, double feeAmount) async {
