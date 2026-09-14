@@ -1,7 +1,7 @@
 name: ezmoov_partner_app
 description: "EZMoov Partner Application for Drivers"
 publish_to: 'none'
-version: 1.0.1+11
+version: 1.0.3+13
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -30,6 +30,7 @@ dependencies:
   firebase_messaging: ^15.2.0
   razorpay_flutter: ^1.4.5
   font_awesome_flutter: ^11.0.0
+  package_info_plus: ^10.2.1
 
 
 

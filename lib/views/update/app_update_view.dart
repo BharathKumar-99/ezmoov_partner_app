@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_constants.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
 import '../../widgets/language_selector_button.dart';
@@ -29,7 +30,8 @@ class AppUpdateView extends StatelessWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Could not open store link. Please search for EZMoov Partner in Google Play.'),
+              content: Text(
+                  'Could not open store link. Please search for EZMoov Partner in Google Play.'),
               backgroundColor: AppColors.error,
             ),
           );
@@ -56,14 +58,17 @@ class AppUpdateView extends StatelessWidget {
       builder: (context, vm, child) {
         final config = vm.appConfig;
         final isMandatory = config.forceUpdate || isForced;
-        final title = config.updateTitle.isNotEmpty && config.updateTitle != 'Update Available'
+        final title = config.updateTitle.isNotEmpty &&
+                config.updateTitle != 'Update Available'
             ? config.updateTitle
             : l10n.updateAvailable;
-        final message = config.updateMessage.isNotEmpty && !config.updateMessage.contains('new version of EZMoov')
+        final message = config.updateMessage.isNotEmpty &&
+                !config.updateMessage.contains('new version of EZMoov')
             ? config.updateMessage
             : l10n.updateAvailableDesc;
-        final latestVersion = config.version.isNotEmpty ? config.version : '1.0.0';
-
+        final latestVersion =
+            config.version.isNotEmpty ? config.version : '1.0.0';
+        final currentVersion = AppConstants.appVersion;
         return PopScope(
           canPop: !isMandatory, // Prevent closing if forced update
           child: Scaffold(
@@ -80,7 +85,8 @@ class AppUpdateView extends StatelessWidget {
             ),
             body: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -117,29 +123,42 @@ class AppUpdateView extends StatelessWidget {
 
                     // 2. Status Badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isMandatory ? const Color(0xFFFEE2E2) : const Color(0xFFDCFCE7),
+                        color: isMandatory
+                            ? const Color(0xFFFEE2E2)
+                            : const Color(0xFFDCFCE7),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isMandatory ? const Color(0xFFF87171) : AppColors.primary.withValues(alpha: 0.5),
+                          color: isMandatory
+                              ? const Color(0xFFF87171)
+                              : AppColors.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isMandatory ? Icons.priority_high_rounded : Icons.auto_awesome_rounded,
+                            isMandatory
+                                ? Icons.priority_high_rounded
+                                : Icons.auto_awesome_rounded,
                             size: 14,
-                            color: isMandatory ? const Color(0xFFDC2626) : AppColors.primaryDark,
+                            color: isMandatory
+                                ? const Color(0xFFDC2626)
+                                : AppColors.primaryDark,
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            isMandatory ? l10n.mandatoryUpdate : l10n.newVersionAvailable,
+                            isMandatory
+                                ? l10n.mandatoryUpdate
+                                : l10n.newVersionAvailable,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
-                              color: isMandatory ? const Color(0xFFB91C1C) : AppColors.primaryDark,
+                              color: isMandatory
+                                  ? const Color(0xFFB91C1C)
+                                  : AppColors.primaryDark,
                               letterSpacing: 0.6,
                             ),
                           ),
@@ -151,7 +170,8 @@ class AppUpdateView extends StatelessWidget {
 
                     // 3. Version Comparison Chip
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(14),
@@ -161,7 +181,7 @@ class AppUpdateView extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            l10n.currentVersionLabel('0.0.3'),
+                            l10n.currentVersionLabel(currentVersion),
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary,
@@ -170,7 +190,8 @@ class AppUpdateView extends StatelessWidget {
                           ),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.primary),
+                            child: Icon(Icons.arrow_forward_rounded,
+                                size: 14, color: AppColors.primary),
                           ),
                           Text(
                             l10n.latestVersionLabel(latestVersion),
@@ -277,7 +298,8 @@ class AppUpdateView extends StatelessWidget {
                       child: GradientButton(
                         text: l10n.updateNow,
                         icon: Icons.system_update_alt_rounded,
-                        onPressed: () => _openStoreUrl(context, config.updateUrl),
+                        onPressed: () =>
+                            _openStoreUrl(context, config.updateUrl),
                       ),
                     ),
 

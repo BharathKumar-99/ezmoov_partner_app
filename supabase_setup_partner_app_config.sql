@@ -98,23 +98,35 @@ EXCEPTION
     WHEN others THEN NULL;
 END $$;
 
--- 6. Helper RPC Function to fetch latest partner app config
-CREATE OR REPLACE FUNCTION public.get_partner_app_config()
+-- 6. Helper RPC Function to fetch latest partner app config matching app version
+CREATE OR REPLACE FUNCTION public.get_partner_app_config(p_version TEXT DEFAULT NULL)
 RETURNS JSONB AS $$
 DECLARE
     v_config RECORD;
 BEGIN
-    SELECT * INTO v_config 
-    FROM public.partner_app_config 
-    ORDER BY id ASC 
-    LIMIT 1;
+    -- 1. Try exact version match if p_version is provided
+    IF p_version IS NOT NULL AND p_version <> '' THEN
+        SELECT * INTO v_config 
+        FROM public.partner_app_config 
+        WHERE version = p_version
+        ORDER BY id DESC 
+        LIMIT 1;
+    END IF;
 
-    IF FOUND THEN
+    -- 2. Fallback to latest configured row if no exact version matched
+    IF v_config IS NULL THEN
+        SELECT * INTO v_config 
+        FROM public.partner_app_config 
+        ORDER BY id DESC 
+        LIMIT 1;
+    END IF;
+
+    IF FOUND AND v_config IS NOT NULL THEN
         RETURN to_jsonb(v_config);
     ELSE
         RETURN jsonb_build_object(
             'id', 1,
-            'version', '1.0.0',
+            'version', COALESCE(p_version, '1.0.2'),
             'is_maintenance', false,
             'force_update', false,
             'update_url', 'https://play.google.com/store/apps/details?id=com.ezmoov.partner',
@@ -130,4 +142,5 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+GRANT EXECUTE ON FUNCTION public.get_partner_app_config(TEXT) TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.get_partner_app_config() TO anon, authenticated, service_role;

@@ -15,6 +15,7 @@ import '../../models/wallet_model.dart';
 import '../../models/driver_login_time_model.dart';
 import '../../models/driver_ride_action_model.dart';
 import '../../models/partner_app_config_model.dart';
+import '../constants/app_constants.dart';
 
 class SupabaseService {
   SupabaseService._internal();
@@ -1657,10 +1658,20 @@ class SupabaseService {
 
   PartnerAppConfigModel _cachedPartnerAppConfig = PartnerAppConfigModel.defaultConfig();
   PartnerAppConfigModel get cachedPartnerAppConfig => _cachedPartnerAppConfig;
+  void setCachedPartnerAppConfig(PartnerAppConfigModel config) {
+    _cachedPartnerAppConfig = config;
+  }
 
-  /// Fetch partner app configuration from `public.partner_app_config` table or RPC
-  Future<PartnerAppConfigModel> getPartnerAppConfig({bool forceRefresh = false}) async {
-    if (!forceRefresh && _cachedPartnerAppConfig != PartnerAppConfigModel.defaultConfig()) {
+  /// Fetch partner app configuration directly from `public.partner_app_config` table matching the app version
+  Future<PartnerAppConfigModel> getPartnerAppConfig({
+    String? appVersion,
+    bool forceRefresh = true,
+  }) async {
+    final targetVersion = appVersion ?? AppConstants.appVersion;
+
+    if (!forceRefresh &&
+        _cachedPartnerAppConfig != PartnerAppConfigModel.defaultConfig() &&
+        _cachedPartnerAppConfig.version == targetVersion) {
       return _cachedPartnerAppConfig;
     }
 
@@ -1668,47 +1679,61 @@ class SupabaseService {
       final sc = safeClient;
       if (sc == null) return _cachedPartnerAppConfig;
 
-      // Try RPC first if available
+      // 1. Direct table query: Filter by exact app version
       try {
-        final rpcRes = await sc.rpc('get_partner_app_config').timeout(const Duration(seconds: 5));
-        if (rpcRes is Map) {
-          final config = PartnerAppConfigModel.fromJson(Map<String, dynamic>.from(rpcRes));
+        final versionResponse = await sc
+            .from('partner_app_config')
+            .select()
+            .eq('version', targetVersion)
+            .limit(1)
+            .maybeSingle()
+            .timeout(const Duration(seconds: 5));
+
+        if (versionResponse != null) {
+          final config = PartnerAppConfigModel.fromJson(Map<String, dynamic>.from(versionResponse));
           _cachedPartnerAppConfig = config;
           return config;
         }
-      } catch (rpcErr) {
-        debugPrint('Notice calling get_partner_app_config RPC: $rpcErr');
+      } catch (versionErr) {
+        debugPrint('Notice querying partner_app_config for version $targetVersion: $versionErr');
       }
 
-      // Direct table query fallback
-      final response = await sc
+      // 2. Fallback: Query latest config in table if version-specific row is not found
+      final fallbackResponse = await sc
           .from('partner_app_config')
           .select()
-          .order('id', ascending: true)
+          .order('id', ascending: false)
           .limit(1)
           .maybeSingle()
           .timeout(const Duration(seconds: 5));
 
-      if (response != null) {
-        final config = PartnerAppConfigModel.fromJson(Map<String, dynamic>.from(response));
+      if (fallbackResponse != null) {
+        final config = PartnerAppConfigModel.fromJson(Map<String, dynamic>.from(fallbackResponse));
         _cachedPartnerAppConfig = config;
         return config;
       }
     } catch (e) {
-      debugPrint('Error fetching partner_app_config from Supabase: $e');
+      debugPrint('Error fetching partner_app_config directly from table: $e');
     }
 
     return _cachedPartnerAppConfig;
   }
 
   /// Realtime Stream subscription to public.partner_app_config table
-  Stream<PartnerAppConfigModel> subscribeToPartnerAppConfig() {
+  Stream<PartnerAppConfigModel> subscribeToPartnerAppConfig({String? appVersion}) {
     final sc = safeClient;
     if (sc == null) {
       return Stream.value(_cachedPartnerAppConfig);
     }
+    final targetVersion = appVersion ?? AppConstants.appVersion;
     return sc.from('partner_app_config').stream(primaryKey: ['id']).map((data) {
       if (data.isNotEmpty) {
+        final matching = data.where((row) => row['version']?.toString() == targetVersion);
+        if (matching.isNotEmpty) {
+          final config = PartnerAppConfigModel.fromJson(matching.first);
+          _cachedPartnerAppConfig = config;
+          return config;
+        }
         final config = PartnerAppConfigModel.fromJson(data.first);
         _cachedPartnerAppConfig = config;
         return config;

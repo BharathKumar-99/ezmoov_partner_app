@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'core/constants/app_constants.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
@@ -30,6 +31,9 @@ import 'viewmodels/performance_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize package metadata (dynamically loads app version, build number, package name)
+  await AppConstants.initialize();
 
   try {
     await dotenv.load(fileName: ".env");
@@ -59,18 +63,41 @@ Future<void> main() async {
 
   final profileViewModel = ProfileViewModel();
 
-  // Instant local cache restore from flash storage (< 5ms)
-  await profileViewModel.restoreFromLocalCache();
+  // Fetch fresh driver profile from Supabase if logged in
+  try {
+    final currentAuthUser = Supabase.instance.client.auth.currentUser;
+    final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
+    final driverId = currentAuthUser?.id ?? savedSession;
 
-  // Run app UI immediately without blocking on network or external services
+    if (driverId != null && driverId.isNotEmpty) {
+      await profileViewModel
+          .fetchProfile(driverId)
+          .timeout(const Duration(seconds: 4))
+          .catchError((_) => null);
+    }
+  } catch (e) {
+    debugPrint('Startup profile fetch notice: $e');
+  }
+
+  // Fetch dynamic app config matching version from Supabase on launch
+  unawaited(profileViewModel.fetchAppConfig());
+
+  // Run app UI immediately
   runApp(EzMoovPartnerApp(profileViewModel: profileViewModel));
 
   // Run non-critical background services & network profile sync asynchronously
   unawaited(_initializeBackgroundServices(profileViewModel));
 }
 
-/// Asynchronously initialize Firebase, notifications, background tasks and refresh profile from Supabase
+/// Asynchronously initialize Firebase, notifications, background tasks and refresh profile & config from Supabase
 Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) async {
+  // 0. Fetch latest app config matching version dynamically
+  try {
+    await profileViewModel.fetchAppConfig();
+  } catch (e) {
+    debugPrint('Background app config fetch notice: $e');
+  }
+
   // 1. Initialize Firebase & FCM
   try {
     await Firebase.initializeApp(

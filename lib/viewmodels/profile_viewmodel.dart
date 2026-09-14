@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
@@ -19,9 +18,17 @@ import 'ride_request_viewmodel.dart';
 import 'wallet_viewmodel.dart';
 import '../models/wallet_model.dart';
 import '../models/partner_app_config_model.dart';
+import '../core/constants/app_constants.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
+
+  ProfileViewModel() {
+    // Dynamically fetch fresh configuration matching current app version on app startup
+    if (_supabaseService.safeClient != null) {
+      unawaited(fetchAppConfig());
+    }
+  }
 
   DriverModel? _driver;
   VehicleModel? _vehicle;
@@ -658,74 +665,20 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Restore complete cached driver profile, vehicles, documents, bank details, and config from local flash storage
+  /// Restore session from local storage (user details are not stored locally and are fetched fresh from DB)
   Future<void> restoreFromLocalCache() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final driverJsonStr = prefs.getString('cached_driver_json');
-      if (driverJsonStr != null && driverJsonStr.isNotEmpty) {
-        final decoded = jsonDecode(driverJsonStr) as Map<String, dynamic>;
-        _driver = DriverModel.fromJson(decoded);
-        _isOnline = _driver?.isOnline ?? false;
-        if (_driver?.latitude != null && _driver?.longitude != null) {
-          _latitude = _driver!.latitude!;
-          _longitude = _driver!.longitude!;
-        }
-      }
-
-      final vehicleJsonStr = prefs.getString('cached_vehicle_json');
-      if (vehicleJsonStr != null && vehicleJsonStr.isNotEmpty) {
-        final decoded = jsonDecode(vehicleJsonStr) as Map<String, dynamic>;
-        _vehicle = VehicleModel.fromJson(decoded);
-      }
-
-      final documentsJsonStr = prefs.getString('cached_documents_json');
-      if (documentsJsonStr != null && documentsJsonStr.isNotEmpty) {
-        final decoded = jsonDecode(documentsJsonStr) as Map<String, dynamic>;
-        _documents = DocumentModel.fromJson(decoded);
-      }
-
-      final bankJsonStr = prefs.getString('cached_bank_details_json');
-      if (bankJsonStr != null && bankJsonStr.isNotEmpty) {
-        final decoded = jsonDecode(bankJsonStr) as Map<String, dynamic>;
-        _bankDetails = BankDetailsModel.fromJson(decoded);
-      }
-
-      final configJsonStr = prefs.getString('cached_app_config_json');
-      if (configJsonStr != null && configJsonStr.isNotEmpty) {
-        final decoded = jsonDecode(configJsonStr) as Map<String, dynamic>;
-        _appConfig = PartnerAppConfigModel.fromJson(decoded);
-      }
-
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Notice restoring profile from local cache: $e');
-    }
+    // User details and config are not cached in local storage.
+    // Fresh details are loaded directly from Supabase via fetchProfile().
   }
 
-  /// Persist complete profile, vehicle, document, bank details, and config to SharedPreferences
+  /// Save session state (user details are not persisted locally and are fetched fresh from Supabase)
   Future<void> saveToLocalCache() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      if (_driver != null) {
-        await prefs.setString('cached_driver_json', jsonEncode(_driver!.toJson()));
-        if (_driver!.id != null) {
-          await prefs.setString('saved_driver_session', _driver!.id!);
-        }
+      if (_driver?.id != null) {
+        await saveSessionPhoneOrId(_driver!.id!);
       }
-      if (_vehicle != null) {
-        await prefs.setString('cached_vehicle_json', jsonEncode(_vehicle!.toJson()));
-      }
-      if (_documents != null) {
-        await prefs.setString('cached_documents_json', jsonEncode(_documents!.toJson()));
-      }
-      if (_bankDetails != null) {
-        await prefs.setString('cached_bank_details_json', jsonEncode(_bankDetails!.toJson()));
-      }
-      await prefs.setString('cached_app_config_json', jsonEncode(_appConfig.toJson()));
     } catch (e) {
-      debugPrint('Notice saving profile to local cache: $e');
+      debugPrint('Notice saving driver session: $e');
     }
   }
 
@@ -748,6 +701,15 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> clearSession() async {
+    _driver = null;
+    _vehicle = null;
+    _documents = null;
+    _bankDetails = null;
+    _ratings = [];
+    _trips = [];
+    _isOnline = false;
+    notifyListeners();
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('saved_driver_session');
@@ -825,12 +787,21 @@ class ProfileViewModel extends ChangeNotifier {
   /// Sets app configuration directly (e.g. for testing or override)
   void setAppConfig(PartnerAppConfigModel config) {
     _appConfig = config;
+    _supabaseService.setCachedPartnerAppConfig(config);
     notifyListeners();
   }
 
-  Future<PartnerAppConfigModel> fetchAppConfig([BuildContext? context]) async {
+  /// Fetches partner app configuration dynamically matching the current app version
+  Future<PartnerAppConfigModel> fetchAppConfig([
+    BuildContext? context,
+    String? appVersion,
+  ]) async {
     try {
-      _appConfig = await _supabaseService.getPartnerAppConfig();
+      final targetVersion = appVersion ?? AppConstants.appVersion;
+      _appConfig = await _supabaseService.getPartnerAppConfig(
+        appVersion: targetVersion,
+        forceRefresh: true,
+      );
       if (context != null && context.mounted) {
         context.read<WalletViewModel>().setFreeDriverLogin(_appConfig.isFreeDriverLogin);
       }
