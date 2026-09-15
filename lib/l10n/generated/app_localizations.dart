@@ -1147,7 +1147,7 @@ abstract class AppLocalizations {
   /// No description provided for @tcRcPermitNumber.
   ///
   /// In en, this message translates to:
-  /// **'TC / RC Permit Number *'**
+  /// **'TC / RC Permit Number (Note: for 3w it’s not applicable)'**
   String get tcRcPermitNumber;
 
   /// No description provided for @truck.
@@ -1210,6 +1210,30 @@ abstract class AppLocalizations {
   /// **'Upload Driving License'**
   String get uploadDrivingLicense;
 
+  /// No description provided for @drivingLicenseFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving License (Front)'**
+  String get drivingLicenseFront;
+
+  /// No description provided for @uploadDrivingLicenseFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Driving License (Front)'**
+  String get uploadDrivingLicenseFront;
+
+  /// No description provided for @drivingLicenseBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving License (Back)'**
+  String get drivingLicenseBack;
+
+  /// No description provided for @uploadDrivingLicenseBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Driving License (Back)'**
+  String get uploadDrivingLicenseBack;
+
   /// No description provided for @vehicleRc.
   ///
   /// In en, this message translates to:
@@ -1221,6 +1245,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upload Vehicle RC'**
   String get uploadVehicleRc;
+
+  /// No description provided for @vehicleRcFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle RC (Front)'**
+  String get vehicleRcFront;
+
+  /// No description provided for @uploadVehicleRcFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Vehicle RC (Front)'**
+  String get uploadVehicleRcFront;
+
+  /// No description provided for @vehicleRcBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle RC (Back)'**
+  String get vehicleRcBack;
+
+  /// No description provided for @uploadVehicleRcBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Vehicle RC (Back)'**
+  String get uploadVehicleRcBack;
 
   /// No description provided for @panCard.
   ///

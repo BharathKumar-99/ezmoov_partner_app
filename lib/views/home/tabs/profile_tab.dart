@@ -178,18 +178,45 @@ class ProfileTab extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                driver?.name ?? 'EZMoov Partner',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                              Flexible(
+                                child: Text(
+                                  driver?.name ?? 'EZMoov Partner',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const SizedBox(width: 6),
                               const Icon(Icons.verified, color: AppColors.primary, size: 18),
                             ],
                           ),
+                          if (driver?.uniqueId != null && driver!.uniqueId!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(alpha: 0.25),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                'ID: ${driver.uniqueId}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 4),
                           Text(
                             driver?.phone ?? '',
@@ -198,14 +225,18 @@ class ProfileTab extends StatelessWidget {
                               color: AppColors.textSecondary,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            driver?.email ?? '',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textMuted,
+                          if (driver?.email != null && driver!.email.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              driver.email,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textMuted,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),

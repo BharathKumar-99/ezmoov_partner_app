@@ -20,7 +20,8 @@ class SupportView extends StatelessWidget {
     }
   }
 
-  void _showSupportDetailModal(BuildContext context, {
+  void _showSupportDetailModal(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
@@ -106,7 +107,8 @@ class SupportView extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.help_outline_rounded, size: 16, color: AppColors.primary),
+                            const Icon(Icons.help_outline_rounded,
+                                size: 16, color: AppColors.primary),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -138,7 +140,7 @@ class SupportView extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    _makeCall(hotline ?? '+9118001234567');
+                    _makeCall(hotline ?? '+918142271655');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -170,7 +172,8 @@ class SupportView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9), // Light grey soft background matching reference design
+      backgroundColor: const Color(
+          0xFFF1F5F9), // Light grey soft background matching reference design
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -183,7 +186,8 @@ class SupportView extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: IconButton(
                   onPressed: () => context.pop(),
-                  icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary, size: 24),
+                  icon: const Icon(Icons.arrow_back_rounded,
+                      color: AppColors.textPrimary, size: 24),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -230,7 +234,8 @@ class SupportView extends StatelessWidget {
                         width: 110,
                         height: 90,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFDBEAFE), // Light blue background
+                          color:
+                              const Color(0xFFDBEAFE), // Light blue background
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Align(
@@ -275,9 +280,11 @@ class SupportView extends StatelessWidget {
                                 width: 52,
                                 height: 52,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1D4ED8), // Royal blue uniform
+                                  color: const Color(
+                                      0xFF1D4ED8), // Royal blue uniform
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
                                 ),
                                 child: const Icon(
                                   Icons.person_rounded,
@@ -288,12 +295,14 @@ class SupportView extends StatelessWidget {
                               Positioned(
                                 top: 8,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF1E40AF),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Icon(Icons.pin_drop, color: Colors.white, size: 10),
+                                  child: const Icon(Icons.pin_drop,
+                                      color: Colors.white, size: 10),
                                 ),
                               ),
                               Positioned(
@@ -337,11 +346,13 @@ class SupportView extends StatelessWidget {
                     faqs: [
                       {
                         'q': 'How can I change my registered phone number?',
-                        'a': 'To update your phone number, please contact support with a copy of your Driving License and government ID verification.'
+                        'a':
+                            'To update your phone number, please contact support with a copy of your Driving License and government ID verification.'
                       },
                       {
                         'q': 'How do I update vehicle or bank information?',
-                        'a': 'You can re-submit updated RC or Bank passbook documents via the Profile tab or submit a ticket here.'
+                        'a':
+                            'You can re-submit updated RC or Bank passbook documents via the Profile tab or submit a ticket here.'
                       },
                     ],
                   );
@@ -364,11 +375,13 @@ class SupportView extends StatelessWidget {
                     faqs: [
                       {
                         'q': 'How are trip fares calculated?',
-                        'a': 'Fares are calculated based on base fare, total distance travelled, ride duration, vehicle type, and active peak surge multipliers.'
+                        'a':
+                            'Fares are calculated based on base fare, total distance travelled, ride duration, vehicle type, and active peak surge multipliers.'
                       },
                       {
                         'q': 'What if customer cancels the trip?',
-                        'a': 'A standard cancellation fee is automatically credited to your EZMoov wallet if the customer cancels after driver assignment.'
+                        'a':
+                            'A standard cancellation fee is automatically credited to your EZMoov wallet if the customer cancels after driver assignment.'
                       },
                     ],
                   );
@@ -391,11 +404,13 @@ class SupportView extends StatelessWidget {
                     faqs: [
                       {
                         'q': 'When are weekly payouts deposited?',
-                        'a': 'Earnings are automatically processed and transferred directly to your linked bank account every Tuesday morning.'
+                        'a':
+                            'Earnings are automatically processed and transferred directly to your linked bank account every Tuesday morning.'
                       },
                       {
                         'q': 'How does instant withdrawal work?',
-                        'a': 'Instant withdrawal transfers your available wallet balance directly to your bank account via UPI/IMPS within minutes.'
+                        'a':
+                            'Instant withdrawal transfers your available wallet balance directly to your bank account via UPI/IMPS within minutes.'
                       },
                     ],
                   );
@@ -418,11 +433,13 @@ class SupportView extends StatelessWidget {
                     faqs: [
                       {
                         'q': 'What goods transport services are supported?',
-                        'a': 'EZMoov connects partners offering 2-wheeler, 3-wheeler, Tata Ace, Pickup, and Heavy vehicle logistics services across cities.'
+                        'a':
+                            'EZMoov connects partners offering 2-wheeler, 3-wheeler, Tata Ace, Pickup, and Heavy vehicle logistics services across cities.'
                       },
                       {
                         'q': 'What are partner quality standards?',
-                        'a': 'Partners are expected to maintain clean vehicles, follow safety rules, provide accurate loading updates, and arrive promptly.'
+                        'a':
+                            'Partners are expected to maintain clean vehicles, follow safety rules, provide accurate loading updates, and arrive promptly.'
                       },
                     ],
                   );
@@ -445,11 +462,13 @@ class SupportView extends StatelessWidget {
                     faqs: [
                       {
                         'q': 'Is my trip covered under insurance?',
-                        'a': 'Yes, all active trips on EZMoov include partner accident insurance cover. Ensure you hit "Start Trip" on the app.'
+                        'a':
+                            'Yes, all active trips on EZMoov include partner accident insurance cover. Ensure you hit "Start Trip" on the app.'
                       },
                       {
                         'q': 'What should I do in an emergency?',
-                        'a': 'Tap the Emergency SOS button in the trip screen to alert local authorities and our emergency response team immediately.'
+                        'a':
+                            'Tap the Emergency SOS button in the trip screen to alert local authorities and our emergency response team immediately.'
                       },
                     ],
                   );
@@ -462,7 +481,7 @@ class SupportView extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _makeCall('+9118001234567'),
+                  onPressed: () => _makeCall('+918142271655'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -471,7 +490,8 @@ class SupportView extends StatelessWidget {
                     ),
                     elevation: 0,
                   ),
-                  icon: const Icon(Icons.headset_mic_rounded, color: Colors.white, size: 22),
+                  icon: const Icon(Icons.headset_mic_rounded,
+                      color: Colors.white, size: 22),
                   label: Text(
                     l10n.callSupportHotline,
                     style: const TextStyle(

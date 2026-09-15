@@ -18,6 +18,7 @@ class EditProfileView extends StatefulWidget {
 
 class _EditProfileViewState extends State<EditProfileView> {
   final _formKey = GlobalKey<FormState>();
+  final _uniqueIdController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
   final _nameController = TextEditingController();
@@ -37,6 +38,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       final driver = profileVM.driver;
       if (driver != null) {
         setState(() {
+          _uniqueIdController.text = driver.uniqueId ?? '';
           _nameController.text = driver.name;
           _phoneController.text = driver.phone;
           _emailController.text = driver.email;
@@ -49,6 +51,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   @override
   void dispose() {
+    _uniqueIdController.dispose();
     _emailController.dispose();
     _addressController.dispose();
     _nameController.dispose();
@@ -230,12 +233,14 @@ class _EditProfileViewState extends State<EditProfileView> {
     try {
       final email = _emailController.text.trim();
       final address = _addressController.text.trim();
+      final uniqueId = _uniqueIdController.text.trim();
 
       await SupabaseService.instance.updateDriverProfile(
         driverId: driverId,
         profilePicUrl: _uploadedProfileUrl,
         email: email,
         address: address,
+        uniqueId: uniqueId.isNotEmpty ? uniqueId : null,
       );
 
       if (!mounted) return;
@@ -390,6 +395,32 @@ class _EditProfileViewState extends State<EditProfileView> {
               ),
 
               const SizedBox(height: 24),
+
+              // Partner ID Field (Editable)
+              TextFormField(
+                controller: _uniqueIdController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  labelText: 'Partner ID (Unique ID)',
+                  hintText: 'e.g. EZMD0001',
+                  prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.primary),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // Driver Name Field (Disabled / Display Only)
               TextFormField(

@@ -574,7 +574,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get fullOperationalAddress => 'पूरा परिचालन पता *';
 
   @override
-  String get tcRcPermitNumber => 'टीसी / आरसी परमिट संख्या *';
+  String get tcRcPermitNumber =>
+      'टीसी / आरसी परमिट संख्या (नोट: 3W के लिए लागू नहीं)';
 
   @override
   String get truck => 'ट्रक';
@@ -608,10 +609,36 @@ class AppLocalizationsHi extends AppLocalizations {
   String get uploadDrivingLicense => 'ड्राइविंग लाइसेंस अपलोड करें';
 
   @override
+  String get drivingLicenseFront => 'ड्राइविंग लाइसेंस (सामने का भाग)';
+
+  @override
+  String get uploadDrivingLicenseFront =>
+      'ड्राइविंग लाइसेंस (सामने का भाग) अपलोड करें';
+
+  @override
+  String get drivingLicenseBack => 'ड्राइविंग लाइसेंस (पिछला भाग)';
+
+  @override
+  String get uploadDrivingLicenseBack =>
+      'ड्राइविंग लाइसेंस (पिछला भाग) अपलोड करें';
+
+  @override
   String get vehicleRc => 'वाहन आरसी';
 
   @override
   String get uploadVehicleRc => 'वाहन आरसी अपलोड करें';
+
+  @override
+  String get vehicleRcFront => 'वाहन आरसी (सामने का भाग)';
+
+  @override
+  String get uploadVehicleRcFront => 'वाहन आरसी (सामने का भाग) अपलोड करें';
+
+  @override
+  String get vehicleRcBack => 'वाहन आरसी (पिछला भाग)';
+
+  @override
+  String get uploadVehicleRcBack => 'वाहन आरसी (पिछला भाग) अपलोड करें';
 
   @override
   String get panCard => 'पैन कार्ड';

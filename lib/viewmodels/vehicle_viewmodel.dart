@@ -199,7 +199,11 @@ class VehicleViewModel extends ChangeNotifier {
       return;
     }
 
-    if (rcNumber.isEmpty) {
+    final is3W = _selectedCategory == '3W' ||
+        (_selectedVehicleType?.name.toLowerCase().contains('3w') ?? false) ||
+        (_selectedVehicleType?.name.toLowerCase().contains('3 wheeler') ?? false);
+
+    if (!is3W && rcNumber.isEmpty) {
       if (context.mounted) {
         _showSnackBar(context, 'Please enter TC / RC permit number');
       }

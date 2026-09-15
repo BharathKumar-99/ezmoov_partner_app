@@ -8,6 +8,7 @@ CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA extensions;
 -- 2. Create Drivers Table
 CREATE TABLE IF NOT EXISTS public.drivers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    unique_id TEXT UNIQUE,
     name TEXT NOT NULL,
     email TEXT NOT NULL,
     phone TEXT UNIQUE NOT NULL,
@@ -28,7 +29,8 @@ CREATE TABLE IF NOT EXISTS public.drivers (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Ensure selfie_with_vehicle_url and owner_name exist on drivers table
+-- Ensure unique_id, selfie_with_vehicle_url and owner_name exist on drivers table
+ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS unique_id TEXT;
 ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS selfie_with_vehicle_url TEXT;
 ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS owner_name TEXT;
 
@@ -39,6 +41,32 @@ ON public.drivers USING GIST (current_location);
 -- Index on phone for fast lookup during login/signup
 CREATE INDEX IF NOT EXISTS idx_drivers_phone 
 ON public.drivers (phone);
+
+-- Index on unique_id for fast lookup
+CREATE INDEX IF NOT EXISTS idx_drivers_unique_id 
+ON public.drivers (unique_id);
+
+-- Sequence and trigger to auto-generate unique_id (EZMD0001, EZMD0002, ...)
+CREATE SEQUENCE IF NOT EXISTS driver_unique_id_seq START WITH 1;
+
+CREATE OR REPLACE FUNCTION generate_driver_unique_id()
+RETURNS TRIGGER AS $$
+DECLARE
+    next_num BIGINT;
+BEGIN
+    IF NEW.unique_id IS NULL OR TRIM(NEW.unique_id) = '' THEN
+        next_num := nextval('driver_unique_id_seq');
+        NEW.unique_id := 'EZMD' || LPAD(next_num::TEXT, 4, '0');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_set_driver_unique_id ON public.drivers;
+CREATE TRIGGER trg_set_driver_unique_id
+BEFORE INSERT ON public.drivers
+FOR EACH ROW
+EXECUTE FUNCTION generate_driver_unique_id();
 
 -- 3. Create Vehicles Table
 CREATE TABLE IF NOT EXISTS public.vehicles (
@@ -55,34 +83,40 @@ CREATE TABLE IF NOT EXISTS public.vehicles (
 CREATE INDEX IF NOT EXISTS idx_vehicles_driver_id 
 ON public.vehicles (driver_id);
 
--- 4. Create Documents Table (All 9 Required Verification Documents)
+-- 4. Create Documents Table (All Required Verification Documents)
 CREATE TABLE IF NOT EXISTS public.documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     driver_id UUID NOT NULL REFERENCES public.drivers(id) ON DELETE CASCADE,
     aadhaar_url TEXT DEFAULT '',
     driving_license_url TEXT DEFAULT '',
+    dl_back_url TEXT DEFAULT '',
     vehicle_rc_url TEXT DEFAULT '',
+    rc_back_url TEXT DEFAULT '',
     pan_card_url TEXT DEFAULT '',
     insurance_url TEXT DEFAULT '',
     puc_url TEXT DEFAULT '',
     permit_url TEXT DEFAULT '',
     fitness_url TEXT DEFAULT '',
     police_clearance_url TEXT DEFAULT '',
+    selfie_with_vehicle_url TEXT DEFAULT '',
     status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Ensure all 9 document URL columns exist if table already exists
+-- Ensure all document URL columns exist if table already exists
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS aadhaar_url TEXT DEFAULT '';
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS driving_license_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS dl_back_url TEXT DEFAULT '';
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS vehicle_rc_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS rc_back_url TEXT DEFAULT '';
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS pan_card_url TEXT DEFAULT '';
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS insurance_url TEXT DEFAULT '';
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS puc_url TEXT DEFAULT '';
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS permit_url TEXT DEFAULT '';
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS fitness_url TEXT DEFAULT '';
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS police_clearance_url TEXT DEFAULT '';
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS selfie_with_vehicle_url TEXT DEFAULT '';
 
 -- Index on driver_id
 CREATE INDEX IF NOT EXISTS idx_documents_driver_id 

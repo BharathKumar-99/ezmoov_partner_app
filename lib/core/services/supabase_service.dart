@@ -78,6 +78,25 @@ class SupabaseService {
     }
   }
 
+  /// Get driver by Unique ID (e.g. EZMD1234)
+  Future<DriverModel?> getDriverByUniqueId(String uniqueId) async {
+    try {
+      final response = await client
+          .from('drivers')
+          .select()
+          .eq('unique_id', uniqueId)
+          .limit(1)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
+
+      if (response == null) return null;
+      return DriverModel.fromJson(response);
+    } catch (e) {
+      debugPrint('Error getting driver by unique_id: $e');
+      rethrow;
+    }
+  }
+
   /// Send Phone OTP via Supabase Auth
   Future<void> sendPhoneOtp(String phone) async {
     try {
@@ -145,12 +164,13 @@ class SupabaseService {
     }
   }
 
-  /// Update Driver Profile (Profile Pic URL, Email, Address)
+  /// Update Driver Profile (Profile Pic URL, Email, Address, Unique ID)
   Future<void> updateDriverProfile({
     required String driverId,
     String? profilePicUrl,
     String? email,
     String? address,
+    String? uniqueId,
   }) async {
     try {
       final updates = <String, dynamic>{
@@ -159,6 +179,7 @@ class SupabaseService {
       if (profilePicUrl != null) updates['profile_pic_url'] = profilePicUrl;
       if (email != null) updates['email'] = email;
       if (address != null) updates['address'] = address;
+      if (uniqueId != null) updates['unique_id'] = uniqueId;
 
       await client.from('drivers').update(updates).eq('id', driverId);
     } catch (e) {

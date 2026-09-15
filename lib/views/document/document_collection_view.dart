@@ -71,27 +71,47 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.aadhaar, source),
                   ),
 
-                  // 2. Driving License
+                  // 2. Driving License (Front)
                   DocumentUploadCard(
-                    title: l10n.drivingLicense,
-                    buttonText: l10n.uploadDrivingLicense,
+                    title: l10n.drivingLicenseFront,
+                    buttonText: l10n.uploadDrivingLicenseFront,
                     iconData: Icons.badge_rounded,
                     imagePath: vm.drivingLicensePath,
                     onImageSelected: (source) =>
                         vm.pickDocument(DocumentType.drivingLicense, source),
                   ),
 
-                  // 3. Vehicle RC
+                  // 3. Driving License (Back)
                   DocumentUploadCard(
-                    title: l10n.vehicleRc,
-                    buttonText: l10n.uploadVehicleRc,
+                    title: l10n.drivingLicenseBack,
+                    buttonText: l10n.uploadDrivingLicenseBack,
+                    iconData: Icons.badge_outlined,
+                    imagePath: vm.dlBackPath,
+                    onImageSelected: (source) =>
+                        vm.pickDocument(DocumentType.dlBack, source),
+                  ),
+
+                  // 4. Vehicle RC (Front)
+                  DocumentUploadCard(
+                    title: l10n.vehicleRcFront,
+                    buttonText: l10n.uploadVehicleRcFront,
                     iconData: Icons.directions_car_rounded,
                     imagePath: vm.vehicleRcPath,
                     onImageSelected: (source) =>
                         vm.pickDocument(DocumentType.vehicleRc, source),
                   ),
 
-                  // 4. PAN Card
+                  // 5. Vehicle RC (Back)
+                  DocumentUploadCard(
+                    title: l10n.vehicleRcBack,
+                    buttonText: l10n.uploadVehicleRcBack,
+                    iconData: Icons.directions_car_outlined,
+                    imagePath: vm.rcBackPath,
+                    onImageSelected: (source) =>
+                        vm.pickDocument(DocumentType.rcBack, source),
+                  ),
+
+                  // 6. PAN Card
                   DocumentUploadCard(
                     title: l10n.panCard,
                     buttonText: l10n.uploadPanCard,
@@ -101,7 +121,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.panCard, source),
                   ),
 
-                  // 5. Vehicle Insurance
+                  // 7. Vehicle Insurance
                   DocumentUploadCard(
                     title: l10n.vehicleInsurance,
                     buttonText: l10n.uploadVehicleInsurance,
@@ -111,7 +131,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.insurance, source),
                   ),
 
-                  // 6. PUC Certificate
+                  // 8. PUC Certificate
                   DocumentUploadCard(
                     title: l10n.pucCertificate,
                     buttonText: l10n.uploadPucCertificate,
@@ -121,7 +141,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.puc, source),
                   ),
 
-                  // 7. Vehicle Permit
+                  // 9. Vehicle Permit
                   DocumentUploadCard(
                     title: l10n.vehiclePermit,
                     buttonText: l10n.uploadVehiclePermit,
@@ -131,7 +151,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.permit, source),
                   ),
 
-                  // 8. Fitness Certificate
+                  // 10. Fitness Certificate
                   DocumentUploadCard(
                     title: l10n.fitnessCertificate,
                     buttonText: l10n.uploadFitnessCertificate,
@@ -141,7 +161,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.fitness, source),
                   ),
 
-                  // 9. Police Clearance Certificate
+                  // 11. Police Clearance Certificate
                   DocumentUploadCard(
                     title: l10n.policeClearanceCertificate,
                     buttonText: l10n.uploadPoliceClearance,
@@ -151,7 +171,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.policeClearance, source),
                   ),
 
-                  // 10. Selfie with Vehicle
+                  // 12. Selfie with Vehicle
                   DocumentUploadCard(
                     title: l10n.selfieWithVehicle,
                     buttonText: l10n.uploadSelfieWithVehicle,
@@ -164,7 +184,7 @@ class DocumentCollectionView extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   GradientButton(
-                    text: '${l10n.submitDocuments} (${vm.uploadedCount}/10)',
+                    text: '${l10n.submitDocuments} (${vm.uploadedCount}/12)',
                     isLoading: vm.isLoading,
                     icon: Icons.cloud_upload_rounded,
                     onPressed: () => vm.submitDocuments(context, driverId),

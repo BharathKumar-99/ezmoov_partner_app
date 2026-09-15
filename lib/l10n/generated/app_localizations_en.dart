@@ -580,7 +580,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fullOperationalAddress => 'Full Operational Address *';
 
   @override
-  String get tcRcPermitNumber => 'TC / RC Permit Number *';
+  String get tcRcPermitNumber =>
+      'TC / RC Permit Number (Note: for 3w it’s not applicable)';
 
   @override
   String get truck => 'Truck';
@@ -614,10 +615,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uploadDrivingLicense => 'Upload Driving License';
 
   @override
+  String get drivingLicenseFront => 'Driving License (Front)';
+
+  @override
+  String get uploadDrivingLicenseFront => 'Upload Driving License (Front)';
+
+  @override
+  String get drivingLicenseBack => 'Driving License (Back)';
+
+  @override
+  String get uploadDrivingLicenseBack => 'Upload Driving License (Back)';
+
+  @override
   String get vehicleRc => 'Vehicle RC';
 
   @override
   String get uploadVehicleRc => 'Upload Vehicle RC';
+
+  @override
+  String get vehicleRcFront => 'Vehicle RC (Front)';
+
+  @override
+  String get uploadVehicleRcFront => 'Upload Vehicle RC (Front)';
+
+  @override
+  String get vehicleRcBack => 'Vehicle RC (Back)';
+
+  @override
+  String get uploadVehicleRcBack => 'Upload Vehicle RC (Back)';
 
   @override
   String get panCard => 'PAN Card';

@@ -1,5 +1,6 @@
 class DriverModel {
   final String? id;
+  final String? uniqueId;
   final String name;
   final String email;
   final String phone;
@@ -28,6 +29,7 @@ class DriverModel {
 
   DriverModel({
     this.id,
+    this.uniqueId,
     required this.name,
     required this.email,
     required this.phone,
@@ -83,6 +85,7 @@ class DriverModel {
   factory DriverModel.fromJson(Map<String, dynamic> json) {
     return DriverModel(
       id: json['id'] as String?,
+      uniqueId: (json['unique_id'] ?? json['uniqueId']) as String?,
       name: json['name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
@@ -119,6 +122,7 @@ class DriverModel {
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
+      if (uniqueId != null) 'unique_id': uniqueId,
       'name': name,
       'email': email,
       'phone': phone,
@@ -146,6 +150,7 @@ class DriverModel {
 
   DriverModel copyWith({
     String? id,
+    String? uniqueId,
     String? name,
     String? email,
     String? phone,
@@ -173,6 +178,7 @@ class DriverModel {
   }) {
     return DriverModel(
       id: id ?? this.id,
+      uniqueId: uniqueId ?? this.uniqueId,
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
