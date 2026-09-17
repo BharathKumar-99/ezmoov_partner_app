@@ -10,6 +10,7 @@ import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../viewmodels/performance_viewmodel.dart';
 import '../../../models/driver_model.dart';
 import '../widgets/registration_fee_dialog.dart';
+import '../widgets/demo_video_player.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class HomeTab extends StatefulWidget {
@@ -209,6 +210,87 @@ class _HomeTabState extends State<HomeTab> {
                         : null,
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // DEMO VIDEO BANNER
+              InkWell(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    useSafeArea: false,
+                    builder: (context) => Dialog.fullscreen(
+                      backgroundColor: Colors.black,
+                      child: Stack(
+                        children: [
+                          const Center(
+                            child: DemoVideoPlayer(assetPath: 'assets/videos/demo_video.mp4'),
+                          ),
+                          Positioned(
+                            top: MediaQuery.of(context).padding.top + 16,
+                            right: 16,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'How to use EzMoov Partner',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Watch this short demo video to learn how to get started',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
 
               const SizedBox(height: 24),

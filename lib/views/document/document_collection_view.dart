@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../viewmodels/document_viewmodel.dart';
+import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/document_upload_card.dart';
 import '../../widgets/gradient_button.dart';
 import '../../widgets/language_selector_button.dart';
@@ -18,6 +19,11 @@ class DocumentCollectionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final profileVm = context.read<ProfileViewModel>();
+    final vehicleType = profileVm.vehicle?.vehicleType?.toLowerCase() ?? '';
+    final isThreeWheeler = vehicleType.contains('3') || vehicleType.contains('three') || vehicleType.contains('rickshaw');
+    final totalDocs = isThreeWheeler ? 6 : 12;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
@@ -72,24 +78,26 @@ class DocumentCollectionView extends StatelessWidget {
                   ),
 
                   // 2. Driving License (Front)
-                  DocumentUploadCard(
-                    title: l10n.drivingLicenseFront,
-                    buttonText: l10n.uploadDrivingLicenseFront,
-                    iconData: Icons.badge_rounded,
-                    imagePath: vm.drivingLicensePath,
-                    onImageSelected: (source) =>
-                        vm.pickDocument(DocumentType.drivingLicense, source),
-                  ),
+                  if (!isThreeWheeler)
+                    DocumentUploadCard(
+                      title: l10n.drivingLicenseFront,
+                      buttonText: l10n.uploadDrivingLicenseFront,
+                      iconData: Icons.badge_rounded,
+                      imagePath: vm.drivingLicensePath,
+                      onImageSelected: (source) =>
+                          vm.pickDocument(DocumentType.drivingLicense, source),
+                    ),
 
                   // 3. Driving License (Back)
-                  DocumentUploadCard(
-                    title: l10n.drivingLicenseBack,
-                    buttonText: l10n.uploadDrivingLicenseBack,
-                    iconData: Icons.badge_outlined,
-                    imagePath: vm.dlBackPath,
-                    onImageSelected: (source) =>
-                        vm.pickDocument(DocumentType.dlBack, source),
-                  ),
+                  if (!isThreeWheeler)
+                    DocumentUploadCard(
+                      title: l10n.drivingLicenseBack,
+                      buttonText: l10n.uploadDrivingLicenseBack,
+                      iconData: Icons.badge_outlined,
+                      imagePath: vm.dlBackPath,
+                      onImageSelected: (source) =>
+                          vm.pickDocument(DocumentType.dlBack, source),
+                    ),
 
                   // 4. Vehicle RC (Front)
                   DocumentUploadCard(
@@ -142,49 +150,53 @@ class DocumentCollectionView extends StatelessWidget {
                   ),
 
                   // 9. Vehicle Permit
-                  DocumentUploadCard(
-                    title: l10n.vehiclePermit,
-                    buttonText: l10n.uploadVehiclePermit,
-                    iconData: Icons.verified_user_outlined,
-                    imagePath: vm.permitPath,
-                    onImageSelected: (source) =>
-                        vm.pickDocument(DocumentType.permit, source),
-                  ),
+                  if (!isThreeWheeler)
+                    DocumentUploadCard(
+                      title: l10n.vehiclePermit,
+                      buttonText: l10n.uploadVehiclePermit,
+                      iconData: Icons.verified_user_outlined,
+                      imagePath: vm.permitPath,
+                      onImageSelected: (source) =>
+                          vm.pickDocument(DocumentType.permit, source),
+                    ),
 
                   // 10. Fitness Certificate
-                  DocumentUploadCard(
-                    title: l10n.fitnessCertificate,
-                    buttonText: l10n.uploadFitnessCertificate,
-                    iconData: Icons.health_and_safety_outlined,
-                    imagePath: vm.fitnessPath,
-                    onImageSelected: (source) =>
-                        vm.pickDocument(DocumentType.fitness, source),
-                  ),
+                  if (!isThreeWheeler)
+                    DocumentUploadCard(
+                      title: l10n.fitnessCertificate,
+                      buttonText: l10n.uploadFitnessCertificate,
+                      iconData: Icons.health_and_safety_outlined,
+                      imagePath: vm.fitnessPath,
+                      onImageSelected: (source) =>
+                          vm.pickDocument(DocumentType.fitness, source),
+                    ),
 
                   // 11. Police Clearance Certificate
-                  DocumentUploadCard(
-                    title: l10n.policeClearanceCertificate,
-                    buttonText: l10n.uploadPoliceClearance,
-                    iconData: Icons.verified_outlined,
-                    imagePath: vm.policeClearancePath,
-                    onImageSelected: (source) =>
-                        vm.pickDocument(DocumentType.policeClearance, source),
-                  ),
+                  if (!isThreeWheeler)
+                    DocumentUploadCard(
+                      title: l10n.policeClearanceCertificate,
+                      buttonText: l10n.uploadPoliceClearance,
+                      iconData: Icons.verified_outlined,
+                      imagePath: vm.policeClearancePath,
+                      onImageSelected: (source) =>
+                          vm.pickDocument(DocumentType.policeClearance, source),
+                    ),
 
                   // 12. Selfie with Vehicle
-                  DocumentUploadCard(
-                    title: l10n.selfieWithVehicle,
-                    buttonText: l10n.uploadSelfieWithVehicle,
-                    iconData: Icons.camera_front_rounded,
-                    imagePath: vm.selfieWithVehiclePath,
-                    onImageSelected: (source) =>
-                        vm.pickDocument(DocumentType.selfieWithVehicle, source),
-                  ),
+                  if (!isThreeWheeler)
+                    DocumentUploadCard(
+                      title: l10n.selfieWithVehicle,
+                      buttonText: l10n.uploadSelfieWithVehicle,
+                      iconData: Icons.camera_front_rounded,
+                      imagePath: vm.selfieWithVehiclePath,
+                      onImageSelected: (source) =>
+                          vm.pickDocument(DocumentType.selfieWithVehicle, source),
+                    ),
 
                   const SizedBox(height: 24),
 
                   GradientButton(
-                    text: '${l10n.submitDocuments} (${vm.uploadedCount}/12)',
+                    text: '${l10n.submitDocuments} (${vm.uploadedCount}/$totalDocs)',
                     isLoading: vm.isLoading,
                     icon: Icons.cloud_upload_rounded,
                     onPressed: () => vm.submitDocuments(context, driverId),
