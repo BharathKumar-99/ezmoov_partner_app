@@ -270,7 +270,7 @@ class _HomeTabState extends State<HomeTab> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'How to use EzMoov Partner',
+                              'How to use EZMoov Partner',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
