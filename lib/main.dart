@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:scaled_app/scaled_app.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -30,7 +31,13 @@ import 'viewmodels/referral_viewmodel.dart';
 import 'viewmodels/performance_viewmodel.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  ScaledWidgetsFlutterBinding.ensureInitialized(
+    scaleFactor: (deviceSize) {
+      // 375 is the standard mobile UI design reference width
+      const double widthOfDesign = 375;
+      return deviceSize.width / widthOfDesign;
+    },
+  );
 
   // Initialize package metadata (dynamically loads app version, build number, package name)
   await AppConstants.initialize();
@@ -171,6 +178,12 @@ class EzMoovPartnerApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             routerConfig: AppRouter.createRouter(profileViewModel),
             locale: localeVM.locale,
+            builder: (context, routerChild) {
+              return MediaQuery(
+                data: MediaQuery.of(context).scale(),
+                child: routerChild ?? const SizedBox.shrink(),
+              );
+            },
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
