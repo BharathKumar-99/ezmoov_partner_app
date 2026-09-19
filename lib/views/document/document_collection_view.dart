@@ -21,7 +21,13 @@ class DocumentCollectionView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final profileVm = context.read<ProfileViewModel>();
     final vehicleType = profileVm.vehicle?.vehicleType?.toLowerCase() ?? '';
-    final isThreeWheeler = vehicleType.contains('3') || vehicleType.contains('three') || vehicleType.contains('rickshaw');
+    final vehicleTypeId = profileVm.vehicle?.vehicleTypeId ?? '';
+    // vehicleTypeId '2' = '3 Wheeler' in DB (vehicle_type name not joined in query)
+    final isThreeWheeler = vehicleTypeId == '2' ||
+        vehicleType.contains('3') ||
+        vehicleType.contains('three') ||
+        vehicleType.contains('rickshaw') ||
+        vehicleType.contains('auto');
     final totalDocs = isThreeWheeler ? 6 : 12;
 
     return Scaffold(
