@@ -63,15 +63,22 @@ Future<void> main() async {
 
   final profileViewModel = ProfileViewModel();
 
+  // Restore cached driver profile from local disk storage immediately
+  await profileViewModel.restoreFromLocalCache();
+
   // Fetch fresh driver profile from Supabase if logged in
   try {
     final currentAuthUser = Supabase.instance.client.auth.currentUser;
     final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
-    final driverId = currentAuthUser?.id ?? savedSession;
+    final driverIdentifier = savedSession ??
+        (currentAuthUser?.phone != null && currentAuthUser!.phone!.isNotEmpty
+            ? currentAuthUser.phone!
+            : null) ??
+        currentAuthUser?.id;
 
-    if (driverId != null && driverId.isNotEmpty) {
+    if (driverIdentifier != null && driverIdentifier.isNotEmpty) {
       await profileViewModel
-          .fetchProfile(driverId)
+          .fetchProfile(driverIdentifier)
           .timeout(const Duration(seconds: 4))
           .catchError((_) => null);
     }
@@ -120,12 +127,15 @@ Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) as
   try {
     final currentAuthUser = Supabase.instance.client.auth.currentUser;
     final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
-    final driverId = currentAuthUser?.id ?? savedSession ?? profileViewModel.driver?.id;
+    final driverId = savedSession ??
+        (currentAuthUser?.phone != null && currentAuthUser!.phone!.isNotEmpty
+            ? currentAuthUser.phone!
+            : null) ??
+        profileViewModel.driver?.id ??
+        currentAuthUser?.id;
 
     if (driverId != null && driverId.isNotEmpty) {
       await profileViewModel.fetchProfile(driverId);
-    } else if (currentAuthUser?.phone != null && currentAuthUser!.phone!.isNotEmpty) {
-      await profileViewModel.fetchProfile(currentAuthUser.phone!);
     }
   } catch (e) {
     debugPrint('Background profile refresh notice: $e');

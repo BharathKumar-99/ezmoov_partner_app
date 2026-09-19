@@ -76,7 +76,7 @@ class AppRouter {
               location == '/login') {
             return null;
           }
-          return '/signup';
+          return '/login';
         }
 
         final driverId = driver.id ?? authUser?.id ?? '';
