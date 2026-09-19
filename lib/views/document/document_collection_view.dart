@@ -10,10 +10,12 @@ import '../../widgets/language_selector_button.dart';
 
 class DocumentCollectionView extends StatelessWidget {
   final String driverId;
+  final String? vehicleCategory;
 
   const DocumentCollectionView({
     super.key,
     required this.driverId,
+    this.vehicleCategory,
   });
 
   @override
@@ -27,7 +29,8 @@ class DocumentCollectionView extends StatelessWidget {
         vehicleType.contains('3') ||
         vehicleType.contains('three') ||
         vehicleType.contains('rickshaw') ||
-        vehicleType.contains('auto');
+        vehicleType.contains('auto') ||
+        vehicleCategory == '3W';
     final totalDocs = isThreeWheeler ? 6 : 12;
 
     return Scaffold(

@@ -176,8 +176,12 @@ class AppRouter {
             final driverId = extra?['driverId'] ??
                 state.uri.queryParameters['driverId'] ??
                 '';
+            final vehicleCategory = extra?['vehicleCategory'] as String?;
 
-            return DocumentCollectionView(driverId: driverId);
+            return DocumentCollectionView(
+              driverId: driverId,
+              vehicleCategory: vehicleCategory,
+            );
           },
         ),
         GoRoute(
