@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
@@ -142,6 +143,17 @@ class ProfileViewModel extends ChangeNotifier {
             .getDriverById(driverIdOrPhone)
             .timeout(const Duration(seconds: 8))
             .catchError((_) => null);
+
+        // Fallback: If not found by ID, try looking up by authenticated user phone if available
+        if (loadedDriver == null) {
+          final authPhone = _supabaseService.safeClient?.auth.currentUser?.phone;
+          if (authPhone != null && authPhone.isNotEmpty) {
+            loadedDriver = await _supabaseService
+                .getDriverByPhone(authPhone)
+                .timeout(const Duration(seconds: 8))
+                .catchError((_) => null);
+          }
+        }
       }
 
       if (loadedDriver != null) {
@@ -665,18 +677,73 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Restore session from local storage (user details are not stored locally and are fetched fresh from DB)
+  /// Restore session from local storage for instant offline & fast launch
   Future<void> restoreFromLocalCache() async {
-    // User details and config are not cached in local storage.
-    // Fresh details are loaded directly from Supabase via fetchProfile().
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final driverJsonStr = prefs.getString('cached_driver_json');
+      if (driverJsonStr != null && driverJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(driverJsonStr) as Map<String, dynamic>;
+        _driver = DriverModel.fromJson(decoded);
+        _isOnline = _driver?.isOnline ?? false;
+        if (_driver?.latitude != null && _driver?.longitude != null) {
+          _latitude = _driver!.latitude!;
+          _longitude = _driver!.longitude!;
+        }
+      }
+
+      final vehicleJsonStr = prefs.getString('cached_vehicle_json');
+      if (vehicleJsonStr != null && vehicleJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(vehicleJsonStr) as Map<String, dynamic>;
+        _vehicle = VehicleModel.fromJson(decoded);
+      }
+
+      final docJsonStr = prefs.getString('cached_documents_json');
+      if (docJsonStr != null && docJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(docJsonStr) as Map<String, dynamic>;
+        _documents = DocumentModel.fromJson(decoded);
+      }
+
+      final bankJsonStr = prefs.getString('cached_bank_details_json');
+      if (bankJsonStr != null && bankJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(bankJsonStr) as Map<String, dynamic>;
+        _bankDetails = BankDetailsModel.fromJson(decoded);
+      }
+
+      final configJsonStr = prefs.getString('cached_app_config_json');
+      if (configJsonStr != null && configJsonStr.isNotEmpty) {
+        final decoded = jsonDecode(configJsonStr) as Map<String, dynamic>;
+        _appConfig = PartnerAppConfigModel.fromJson(decoded);
+      }
+
+      if (_driver != null) {
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Notice restoring from local cache: $e');
+    }
   }
 
-  /// Save session state (user details are not persisted locally and are fetched fresh from Supabase)
+  /// Save session state (persists driver and linked data into SharedPreferences for instant launch)
   Future<void> saveToLocalCache() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
       if (_driver?.id != null) {
-        await saveSessionPhoneOrId(_driver!.id!);
+        await prefs.setString('saved_driver_session', _driver!.id!);
       }
+      if (_driver != null) {
+        await prefs.setString('cached_driver_json', jsonEncode(_driver!.toJson()));
+      }
+      if (_vehicle != null) {
+        await prefs.setString('cached_vehicle_json', jsonEncode(_vehicle!.toJson()));
+      }
+      if (_documents != null) {
+        await prefs.setString('cached_documents_json', jsonEncode(_documents!.toJson()));
+      }
+      if (_bankDetails != null) {
+        await prefs.setString('cached_bank_details_json', jsonEncode(_bankDetails!.toJson()));
+      }
+      await prefs.setString('cached_app_config_json', jsonEncode(_appConfig.toJson()));
     } catch (e) {
       debugPrint('Notice saving driver session: $e');
     }
