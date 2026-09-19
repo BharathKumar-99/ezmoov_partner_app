@@ -178,7 +178,7 @@ class VehicleViewModel extends ChangeNotifier {
 
     final effectiveAddress = address.isNotEmpty ? address : _selectedCity;
 
-    if (_selectedCategory == null && _selectedVehicleType == null) {
+    if (_selectedCategory == null || _selectedVehicleType == null) {
       if (context.mounted) {
         _showSnackBar(context, 'Please select a vehicle type');
       }
@@ -248,7 +248,10 @@ class VehicleViewModel extends ChangeNotifier {
         await Provider.of<ProfileViewModel>(context, listen: false)
             .fetchProfile(driverId);
         if (context.mounted) {
-          context.go('/document-collection', extra: {'driverId': driverId});
+          context.go('/document-collection', extra: {
+            'driverId': driverId,
+            'vehicleCategory': _selectedCategory,
+          });
         }
       }
     } catch (e) {
