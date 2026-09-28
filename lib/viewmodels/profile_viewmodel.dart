@@ -49,7 +49,10 @@ class ProfileViewModel extends ChangeNotifier {
   PartnerAppConfigModel _appConfig = PartnerAppConfigModel.defaultConfig();
   PartnerAppConfigModel get appConfig => _appConfig;
   bool get isFreeDriverLogin => _appConfig.isFreeDriverLogin;
-  bool get isFreeDriverOutstation => _appConfig.isFreeDriverOutstation;
+  bool get isFreeDriverAdda => _appConfig.isFreeDriverAdda;
+  bool get isFreeDriverLocalAdda => _appConfig.isFreeDriverAdda;
+  bool get isFreeDriverOutstation => _appConfig.isFreeDriverAdda;
+
 
   bool _isOnline = false;
   bool get isOnline => _isOnline;
@@ -206,7 +209,7 @@ class ProfileViewModel extends ChangeNotifier {
         if (_isOnline && context != null && context.mounted) {
           final walletVm = Provider.of<WalletViewModel>(context, listen: false);
           walletVm.setFreeDriverLogin(isFreeDriverLogin);
-          walletVm.setFreeDriverOutstation(isFreeDriverOutstation);
+          walletVm.setFreeDriverAdda(isFreeDriverAdda);
           await walletVm.fetchWalletData(loadedDriver.id!);
 
           if ((walletVm.isBlocked || !walletVm.isPassActive) && !isFreeDriverLogin) {
@@ -942,7 +945,7 @@ class ProfileViewModel extends ChangeNotifier {
       if (context != null && context.mounted) {
         final wVm = context.read<WalletViewModel>();
         wVm.setFreeDriverLogin(_appConfig.isFreeDriverLogin);
-        wVm.setFreeDriverOutstation(_appConfig.isFreeDriverOutstation);
+        wVm.setFreeDriverAdda(_appConfig.isFreeDriverAdda);
       }
       notifyListeners();
     } catch (e) {

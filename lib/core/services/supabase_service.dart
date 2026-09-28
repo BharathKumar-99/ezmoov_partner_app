@@ -1272,14 +1272,14 @@ class SupabaseService {
     }
   }
 
-  /// Invoke RPC function pay_driver_outstation_monthly_fee to purchase 1-month outstation pass (₹2,000)
-  Future<Map<String, dynamic>> payDriverOutstationMonthlyFee({
+  /// Invoke RPC function pay_driver_local_adda_monthly_fee to deduct monthly fee (₹2,000) from wallet
+  Future<Map<String, dynamic>> payDriverLocalAddaMonthlyFee({
     required String driverId,
     double amount = 2000.0,
   }) async {
     try {
       final response = await client.rpc(
-        'pay_driver_outstation_monthly_fee',
+        'pay_driver_local_adda_monthly_fee',
         params: {
           'p_driver_id': driverId,
           'p_amount': amount,
@@ -1290,10 +1290,23 @@ class SupabaseService {
       }
       return {
         'success': false,
-        'message': 'Unexpected response from pay_driver_outstation_monthly_fee RPC'
+        'message': 'Unexpected response from pay_driver_local_adda_monthly_fee RPC'
       };
     } catch (e) {
-      debugPrint('Error invoking pay_driver_outstation_monthly_fee RPC: $e');
+      debugPrint('Notice invoking pay_driver_local_adda_monthly_fee RPC ($e), attempting legacy/direct fallback...');
+      try {
+        final legacyRes = await client.rpc(
+          'pay_driver_outstation_monthly_fee',
+          params: {
+            'p_driver_id': driverId,
+            'p_amount': amount,
+          },
+        );
+        if (legacyRes is Map) {
+          return Map<String, dynamic>.from(legacyRes);
+        }
+      } catch (_) {}
+
       // Direct fallback if RPC is pending creation
       try {
         final wallet = await getDriverWallet(driverId);
@@ -1305,13 +1318,14 @@ class SupabaseService {
           };
         }
         final newBalance = balance - amount;
-        final newExpiry = (wallet?.outstationPassExpiresAt != null &&
-                wallet!.outstationPassExpiresAt!.isAfter(DateTime.now()))
-            ? wallet.outstationPassExpiresAt!.add(const Duration(days: 30))
+        final newExpiry = (wallet?.localAddaPassExpiresAt != null &&
+                wallet!.localAddaPassExpiresAt!.isAfter(DateTime.now()))
+            ? wallet.localAddaPassExpiresAt!.add(const Duration(days: 30))
             : DateTime.now().add(const Duration(days: 30));
 
         await client.from('driver_wallets').update({
           'balance': newBalance,
+          'local_adda_pass_expires_at': newExpiry.toIso8601String(),
           'outstation_pass_expires_at': newExpiry.toIso8601String(),
           'outstanding_pass_expires_at': newExpiry.toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
@@ -1321,8 +1335,8 @@ class SupabaseService {
           await client.from('wallet_transactions').insert({
             'driver_id': driverId,
             'amount': -amount,
-            'type': 'outstation_monthly_fee',
-            'description': 'Outstation Platform Fee (1 Month Pass)',
+            'type': 'local_adda_monthly_fee',
+            'description': 'Local Adda Platform Fee (1 Month Pass)',
             'payment_method': 'Wallet',
             'created_at': DateTime.now().toIso8601String(),
           });
@@ -1331,8 +1345,8 @@ class SupabaseService {
         return {
           'success': true,
           'balance': newBalance,
-          'outstation_pass_expires_at': newExpiry.toIso8601String(),
-          'message': '1-Month Outstation Pass activated successfully!',
+          'local_adda_pass_expires_at': newExpiry.toIso8601String(),
+          'message': '1-Month Local Adda Pass activated successfully!',
         };
       } catch (fallbackErr) {
         return {'success': false, 'message': fallbackErr.toString()};
@@ -1340,15 +1354,21 @@ class SupabaseService {
     }
   }
 
-  /// Activate outstation monthly pass directly via Razorpay checkout
-  Future<Map<String, dynamic>> activateDriverOutstationPassDirect({
+  Future<Map<String, dynamic>> payDriverOutstationMonthlyFee({
+    required String driverId,
+    double amount = 2000.0,
+  }) =>
+      payDriverLocalAddaMonthlyFee(driverId: driverId, amount: amount);
+
+  /// Activate Local Adda monthly pass directly via Razorpay checkout
+  Future<Map<String, dynamic>> activateDriverLocalAddaPassDirect({
     required String driverId,
     required String paymentId,
     double amount = 2000.0,
   }) async {
     try {
       final response = await client.rpc(
-        'activate_driver_outstation_pass_direct',
+        'activate_driver_local_adda_pass_direct',
         params: {
           'p_driver_id': driverId,
           'p_payment_id': paymentId,
@@ -1360,18 +1380,33 @@ class SupabaseService {
       }
       return {
         'success': false,
-        'message': 'Unexpected response from activate_driver_outstation_pass_direct RPC'
+        'message': 'Unexpected response from activate_driver_local_adda_pass_direct RPC'
       };
     } catch (e) {
-      debugPrint('Error invoking activate_driver_outstation_pass_direct RPC: $e');
+      debugPrint('Notice invoking activate_driver_local_adda_pass_direct RPC ($e), attempting legacy/direct fallback...');
+      try {
+        final legacyRes = await client.rpc(
+          'activate_driver_outstation_pass_direct',
+          params: {
+            'p_driver_id': driverId,
+            'p_payment_id': paymentId,
+            'p_amount': amount,
+          },
+        );
+        if (legacyRes is Map) {
+          return Map<String, dynamic>.from(legacyRes);
+        }
+      } catch (_) {}
+
       try {
         final wallet = await getDriverWallet(driverId);
-        final newExpiry = (wallet?.outstationPassExpiresAt != null &&
-                wallet!.outstationPassExpiresAt!.isAfter(DateTime.now()))
-            ? wallet.outstationPassExpiresAt!.add(const Duration(days: 30))
+        final newExpiry = (wallet?.localAddaPassExpiresAt != null &&
+                wallet!.localAddaPassExpiresAt!.isAfter(DateTime.now()))
+            ? wallet.localAddaPassExpiresAt!.add(const Duration(days: 30))
             : DateTime.now().add(const Duration(days: 30));
 
         await client.from('driver_wallets').update({
+          'local_adda_pass_expires_at': newExpiry.toIso8601String(),
           'outstation_pass_expires_at': newExpiry.toIso8601String(),
           'outstanding_pass_expires_at': newExpiry.toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
@@ -1381,8 +1416,8 @@ class SupabaseService {
           await client.from('wallet_transactions').insert({
             'driver_id': driverId,
             'amount': -amount,
-            'type': 'outstation_monthly_fee_direct',
-            'description': 'Outstation Platform Fee (Direct Razorpay 1-Month Pass)',
+            'type': 'local_adda_monthly_fee_direct',
+            'description': 'Local Adda Platform Fee (Direct Razorpay 1-Month Pass)',
             'reference_id': paymentId,
             'payment_method': 'Razorpay',
             'created_at': DateTime.now().toIso8601String(),
@@ -1391,14 +1426,26 @@ class SupabaseService {
 
         return {
           'success': true,
-          'outstation_pass_expires_at': newExpiry.toIso8601String(),
-          'message': '1-Month Outstation Pass activated successfully via direct payment!',
+          'local_adda_pass_expires_at': newExpiry.toIso8601String(),
+          'message': '1-Month Local Adda Pass activated successfully via direct payment!',
         };
       } catch (fallbackErr) {
         return {'success': false, 'message': fallbackErr.toString()};
       }
     }
   }
+
+  Future<Map<String, dynamic>> activateDriverOutstationPassDirect({
+    required String driverId,
+    required String paymentId,
+    double amount = 2000.0,
+  }) =>
+      activateDriverLocalAddaPassDirect(
+        driverId: driverId,
+        paymentId: paymentId,
+        amount: amount,
+      );
+
 
   /// Invoke RPC function withdraw_driver_wallet to process wallet withdrawal
   Future<Map<String, dynamic>> withdrawDriverWallet({

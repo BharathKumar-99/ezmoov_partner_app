@@ -608,14 +608,19 @@
   "minWallet100Badge": "MIN ₹100 IN WALLET",
   "outstationOnlineDesc": "Active • Ready for outstation trips",
   "outstationOfflineDesc": "Turn on to receive inter-city & outstation bids",
-  "outstandingMonthlyFee": "Outstanding Monthly Fee",
-  "outstationMonthlyFee": "Outstation Monthly Fee",
-  "freeOutstandingDesc": "Free for now • No monthly fee required for outstation",
+  "outstandingMonthlyFee": "Local Adda Monthly Fee",
+  "outstationMonthlyFee": "Local Adda Monthly Fee",
+  "localAddaMonthlyFee": "Local Adda Monthly Fee",
+  "freeOutstandingDesc": "Free for now • No monthly fee required for Local Adda",
+  "freeLocalAddaDesc": "Free for now • No monthly fee required for Local Adda",
   "monthlyPassActive": "Monthly Pass Active",
   "monthlyPassExpired": "Monthly Pass Expired",
   "passValidUntilDate": "Pass valid until {date}",
   "payMonthlyFeeWallet": "Pay from Wallet (₹{amount})",
   "payMonthlyFeeDirect": "Pay Directly (₹{amount})",
-  "outstationPassRequired": "Outstation Monthly Pass Required",
-  "outstationPassRequiredDesc": "A monthly fee of ₹2,000 is required to enable long-distance & outstation orders."
+  "outstationPassRequired": "Local Adda Monthly Pass Required",
+  "outstationPassRequiredDesc": "A monthly fee of ₹2,000 is required to participate in Local Adda bidding and orders.",
+  "localAddaPassRequired": "Local Adda Monthly Pass Required",
+  "localAddaPassRequiredDesc": "A monthly fee of ₹2,000 is required to participate in Local Adda bidding and orders."
 }
+

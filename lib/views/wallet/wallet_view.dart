@@ -87,9 +87,9 @@ class _WalletViewState extends State<WalletView> {
           return;
         }
       }
-    } else if (paymentType == 'direct_outstation_fee') {
+    } else if (paymentType == 'direct_local_adda_fee' || paymentType == 'direct_outstation_fee') {
       if (driverId.isNotEmpty) {
-        final success = await walletVm.activateOutstationPassDirect(
+        final success = await walletVm.activateLocalAddaPassDirect(
           driverId: driverId,
           paymentId: paymentId,
           context: context,
@@ -98,7 +98,7 @@ class _WalletViewState extends State<WalletView> {
           RechargeResultDialog.show(
             context: context,
             isSuccess: false,
-            errorMessage: 'Payment received but failed to activate Outstation Monthly Pass. Reference: $paymentId',
+            errorMessage: 'Payment received but failed to activate Local Adda Monthly Pass. Reference: $paymentId',
           );
           return;
         }
@@ -189,13 +189,13 @@ class _WalletViewState extends State<WalletView> {
     );
   }
 
-  void _payOutstationFeeWithoutWallet(BuildContext context, String driverId) {
+  void _payLocalAddaFeeWithoutWallet(BuildContext context, String driverId) {
     final walletVm = context.read<WalletViewModel>();
     final profile = context.read<ProfileViewModel>().driver;
-    final fee = walletVm.outstationMonthlyFee;
+    final fee = walletVm.localAddaMonthlyFee;
 
     _pendingRechargeAmount = fee;
-    _pendingPaymentType = 'direct_outstation_fee';
+    _pendingPaymentType = 'direct_local_adda_fee';
 
     RazorpayService.instance.openCheckout(
       amount: fee,
@@ -203,9 +203,13 @@ class _WalletViewState extends State<WalletView> {
       driverName: profile?.name ?? 'EZMoov Partner',
       driverPhone: profile?.phone ?? '',
       driverEmail: profile?.email ?? '',
-      paymentType: 'direct_outstation_fee',
+      paymentType: 'direct_local_adda_fee',
     );
   }
+
+  void _payOutstationFeeWithoutWallet(BuildContext context, String driverId) =>
+      _payLocalAddaFeeWithoutWallet(context, driverId);
+
 
   void _showAddMoneyBottomSheet(BuildContext context, String driverId, AppLocalizations l10n) {
     final walletVm = context.read<WalletViewModel>();
@@ -1381,7 +1385,7 @@ class _WalletViewState extends State<WalletView> {
 
                 const SizedBox(height: 14),
 
-                // 3B. OUTSTANDING / OUTSTATION MONTHLY FEE CARD (₹2,000 / month)
+                // 3B. LOCAL ADDA MONTHLY FEE CARD (₹2,000 / month)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Container(
@@ -1390,7 +1394,7 @@ class _WalletViewState extends State<WalletView> {
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: (walletVm.isOutstationPassActive || profileVm.isFreeDriverOutstation)
+                        color: (walletVm.isLocalAddaPassActive || profileVm.isFreeDriverAdda)
                             ? const Color(0xFF09A234).withValues(alpha: 0.3)
                             : const Color(0xFF7C3AED).withValues(alpha: 0.3),
                         width: 1.0,
@@ -1408,16 +1412,16 @@ class _WalletViewState extends State<WalletView> {
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: (walletVm.isOutstationPassActive || profileVm.isFreeDriverOutstation)
+                                      color: (walletVm.isLocalAddaPassActive || profileVm.isFreeDriverAdda)
                                           ? const Color(0xFF09A234).withValues(alpha: 0.1)
                                           : const Color(0xFF7C3AED).withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Icon(
-                                      (walletVm.isOutstationPassActive || profileVm.isFreeDriverOutstation)
+                                      (walletVm.isLocalAddaPassActive || profileVm.isFreeDriverAdda)
                                           ? Icons.verified_user_rounded
                                           : Icons.alt_route_rounded,
-                                      color: (walletVm.isOutstationPassActive || profileVm.isFreeDriverOutstation)
+                                      color: (walletVm.isLocalAddaPassActive || profileVm.isFreeDriverAdda)
                                           ? const Color(0xFF09A234)
                                           : const Color(0xFF7C3AED),
                                       size: 20,
@@ -1429,7 +1433,7 @@ class _WalletViewState extends State<WalletView> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          l10n.outstandingMonthlyFee,
+                                          l10n.localAddaMonthlyFee,
                                           style: const TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold,
@@ -1440,15 +1444,15 @@ class _WalletViewState extends State<WalletView> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          profileVm.isFreeDriverOutstation
-                                              ? l10n.freeOutstandingDesc
-                                              : (walletVm.isOutstationPassActive
-                                                  ? '${l10n.monthlyPassActive} (${l10n.passValidUntilDate(walletVm.outstationPassExpiresAt != null ? DateFormat('MMM dd, yyyy').format(walletVm.outstationPassExpiresAt!) : '')})'
-                                                  : '${l10n.monthlyPassExpired} • ₹${walletVm.outstationMonthlyFee.toStringAsFixed(0)} / month'),
+                                          profileVm.isFreeDriverAdda
+                                              ? l10n.freeLocalAddaDesc
+                                              : (walletVm.isLocalAddaPassActive
+                                                  ? '${l10n.monthlyPassActive} (${l10n.passValidUntilDate(walletVm.localAddaPassExpiresAt != null ? DateFormat('MMM dd, yyyy').format(walletVm.localAddaPassExpiresAt!) : '')})'
+                                                  : '${l10n.monthlyPassExpired} • ₹${walletVm.localAddaMonthlyFee.toStringAsFixed(0)} / month'),
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w600,
-                                            color: (walletVm.isOutstationPassActive || profileVm.isFreeDriverOutstation)
+                                            color: (walletVm.isLocalAddaPassActive || profileVm.isFreeDriverAdda)
                                                 ? const Color(0xFF09A234)
                                                 : const Color(0xFF7C3AED),
                                           ),
@@ -1464,21 +1468,21 @@ class _WalletViewState extends State<WalletView> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: (walletVm.isOutstationPassActive || profileVm.isFreeDriverOutstation)
+                                color: (walletVm.isLocalAddaPassActive || profileVm.isFreeDriverAdda)
                                     ? const Color(0xFFDCFCE7)
                                     : const Color(0xFFF3E8FF),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                profileVm.isFreeDriverOutstation
+                                profileVm.isFreeDriverAdda
                                     ? l10n.freePassBadge
-                                    : (walletVm.isOutstationPassActive
+                                    : (walletVm.isLocalAddaPassActive
                                         ? l10n.monthlyPassActive
                                         : l10n.monthlyPassExpired),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: (walletVm.isOutstationPassActive || profileVm.isFreeDriverOutstation)
+                                  color: (walletVm.isLocalAddaPassActive || profileVm.isFreeDriverAdda)
                                       ? const Color(0xFF09A234)
                                       : const Color(0xFF7C3AED),
                                 ),
@@ -1487,19 +1491,19 @@ class _WalletViewState extends State<WalletView> {
                           ],
                         ),
 
-                        // Pay Monthly Outstation Fee Action Buttons if Pass is Expired/Unpaid and NOT free
-                        if (!walletVm.isOutstationPassActive &&
-                            !profileVm.isFreeDriverOutstation &&
+                        // Pay Monthly Local Adda Fee Action Buttons if Pass is Expired/Unpaid and NOT free
+                        if (!walletVm.isLocalAddaPassActive &&
+                            !profileVm.isFreeDriverAdda &&
                             effectiveDriverId != null) ...[
                           const SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: walletVm.isPayingOutstationFee
+                                  onPressed: walletVm.isPayingLocalAddaFee
                                       ? null
                                       : () {
-                                          walletVm.payOutstationMonthlyFee(
+                                          walletVm.payLocalAddaMonthlyFee(
                                             driverId: effectiveDriverId,
                                             context: context,
                                           );
@@ -1513,7 +1517,7 @@ class _WalletViewState extends State<WalletView> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  icon: walletVm.isPayingOutstationFee
+                                  icon: walletVm.isPayingLocalAddaFee
                                       ? const SizedBox(
                                           width: 14,
                                           height: 14,
@@ -1524,9 +1528,9 @@ class _WalletViewState extends State<WalletView> {
                                         )
                                       : const Icon(Icons.account_balance_wallet_rounded, size: 16),
                                   label: Text(
-                                    walletVm.isPayingOutstationFee
+                                    walletVm.isPayingLocalAddaFee
                                         ? l10n.updatingStatus
-                                        : l10n.payMonthlyFeeWallet(walletVm.outstationMonthlyFee.toStringAsFixed(0)),
+                                        : l10n.payMonthlyFeeWallet(walletVm.localAddaMonthlyFee.toStringAsFixed(0)),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 11,
@@ -1540,7 +1544,7 @@ class _WalletViewState extends State<WalletView> {
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    _payOutstationFeeWithoutWallet(context, effectiveDriverId);
+                                    _payLocalAddaFeeWithoutWallet(context, effectiveDriverId);
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF9333EA),
@@ -1553,7 +1557,7 @@ class _WalletViewState extends State<WalletView> {
                                   ),
                                   icon: const Icon(Icons.flash_on_rounded, size: 16),
                                   label: Text(
-                                    l10n.payMonthlyFeeDirect(walletVm.outstationMonthlyFee.toStringAsFixed(0)),
+                                    l10n.payMonthlyFeeDirect(walletVm.localAddaMonthlyFee.toStringAsFixed(0)),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 11,

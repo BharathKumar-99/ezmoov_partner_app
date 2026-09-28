@@ -2039,14 +2039,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Turn on to receive inter-city & outstation bids';
 
   @override
-  String get outstandingMonthlyFee => 'Outstanding Monthly Fee';
+  String get outstandingMonthlyFee => 'Local Adda Monthly Fee';
 
   @override
-  String get outstationMonthlyFee => 'Outstation Monthly Fee';
+  String get outstationMonthlyFee => 'Local Adda Monthly Fee';
+
+  @override
+  String get localAddaMonthlyFee => 'Local Adda Monthly Fee';
 
   @override
   String get freeOutstandingDesc =>
-      'Free for now • No monthly fee required for outstation';
+      'Free for now • No monthly fee required for Local Adda';
+
+  @override
+  String get freeLocalAddaDesc =>
+      'Free for now • No monthly fee required for Local Adda';
 
   @override
   String get monthlyPassActive => 'Monthly Pass Active';
@@ -2070,9 +2077,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get outstationPassRequired => 'Outstation Monthly Pass Required';
+  String get outstationPassRequired => 'Local Adda Monthly Pass Required';
 
   @override
   String get outstationPassRequiredDesc =>
-      'A monthly fee of ₹2,000 is required to enable long-distance & outstation orders.';
+      'A monthly fee of ₹2,000 is required to participate in Local Adda bidding and orders.';
+
+  @override
+  String get localAddaPassRequired => 'Local Adda Monthly Pass Required';
+
+  @override
+  String get localAddaPassRequiredDesc =>
+      'A monthly fee of ₹2,000 is required to participate in Local Adda bidding and orders.';
 }

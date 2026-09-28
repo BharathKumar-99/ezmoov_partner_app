@@ -70,30 +70,41 @@ class WalletViewModel extends ChangeNotifier {
     }
   }
 
-  bool _isFreeDriverOutstation = false;
-  bool get isFreeDriverOutstation => _isFreeDriverOutstation;
+  bool _isFreeDriverAdda = false;
+  bool get isFreeDriverAdda => _isFreeDriverAdda;
+  bool get isFreeDriverLocalAdda => _isFreeDriverAdda;
+  bool get isFreeDriverOutstation => _isFreeDriverAdda;
 
-  void setFreeDriverOutstation(bool value) {
-    if (_isFreeDriverOutstation != value) {
-      _isFreeDriverOutstation = value;
+  void setFreeDriverAdda(bool value) {
+    if (_isFreeDriverAdda != value) {
+      _isFreeDriverAdda = value;
       notifyListeners();
     }
   }
 
-  double _outstationMonthlyFee = 2000.0;
-  double get outstationMonthlyFee => _outstationMonthlyFee;
+  void setFreeDriverOutstation(bool value) => setFreeDriverAdda(value);
 
-  void setOutstationMonthlyFee(double fee) {
-    if (_outstationMonthlyFee != fee) {
-      _outstationMonthlyFee = fee;
+  double _localAddaMonthlyFee = 2000.0;
+  double get localAddaMonthlyFee => _localAddaMonthlyFee;
+  double get outstationMonthlyFee => _localAddaMonthlyFee;
+
+  void setLocalAddaMonthlyFee(double fee) {
+    if (_localAddaMonthlyFee != fee) {
+      _localAddaMonthlyFee = fee;
       notifyListeners();
     }
   }
 
-  DateTime? get outstationPassExpiresAt => _wallet?.outstationPassExpiresAt;
+  void setOutstationMonthlyFee(double fee) => setLocalAddaMonthlyFee(fee);
 
-  bool get isOutstationPassActive =>
-      _isFreeDriverOutstation || (_wallet?.isOutstationPassActive ?? false);
+  DateTime? get localAddaPassExpiresAt => _wallet?.localAddaPassExpiresAt;
+  DateTime? get outstationPassExpiresAt => _wallet?.localAddaPassExpiresAt;
+
+  bool get isLocalAddaPassActive =>
+      _isFreeDriverAdda || (_wallet?.isLocalAddaPassActive ?? false);
+
+  bool get isOutstationPassActive => isLocalAddaPassActive;
+
 
   bool get isPassActive =>
       _isFreeDriverLogin || (_dailyStatus?.isPassActive ?? false);
@@ -392,25 +403,26 @@ class WalletViewModel extends ChangeNotifier {
     }
   }
 
-  bool _isPayingOutstationFee = false;
-  bool get isPayingOutstationFee => _isPayingOutstationFee;
+  bool _isPayingLocalAddaFee = false;
+  bool get isPayingLocalAddaFee => _isPayingLocalAddaFee;
+  bool get isPayingOutstationFee => _isPayingLocalAddaFee;
 
-  /// Driver pays monthly fee (₹2,000) from wallet to activate 1-month outstation pass
-  Future<bool> payOutstationMonthlyFee({
+  /// Driver pays monthly fee (₹2,000) from wallet to activate 1-month Local Adda pass
+  Future<bool> payLocalAddaMonthlyFee({
     required String driverId,
     required BuildContext context,
   }) async {
-    if (driverId.isEmpty || _isPayingOutstationFee) return false;
+    if (driverId.isEmpty || _isPayingLocalAddaFee) return false;
 
-    _isPayingOutstationFee = true;
+    _isPayingLocalAddaFee = true;
     notifyListeners();
 
     try {
-      final res = await _supabaseService.payDriverOutstationMonthlyFee(
+      final res = await _supabaseService.payDriverLocalAddaMonthlyFee(
         driverId: driverId,
-        amount: _outstationMonthlyFee,
+        amount: _localAddaMonthlyFee,
       );
-      _isPayingOutstationFee = false;
+      _isPayingLocalAddaFee = false;
       notifyListeners();
 
       final success = res['success'] as bool? ?? false;
@@ -421,7 +433,7 @@ class WalletViewModel extends ChangeNotifier {
         if (context.mounted) {
           _showSnackBar(
             context,
-            '🎉 1-Month Outstation Pass Activated! You can now accept outstation bookings.',
+            '🎉 1-Month Local Adda Pass Activated! You can now participate in Local Adda bidding & orders.',
             backgroundColor: const Color(0xFF09A234),
           );
         }
@@ -437,12 +449,12 @@ class WalletViewModel extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _isPayingOutstationFee = false;
+      _isPayingLocalAddaFee = false;
       notifyListeners();
       if (context.mounted) {
         _showSnackBar(
           context,
-          'Error paying outstation monthly fee: $e',
+          'Error paying Local Adda monthly fee: $e',
           backgroundColor: Colors.red.shade700,
         );
       }
@@ -450,8 +462,14 @@ class WalletViewModel extends ChangeNotifier {
     }
   }
 
-  /// Activate outstation monthly pass directly via Razorpay checkout
-  Future<bool> activateOutstationPassDirect({
+  Future<bool> payOutstationMonthlyFee({
+    required String driverId,
+    required BuildContext context,
+  }) =>
+      payLocalAddaMonthlyFee(driverId: driverId, context: context);
+
+  /// Activate Local Adda monthly pass directly via Razorpay checkout
+  Future<bool> activateLocalAddaPassDirect({
     required String driverId,
     required String paymentId,
     required BuildContext context,
@@ -459,10 +477,10 @@ class WalletViewModel extends ChangeNotifier {
     if (driverId.isEmpty) return false;
 
     try {
-      final res = await _supabaseService.activateDriverOutstationPassDirect(
+      final res = await _supabaseService.activateDriverLocalAddaPassDirect(
         driverId: driverId,
         paymentId: paymentId,
-        amount: _outstationMonthlyFee,
+        amount: _localAddaMonthlyFee,
       );
 
       final success = res['success'] as bool? ?? false;
@@ -473,7 +491,7 @@ class WalletViewModel extends ChangeNotifier {
         if (context.mounted) {
           _showSnackBar(
             context,
-            '🎉 1-Month Outstation Pass Activated! You can now accept outstation bookings.',
+            '🎉 1-Month Local Adda Pass Activated! You can now participate in Local Adda bidding & orders.',
             backgroundColor: const Color(0xFF09A234),
           );
         }
@@ -492,13 +510,25 @@ class WalletViewModel extends ChangeNotifier {
       if (context.mounted) {
         _showSnackBar(
           context,
-          'Error activating outstation pass: $e',
+          'Error activating Local Adda pass: $e',
           backgroundColor: Colors.red.shade700,
         );
       }
       return false;
     }
   }
+
+  Future<bool> activateOutstationPassDirect({
+    required String driverId,
+    required String paymentId,
+    required BuildContext context,
+  }) =>
+      activateLocalAddaPassDirect(
+        driverId: driverId,
+        paymentId: paymentId,
+        context: context,
+      );
+
 
   bool _isWithdrawing = false;
   bool get isWithdrawing => _isWithdrawing;

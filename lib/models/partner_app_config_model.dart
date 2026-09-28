@@ -10,7 +10,7 @@ class PartnerAppConfigModel {
   final String minVersion;
   final double registrationFee;
   final bool isFreeDriverLogin;
-  final bool isFreeDriverOutstation;
+  final bool isFreeDriverAdda;
   final String maintenanceTitle;
   final String maintenanceMessage;
   final DateTime? createdAt;
@@ -27,12 +27,15 @@ class PartnerAppConfigModel {
     this.minVersion = '1.0.0',
     this.registrationFee = 499.00,
     this.isFreeDriverLogin = false,
-    this.isFreeDriverOutstation = false,
+    bool isFreeDriverAdda = false,
+    bool isFreeDriverOutstation = false,
+    bool isFreeDriverLocalAdda = false,
     this.maintenanceTitle = 'App Under Maintenance',
     this.maintenanceMessage = 'We are currently undergoing scheduled maintenance. Please check back shortly.',
     this.createdAt,
     this.updatedAt,
-  });
+  }) : isFreeDriverAdda = isFreeDriverAdda || isFreeDriverOutstation || isFreeDriverLocalAdda;
+
 
   /// Alias for the user-specified column spelling `is_maintanace`
   bool get isMaintanace => isMaintenance;
@@ -42,6 +45,10 @@ class PartnerAppConfigModel {
 
   /// Alias for the user-specified column name `update`
   bool get update => forceUpdate;
+
+  /// Aliases for free driver local adda
+  bool get isFreeDriverLocalAdda => isFreeDriverAdda;
+  bool get isFreeDriverOutstation => isFreeDriverAdda;
 
   factory PartnerAppConfigModel.defaultConfig() {
     return const PartnerAppConfigModel();
@@ -86,16 +93,24 @@ class PartnerAppConfigModel {
       freeLogin = json['isFreeDriverLogin'] == true || json['isFreeDriverLogin'].toString() == 'true';
     }
 
-    // 5. Free driver outstation flag (support 'is_free_driver_outstation', 'isFreeDriverOutstation', 'is_free_driver_outstanding', 'isFreeDriverOutstanding')
-    bool freeOutstation = false;
-    if (json.containsKey('is_free_driver_outstation') && json['is_free_driver_outstation'] != null) {
-      freeOutstation = json['is_free_driver_outstation'] == true || json['is_free_driver_outstation'].toString() == 'true';
+    // 5. Free driver local adda flag (support 'is_free_driver_adda', 'is_free_driver_local_adda', 'is_free_driver_outstation', 'is_free_driver_outstanding', etc.)
+    bool freeAdda = false;
+    if (json.containsKey('is_free_driver_adda') && json['is_free_driver_adda'] != null) {
+      freeAdda = json['is_free_driver_adda'] == true || json['is_free_driver_adda'].toString() == 'true';
+    } else if (json.containsKey('isFreeDriverAdda') && json['isFreeDriverAdda'] != null) {
+      freeAdda = json['isFreeDriverAdda'] == true || json['isFreeDriverAdda'].toString() == 'true';
+    } else if (json.containsKey('is_free_driver_local_adda') && json['is_free_driver_local_adda'] != null) {
+      freeAdda = json['is_free_driver_local_adda'] == true || json['is_free_driver_local_adda'].toString() == 'true';
+    } else if (json.containsKey('isFreeDriverLocalAdda') && json['isFreeDriverLocalAdda'] != null) {
+      freeAdda = json['isFreeDriverLocalAdda'] == true || json['isFreeDriverLocalAdda'].toString() == 'true';
+    } else if (json.containsKey('is_free_driver_outstation') && json['is_free_driver_outstation'] != null) {
+      freeAdda = json['is_free_driver_outstation'] == true || json['is_free_driver_outstation'].toString() == 'true';
     } else if (json.containsKey('isFreeDriverOutstation') && json['isFreeDriverOutstation'] != null) {
-      freeOutstation = json['isFreeDriverOutstation'] == true || json['isFreeDriverOutstation'].toString() == 'true';
+      freeAdda = json['isFreeDriverOutstation'] == true || json['isFreeDriverOutstation'].toString() == 'true';
     } else if (json.containsKey('is_free_driver_outstanding') && json['is_free_driver_outstanding'] != null) {
-      freeOutstation = json['is_free_driver_outstanding'] == true || json['is_free_driver_outstanding'].toString() == 'true';
+      freeAdda = json['is_free_driver_outstanding'] == true || json['is_free_driver_outstanding'].toString() == 'true';
     } else if (json.containsKey('isFreeDriverOutstanding') && json['isFreeDriverOutstanding'] != null) {
-      freeOutstation = json['isFreeDriverOutstanding'] == true || json['isFreeDriverOutstanding'].toString() == 'true';
+      freeAdda = json['isFreeDriverOutstanding'] == true || json['isFreeDriverOutstanding'].toString() == 'true';
     }
 
     return PartnerAppConfigModel(
@@ -113,7 +128,7 @@ class PartnerAppConfigModel {
       minVersion: json['min_version']?.toString() ?? json['minVersion']?.toString() ?? '1.0.0',
       registrationFee: fee,
       isFreeDriverLogin: freeLogin,
-      isFreeDriverOutstation: freeOutstation,
+      isFreeDriverAdda: freeAdda,
       maintenanceTitle: json['maintenance_title']?.toString() ??
           json['maintenanceTitle']?.toString() ??
           'App Under Maintenance',
@@ -140,7 +155,9 @@ class PartnerAppConfigModel {
       'regestration_fee': registrationFee,
       'registration_fee': registrationFee,
       'is_free_driver_login': isFreeDriverLogin,
-      'is_free_driver_outstation': isFreeDriverOutstation,
+      'is_free_driver_adda': isFreeDriverAdda,
+      'is_free_driver_local_adda': isFreeDriverAdda,
+      'is_free_driver_outstation': isFreeDriverAdda,
       'maintenance_title': maintenanceTitle,
       'maintenance_message': maintenanceMessage,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
@@ -159,6 +176,7 @@ class PartnerAppConfigModel {
     String? minVersion,
     double? registrationFee,
     bool? isFreeDriverLogin,
+    bool? isFreeDriverAdda,
     bool? isFreeDriverOutstation,
     String? maintenanceTitle,
     String? maintenanceMessage,
@@ -176,7 +194,7 @@ class PartnerAppConfigModel {
       minVersion: minVersion ?? this.minVersion,
       registrationFee: registrationFee ?? this.registrationFee,
       isFreeDriverLogin: isFreeDriverLogin ?? this.isFreeDriverLogin,
-      isFreeDriverOutstation: isFreeDriverOutstation ?? this.isFreeDriverOutstation,
+      isFreeDriverAdda: isFreeDriverAdda ?? isFreeDriverOutstation ?? this.isFreeDriverAdda,
       maintenanceTitle: maintenanceTitle ?? this.maintenanceTitle,
       maintenanceMessage: maintenanceMessage ?? this.maintenanceMessage,
       createdAt: createdAt ?? this.createdAt,
@@ -186,6 +204,7 @@ class PartnerAppConfigModel {
 
   @override
   String toString() {
-    return 'PartnerAppConfigModel(id: $id, version: $version, isMaintenance: $isMaintenance, update: $forceUpdate, registrationFee: $registrationFee, isFreeDriverLogin: $isFreeDriverLogin, isFreeDriverOutstation: $isFreeDriverOutstation)';
+    return 'PartnerAppConfigModel(id: $id, version: $version, isMaintenance: $isMaintenance, update: $forceUpdate, registrationFee: $registrationFee, isFreeDriverLogin: $isFreeDriverLogin, isFreeDriverAdda: $isFreeDriverAdda)';
   }
 }
+

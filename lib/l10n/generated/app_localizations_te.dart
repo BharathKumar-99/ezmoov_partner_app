@@ -2034,14 +2034,21 @@ class AppLocalizationsTe extends AppLocalizations {
       'అంతర్-నగర & అవుట్‌స్టేషన్ బిడ్‌లను స్వీకరించడానికి ఆన్ చేయండి';
 
   @override
-  String get outstandingMonthlyFee => 'అవుట్‌స్టాండింగ్ నెలవారీ రుసుము';
+  String get outstandingMonthlyFee => 'లోకల్ అడ్డా నెలవారీ రుసుము';
 
   @override
-  String get outstationMonthlyFee => 'అవుట్‌స్టేషన్ నెలవారీ రుసుము';
+  String get outstationMonthlyFee => 'లోకల్ అడ్డా నెలవారీ రుసుము';
+
+  @override
+  String get localAddaMonthlyFee => 'లోకల్ అడ్డా నెలవారీ రుసుము';
 
   @override
   String get freeOutstandingDesc =>
-      'ప్రస్తుతానికి ఉచితం • అవుట్‌స్టేషన్ కోసం నెలవారీ రుసుము లేదు';
+      'ప్రస్తుతానికి ఉచితం • లోకల్ అడ్డా కోసం నెలవారీ రుసుము లేదు';
+
+  @override
+  String get freeLocalAddaDesc =>
+      'ప్రస్తుతానికి ఉచితం • లోకల్ అడ్డా కోసం నెలవారీ రుసుము లేదు';
 
   @override
   String get monthlyPassActive => 'నెలవారీ పాస్ సక్రియంగా ఉంది';
@@ -2065,9 +2072,16 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-  String get outstationPassRequired => 'అవుట్‌స్టేషన్ నెలవారీ పాస్ అవసరం';
+  String get outstationPassRequired => 'లోకల్ అడ్డా నెలవారీ పాస్ అవసరం';
 
   @override
   String get outstationPassRequiredDesc =>
-      'సుదూర మరియు అవుట్‌స్టేషన్ ఆర్డర్‌లను ప్రారంభించడానికి ₹2,000 నెలవారీ రుసుము అవసరం.';
+      'లోకల్ అడ్డా బిడ్డింగ్ మరియు ఆర్డర్‌లలో పాల్గొనడానికి ₹2,000 నెలవారీ రుసుము అవసరం.';
+
+  @override
+  String get localAddaPassRequired => 'లోకల్ అడ్డా నెలవారీ పాస్ అవసరం';
+
+  @override
+  String get localAddaPassRequiredDesc =>
+      'లోకల్ అడ్డా బిడ్డింగ్ మరియు ఆర్డర్‌లలో పాల్గొనడానికి ₹2,000 నెలవారీ రుసుము అవసరం.';
 }

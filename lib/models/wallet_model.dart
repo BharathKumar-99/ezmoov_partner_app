@@ -2,6 +2,7 @@ class DriverWalletModel {
   final String? id;
   final String driverId;
   final double balance;
+  final DateTime? localAddaPassExpiresAt;
   final DateTime? outstationPassExpiresAt;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -10,15 +11,24 @@ class DriverWalletModel {
     this.id,
     required this.driverId,
     this.balance = 0.0,
-    this.outstationPassExpiresAt,
+    DateTime? localAddaPassExpiresAt,
+    DateTime? outstationPassExpiresAt,
     this.createdAt,
     this.updatedAt,
-  });
+  })  : localAddaPassExpiresAt = localAddaPassExpiresAt ?? outstationPassExpiresAt,
+        outstationPassExpiresAt = outstationPassExpiresAt ?? localAddaPassExpiresAt;
 
-  bool get isOutstationPassActive {
-    if (outstationPassExpiresAt == null) return false;
-    return outstationPassExpiresAt!.isAfter(DateTime.now());
+  DateTime? get outstandingPassExpiresAt => localAddaPassExpiresAt;
+  DateTime? get addaPassExpiresAt => localAddaPassExpiresAt;
+
+  bool get isLocalAddaPassActive {
+    final expiry = localAddaPassExpiresAt ?? outstationPassExpiresAt;
+    if (expiry == null) return false;
+    return expiry.isAfter(DateTime.now());
   }
+
+  bool get isOutstationPassActive => isLocalAddaPassActive;
+
 
   static DateTime? _parseDateTimeToLocal(dynamic val) {
     if (val == null) return null;
@@ -31,14 +41,21 @@ class DriverWalletModel {
   }
 
   factory DriverWalletModel.fromJson(Map<String, dynamic> json) {
+    final expiry = _parseDateTimeToLocal(
+      json['local_adda_pass_expires_at'] ??
+          json['localAddaPassExpiresAt'] ??
+          json['adda_pass_expires_at'] ??
+          json['outstation_pass_expires_at'] ??
+          json['outstanding_pass_expires_at'] ??
+          json['outstationPassExpiresAt'],
+    );
+
     return DriverWalletModel(
       id: json['id'] as String?,
       driverId: json['driver_id'] as String? ?? '',
       balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
-      outstationPassExpiresAt: _parseDateTimeToLocal(
-          json['outstation_pass_expires_at'] ??
-              json['outstanding_pass_expires_at'] ??
-              json['outstationPassExpiresAt']),
+      localAddaPassExpiresAt: expiry,
+      outstationPassExpiresAt: expiry,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
     );
@@ -49,8 +66,10 @@ class DriverWalletModel {
       if (id != null) 'id': id,
       'driver_id': driverId,
       'balance': balance,
-      if (outstationPassExpiresAt != null)
-        'outstation_pass_expires_at': outstationPassExpiresAt!.toIso8601String(),
+      if (localAddaPassExpiresAt != null) ...{
+        'local_adda_pass_expires_at': localAddaPassExpiresAt!.toIso8601String(),
+        'outstation_pass_expires_at': localAddaPassExpiresAt!.toIso8601String(),
+      },
     };
   }
 }

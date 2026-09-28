@@ -856,23 +856,6 @@ class _HomeTabState extends State<HomeTab> {
                                 activeTrackColor: const Color(0xFFD97706),
                                 activeThumbColor: Colors.white,
                                 onChanged: (val) {
-                                  final walletVm =
-                                      context.read<WalletViewModel>();
-                                  final isFreeOutstation =
-                                      vm.isFreeDriverOutstation ||
-                                          walletVm.isFreeDriverOutstation;
-
-                                  // When is_free_driver_outstation is true, do NOT check if the driver has paid monthly fee for outstanding
-                                  if (val &&
-                                      !isFreeOutstation &&
-                                      !walletVm.isOutstationPassActive) {
-                                    _showOutstationPassRequiredDialog(
-                                      context,
-                                      driver?.id ?? '',
-                                      walletVm.outstationMonthlyFee,
-                                    );
-                                    return;
-                                  }
                                   vm.toggleOutstationBooking(context);
                                 },
                               ),

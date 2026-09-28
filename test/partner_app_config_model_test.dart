@@ -116,6 +116,26 @@ void main() {
       expect(json['is_free_driver_outstation'], true);
     });
 
+    test('Parses is_free_driver_adda and is_free_driver_local_adda correctly', () {
+      final json1 = {
+        'id': 1,
+        'version': '1.0.0',
+        'is_free_driver_adda': true,
+      };
+      final config1 = PartnerAppConfigModel.fromJson(json1);
+      expect(config1.isFreeDriverAdda, true);
+      expect(config1.isFreeDriverLocalAdda, true);
+
+      final json2 = {
+        'id': 2,
+        'version': '1.0.0',
+        'is_free_driver_local_adda': true,
+      };
+      final config2 = PartnerAppConfigModel.fromJson(json2);
+      expect(config2.isFreeDriverAdda, true);
+      expect(config2.isFreeDriverLocalAdda, true);
+    });
+
     test('copyWith updates specified fields correctly', () {
       final config = PartnerAppConfigModel.defaultConfig();
       final updated = config.copyWith(
@@ -131,6 +151,7 @@ void main() {
       expect(updated.registrationFee, 0.0);
       expect(updated.isFreeDriverLogin, true);
       expect(updated.isFreeDriverOutstation, true);
+      expect(updated.isFreeDriverAdda, true);
       expect(updated.forceUpdate, false);
     });
   });

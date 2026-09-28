@@ -608,14 +608,19 @@
   "minWallet100Badge": "वॉलेट में न्यूनतम ₹100",
   "outstationOnlineDesc": "सक्रिय • आउटस्टेशन यात्राओं के लिए तैयार",
   "outstationOfflineDesc": "अंतर-शहर और आउटस्टेशन बोलियां प्राप्त करने के लिए चालू करें",
-  "outstandingMonthlyFee": "आउटस्टैंडिंग मासिक शुल्क",
-  "outstationMonthlyFee": "आउटस्टेशन मासिक शुल्क",
-  "freeOutstandingDesc": "अभी के लिए मुफ्त • आउटस्टेशन के लिए कोई मासिक शुल्क नहीं",
+  "outstandingMonthlyFee": "लोकल अड्डा मासिक शुल्क",
+  "outstationMonthlyFee": "लोकल अड्डा मासिक शुल्क",
+  "localAddaMonthlyFee": "लोकल अड्डा मासिक शुल्क",
+  "freeOutstandingDesc": "अभी के लिए मुफ्त • लोकल अड्डा के लिए कोई मासिक शुल्क नहीं",
+  "freeLocalAddaDesc": "अभी के लिए मुफ्त • लोकल अड्डा के लिए कोई मासिक शुल्क नहीं",
   "monthlyPassActive": "मासिक पास सक्रिय",
   "monthlyPassExpired": "मासिक पास समाप्त",
   "passValidUntilDate": "पास {date} तक वैध",
   "payMonthlyFeeWallet": "वॉलेट से भुगतान करें (₹{amount})",
   "payMonthlyFeeDirect": "सीधा भुगतान करें (₹{amount})",
-  "outstationPassRequired": "आउटस्टेशन मासिक पास आवश्यक",
-  "outstationPassRequiredDesc": "लंबी दूरी और आउटस्टेशन ऑर्डर सक्षम करने के लिए ₹2,000 का मासिक शुल्क आवश्यक है।"
+  "outstationPassRequired": "लोकल अड्डा मासिक पास आवश्यक",
+  "outstationPassRequiredDesc": "लोकल अड्डा बोली और ऑर्डर में भाग लेने के लिए ₹2,000 का मासिक शुल्क आवश्यक है।",
+  "localAddaPassRequired": "लोकल अड्डा मासिक पास आवश्यक",
+  "localAddaPassRequiredDesc": "लोकल अड्डा बोली और ऑर्डर में भाग लेने के लिए ₹2,000 का मासिक शुल्क आवश्यक है।"
 }
+

@@ -2014,14 +2014,21 @@ class AppLocalizationsHi extends AppLocalizations {
       'अंतर-शहर और आउटस्टेशन बोलियां प्राप्त करने के लिए चालू करें';
 
   @override
-  String get outstandingMonthlyFee => 'आउटस्टैंडिंग मासिक शुल्क';
+  String get outstandingMonthlyFee => 'लोकल अड्डा मासिक शुल्क';
 
   @override
-  String get outstationMonthlyFee => 'आउटस्टेशन मासिक शुल्क';
+  String get outstationMonthlyFee => 'लोकल अड्डा मासिक शुल्क';
+
+  @override
+  String get localAddaMonthlyFee => 'लोकल अड्डा मासिक शुल्क';
 
   @override
   String get freeOutstandingDesc =>
-      'अभी के लिए मुफ्त • आउटस्टेशन के लिए कोई मासिक शुल्क नहीं';
+      'अभी के लिए मुफ्त • लोकल अड्डा के लिए कोई मासिक शुल्क नहीं';
+
+  @override
+  String get freeLocalAddaDesc =>
+      'अभी के लिए मुफ्त • लोकल अड्डा के लिए कोई मासिक शुल्क नहीं';
 
   @override
   String get monthlyPassActive => 'मासिक पास सक्रिय';
@@ -2045,9 +2052,16 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get outstationPassRequired => 'आउटस्टेशन मासिक पास आवश्यक';
+  String get outstationPassRequired => 'लोकल अड्डा मासिक पास आवश्यक';
 
   @override
   String get outstationPassRequiredDesc =>
-      'लंबी दूरी और आउटस्टेशन ऑर्डर सक्षम करने के लिए ₹2,000 का मासिक शुल्क आवश्यक है।';
+      'लोकल अड्डा बोली और ऑर्डर में भाग लेने के लिए ₹2,000 का मासिक शुल्क आवश्यक है।';
+
+  @override
+  String get localAddaPassRequired => 'लोकल अड्डा मासिक पास आवश्यक';
+
+  @override
+  String get localAddaPassRequiredDesc =>
+      'लोकल अड्डा बोली और ऑर्डर में भाग लेने के लिए ₹2,000 का मासिक शुल्क आवश्यक है।';
 }

@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/location_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../models/booking_model.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../viewmodels/profile_viewmodel.dart';
+import '../../../viewmodels/wallet_viewmodel.dart';
 import '../../../widgets/gradient_button.dart';
 import '../../../widgets/route_location_tile.dart';
 
@@ -676,6 +678,15 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
                           onPressed: () async {
                             if (!_formKey.currentState!.validate()) return;
 
+                            final walletVm = Provider.of<WalletViewModel>(context, listen: false);
+                            final profileVm = Provider.of<ProfileViewModel>(context, listen: false);
+                            final isFreeAdda = profileVm.isFreeDriverAdda || walletVm.isFreeDriverAdda;
+
+                            if (!isFreeAdda && !walletVm.isLocalAddaPassActive) {
+                              _showLocalAddaPassRequiredModal(context, widget.driverId, walletVm.localAddaMonthlyFee);
+                              return;
+                            }
+
                             final bidAmount =
                                 double.parse(_bidController.text.trim());
 
@@ -709,6 +720,70 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showLocalAddaPassRequiredModal(BuildContext context, String driverId, double fee) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEDE9FE),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.alt_route_rounded, color: Color(0xFF7C3AED), size: 24),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  l10n.localAddaPassRequired,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            l10n.localAddaPassRequiredDesc,
+            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textMuted)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                Navigator.of(context).pop();
+                context.push('/wallet?driverId=$driverId');
+              },
+              child: Text(l10n.viewWallet, style: const TextStyle(color: Color(0xFF7C3AED), fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                if (driverId.isNotEmpty) {
+                  context.read<WalletViewModel>().payLocalAddaMonthlyFee(driverId: driverId, context: context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: const Icon(Icons.flash_on_rounded, size: 16),
+              label: Text(l10n.payMonthlyFeeWallet(fee.toStringAsFixed(0))),
+            ),
+          ],
         );
       },
     );

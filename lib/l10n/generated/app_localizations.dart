@@ -3691,20 +3691,32 @@ abstract class AppLocalizations {
   /// No description provided for @outstandingMonthlyFee.
   ///
   /// In en, this message translates to:
-  /// **'Outstanding Monthly Fee'**
+  /// **'Local Adda Monthly Fee'**
   String get outstandingMonthlyFee;
 
   /// No description provided for @outstationMonthlyFee.
   ///
   /// In en, this message translates to:
-  /// **'Outstation Monthly Fee'**
+  /// **'Local Adda Monthly Fee'**
   String get outstationMonthlyFee;
+
+  /// No description provided for @localAddaMonthlyFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Adda Monthly Fee'**
+  String get localAddaMonthlyFee;
 
   /// No description provided for @freeOutstandingDesc.
   ///
   /// In en, this message translates to:
-  /// **'Free for now • No monthly fee required for outstation'**
+  /// **'Free for now • No monthly fee required for Local Adda'**
   String get freeOutstandingDesc;
+
+  /// No description provided for @freeLocalAddaDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Free for now • No monthly fee required for Local Adda'**
+  String get freeLocalAddaDesc;
 
   /// No description provided for @monthlyPassActive.
   ///
@@ -3739,14 +3751,26 @@ abstract class AppLocalizations {
   /// No description provided for @outstationPassRequired.
   ///
   /// In en, this message translates to:
-  /// **'Outstation Monthly Pass Required'**
+  /// **'Local Adda Monthly Pass Required'**
   String get outstationPassRequired;
 
   /// No description provided for @outstationPassRequiredDesc.
   ///
   /// In en, this message translates to:
-  /// **'A monthly fee of ₹2,000 is required to enable long-distance & outstation orders.'**
+  /// **'A monthly fee of ₹2,000 is required to participate in Local Adda bidding and orders.'**
   String get outstationPassRequiredDesc;
+
+  /// No description provided for @localAddaPassRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Adda Monthly Pass Required'**
+  String get localAddaPassRequired;
+
+  /// No description provided for @localAddaPassRequiredDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A monthly fee of ₹2,000 is required to participate in Local Adda bidding and orders.'**
+  String get localAddaPassRequiredDesc;
 }
 
 class _AppLocalizationsDelegate

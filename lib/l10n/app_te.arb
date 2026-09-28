@@ -608,14 +608,19 @@
   "minWallet100Badge": "వాలెట్‌లో కనీసం ₹100",
   "outstationOnlineDesc": "యాక్టివ్ • అవుట్‌స్టేషన్ ట్రిప్‌లకు సిద్ధంగా ఉంది",
   "outstationOfflineDesc": "అంతర్-నగర & అవుట్‌స్టేషన్ బిడ్‌లను స్వీకరించడానికి ఆన్ చేయండి",
-  "outstandingMonthlyFee": "అవుట్‌స్టాండింగ్ నెలవారీ రుసుము",
-  "outstationMonthlyFee": "అవుట్‌స్టేషన్ నెలవారీ రుసుము",
-  "freeOutstandingDesc": "ప్రస్తుతానికి ఉచితం • అవుట్‌స్టేషన్ కోసం నెలవారీ రుసుము లేదు",
+  "outstandingMonthlyFee": "లోకల్ అడ్డా నెలవారీ రుసుము",
+  "outstationMonthlyFee": "లోకల్ అడ్డా నెలవారీ రుసుము",
+  "localAddaMonthlyFee": "లోకల్ అడ్డా నెలవారీ రుసుము",
+  "freeOutstandingDesc": "ప్రస్తుతానికి ఉచితం • లోకల్ అడ్డా కోసం నెలవారీ రుసుము లేదు",
+  "freeLocalAddaDesc": "ప్రస్తుతానికి ఉచితం • లోకల్ అడ్డా కోసం నెలవారీ రుసుము లేదు",
   "monthlyPassActive": "నెలవారీ పాస్ సక్రియంగా ఉంది",
   "monthlyPassExpired": "నెలవారీ పాస్ గడువు ముగిసింది",
   "passValidUntilDate": "పాస్ {date} వరకు చెల్లుతుంది",
   "payMonthlyFeeWallet": "వాలెట్ నుండి చెల్లించండి (₹{amount})",
   "payMonthlyFeeDirect": "నేరుగా చెల్లించండి (₹{amount})",
-  "outstationPassRequired": "అవుట్‌స్టేషన్ నెలవారీ పాస్ అవసరం",
-  "outstationPassRequiredDesc": "సుదూర మరియు అవుట్‌స్టేషన్ ఆర్డర్‌లను ప్రారంభించడానికి ₹2,000 నెలవారీ రుసుము అవసరం."
+  "outstationPassRequired": "లోకల్ అడ్డా నెలవారీ పాస్ అవసరం",
+  "outstationPassRequiredDesc": "లోకల్ అడ్డా బిడ్డింగ్ మరియు ఆర్డర్‌లలో పాల్గొనడానికి ₹2,000 నెలవారీ రుసుము అవసరం.",
+  "localAddaPassRequired": "లోకల్ అడ్డా నెలవారీ పాస్ అవసరం",
+  "localAddaPassRequiredDesc": "లోకల్ అడ్డా బిడ్డింగ్ మరియు ఆర్డర్‌లలో పాల్గొనడానికి ₹2,000 నెలవారీ రుసుము అవసరం."
 }
+
