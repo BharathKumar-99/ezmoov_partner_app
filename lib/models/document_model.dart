@@ -6,7 +6,6 @@ class DocumentModel {
   final String drivingLicenseUrl;
   final String dlBackUrl;
   final String vehicleRcUrl;
-  final String rcBackUrl;
   final String panCardUrl;
   final String insuranceUrl;
   final String pucUrl;
@@ -26,7 +25,6 @@ class DocumentModel {
     this.drivingLicenseUrl = '',
     this.dlBackUrl = '',
     this.vehicleRcUrl = '',
-    this.rcBackUrl = '',
     this.panCardUrl = '',
     this.insuranceUrl = '',
     this.pucUrl = '',
@@ -54,10 +52,6 @@ class DocumentModel {
           json['driving_license_back_url'] as String? ??
           '',
       vehicleRcUrl: json['vehicle_rc_url'] as String? ?? '',
-      rcBackUrl: json['rc_back_url'] as String? ??
-          json['rc_back'] as String? ??
-          json['vehicle_rc_back_url'] as String? ??
-          '',
       panCardUrl: json['pan_card_url'] as String? ?? '',
       insuranceUrl: json['insurance_url'] as String? ?? '',
       pucUrl: json['puc_url'] as String? ?? '',
@@ -84,7 +78,6 @@ class DocumentModel {
       'driving_license_url': drivingLicenseUrl,
       'dl_back_url': dlBackUrl,
       'vehicle_rc_url': vehicleRcUrl,
-      'rc_back_url': rcBackUrl,
       'pan_card_url': panCardUrl,
       'insurance_url': insuranceUrl,
       'puc_url': pucUrl,
@@ -96,3 +89,4 @@ class DocumentModel {
     };
   }
 }
+

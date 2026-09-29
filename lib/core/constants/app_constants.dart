@@ -39,6 +39,24 @@ class AppConstants {
     }
   }
 
+  // ====================================================
+  // Ride & Booking Distance Limits (in Kilometers)
+  // ====================================================
+  /// Initial search radius for standard bookings before far-driver escalation / incentive (default: 3.0 km)
+  static double initialStandardDistanceKm = 6.0;
+
+  /// Search radius for standard bookings when far-driver incentive is active (default: 10.0 km)
+  static double farDriverDistanceKm = 10.0;
+
+  /// Maximum radius to alert drivers for Local Adda bidding bookings (default: 20.0 km)
+  static double localAddaDistanceKm = 20.0;
+
+  /// Maximum radius to alert drivers for Outstation bookings (default: 40.0 km)
+  static double outstationDistanceKm = 40.0;
+
+  /// Delay duration before escalating an unaccepted booking to the next higher vehicle tier (default: 30 seconds)
+  static int vehicleTierForwardDelaySeconds = 30;
+
   /// Explicitly set version (e.g., for unit testing or overrides)
   static void setAppVersion(String version) {
     _appVersion = version;

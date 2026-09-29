@@ -230,7 +230,12 @@ class SupabaseService {
             .map((item) =>
                 VehicleTypeModel.fromJson(item as Map<String, dynamic>))
             .toList();
-        list.sort((a, b) => a.capacityKg.compareTo(b.capacityKg));
+        list.sort((a, b) {
+          if (a.idx != null && b.idx != null) {
+            return a.idx!.compareTo(b.idx!);
+          }
+          return a.capacityKg.compareTo(b.capacityKg);
+        });
         _cachedVehicleTypes = list;
         return list;
       }

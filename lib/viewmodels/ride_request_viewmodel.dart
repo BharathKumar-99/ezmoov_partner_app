@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../core/constants/app_constants.dart';
 import '../core/services/supabase_service.dart';
 import '../core/services/audio_service.dart';
 import '../core/services/offline_trip_service.dart';
@@ -59,6 +60,13 @@ class RideRequestViewModel extends ChangeNotifier {
   final Set<String> _declinedBookingIds = {};
   Set<String> get declinedBookingIds => _declinedBookingIds;
 
+  int _forward8ftTo9ftDelaySeconds = AppConstants.vehicleTierForwardDelaySeconds;
+  int get forward8ftTo9ftDelaySeconds => _forward8ftTo9ftDelaySeconds;
+  void setForward8ftTo9ftDelaySeconds(int seconds) {
+    _forward8ftTo9ftDelaySeconds = seconds;
+    notifyListeners();
+  }
+
   String? _driverVehicleType;
   String? _driverVehicleTypeId;
 
@@ -95,6 +103,204 @@ class RideRequestViewModel extends ChangeNotifier {
   }
 
   List<VehicleTypeModel> _vehicleTypes = [];
+  List<VehicleTypeModel> get vehicleTypes => _vehicleTypes;
+
+  void setVehicleTypes(List<VehicleTypeModel> types) {
+    _vehicleTypes = types;
+    notifyListeners();
+  }
+
+  /// Checks whether a given vehicle type string/id corresponds to a 7 Feet / 4 Wheeler vehicle (Tata Ace / 750 Kg)
+  bool is7FeetVehicle(String? vehType, [String? vehTypeId]) {
+    final typeStr = vehType?.trim().toLowerCase() ?? '';
+    final typeIdStr = vehTypeId?.trim().toLowerCase() ?? '';
+    final combined = '$typeStr $typeIdStr'.trim();
+    final norm = combined.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+
+    if (combined.contains('7ft') ||
+        combined.contains('7 ft') ||
+        combined.contains('7feet') ||
+        combined.contains('7 feet') ||
+        combined.contains('4 wheeler') ||
+        combined.contains('4wheeler') ||
+        combined.contains('4w') ||
+        combined.contains('tata ace') ||
+        combined.contains('ace') ||
+        combined.contains('750') ||
+        norm == '4' ||
+        norm == '4w' ||
+        norm == '4wheeler' ||
+        norm == '7' ||
+        norm == '7ft' ||
+        norm == '7feet' ||
+        norm == '7feet750kg' ||
+        norm == '750kgs' ||
+        norm == '750kg') {
+      return true;
+    }
+
+    // Check catalog IDs/Capacities for 4 Wheeler / 7ft (750 Kgs)
+    for (final vt in _vehicleTypes) {
+      if (vt.id.trim() == vehTypeId?.trim() ||
+          vt.id.trim() == vehType?.trim() ||
+          vt.name.trim().toLowerCase() == typeStr) {
+        final vtNorm = vt.name.toLowerCase();
+        final vtCap = vt.capacity.toLowerCase();
+        if (vt.id.trim() == '4' ||
+            vtNorm.contains('4 wheeler') ||
+            vtNorm.contains('7') ||
+            vtNorm.contains('ace') ||
+            vtCap.contains('750') ||
+            vt.capacityKg == 750.0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Checks whether a given vehicle type string/id corresponds to an 8 Feet vehicle (1.2 Ton / 1200 Kg)
+  bool is8FeetVehicle(String? vehType, [String? vehTypeId]) {
+    final typeStr = vehType?.trim().toLowerCase() ?? '';
+    final typeIdStr = vehTypeId?.trim().toLowerCase() ?? '';
+    final combined = '$typeStr $typeIdStr'.trim();
+    final norm = combined.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+
+    if (combined.contains('8ft') ||
+        combined.contains('8 ft') ||
+        combined.contains('8feet') ||
+        combined.contains('8 feet') ||
+        combined.contains('8 ft vehicle') ||
+        combined.contains('8ft vehicle') ||
+        combined.contains('pickup 8') ||
+        combined.contains('8pickup') ||
+        combined.contains('1200') ||
+        combined.contains('1.2 ton') ||
+        combined.contains('1.2ton') ||
+        norm == '5' ||
+        norm == '8' ||
+        norm == '8ft' ||
+        norm == '8feet' ||
+        norm == '8ftvehicle' ||
+        norm == '8feet12ton' ||
+        norm == '1200kgs' ||
+        norm == '1200kg') {
+      return true;
+    }
+
+    // Check catalog IDs/Capacities for 8ft (1200 Kgs / 1.2 Ton)
+    for (final vt in _vehicleTypes) {
+      if (vt.id.trim() == vehTypeId?.trim() ||
+          vt.id.trim() == vehType?.trim() ||
+          vt.name.trim().toLowerCase() == typeStr) {
+        final vtNorm = vt.name.toLowerCase();
+        final vtCap = vt.capacity.toLowerCase();
+        if (vt.id.trim() == '5' ||
+            vtNorm.contains('8') ||
+            vtCap.contains('1200') ||
+            vt.capacityKg == 1200.0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Checks whether a given vehicle type string/id corresponds to a 9 Feet vehicle (1.7 Ton / 1700 Kg)
+  bool is9FeetVehicle(String? vehType, [String? vehTypeId]) {
+    final typeStr = vehType?.trim().toLowerCase() ?? '';
+    final typeIdStr = vehTypeId?.trim().toLowerCase() ?? '';
+    final combined = '$typeStr $typeIdStr'.trim();
+    final norm = combined.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+
+    if (combined.contains('9ft') ||
+        combined.contains('9 ft') ||
+        combined.contains('9feet') ||
+        combined.contains('9 feet') ||
+        combined.contains('9 ft vehicle') ||
+        combined.contains('9ft vehicle') ||
+        combined.contains('pickup 9') ||
+        combined.contains('9pickup') ||
+        combined.contains('1700') ||
+        combined.contains('1.7 ton') ||
+        combined.contains('1.7ton') ||
+        combined.contains('9-10ft') ||
+        combined.contains('9-10 feet') ||
+        norm == '6' ||
+        norm == '9ft' ||
+        norm == '9feet' ||
+        norm == '9ftvehicle' ||
+        norm == '9feet17ton' ||
+        norm == '1700kgs' ||
+        norm == '1700kg') {
+      return true;
+    }
+
+    // Check catalog IDs/Capacities for 9ft (1700 Kgs / 1.7 Ton)
+    for (final vt in _vehicleTypes) {
+      if (vt.id.trim() == vehTypeId?.trim() ||
+          vt.id.trim() == vehType?.trim() ||
+          vt.name.trim().toLowerCase() == typeStr) {
+        final vtNorm = vt.name.toLowerCase();
+        final vtCap = vt.capacity.toLowerCase();
+        if (vt.id.trim() == '6' ||
+            vtNorm.contains('9') ||
+            vtCap.contains('1700') ||
+            vt.capacityKg == 1700.0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Checks whether a given vehicle type string/id corresponds to a 10 Feet vehicle (2 Tons / 2000 Kg)
+  bool is10FeetVehicle(String? vehType, [String? vehTypeId]) {
+    final typeStr = vehType?.trim().toLowerCase() ?? '';
+    final typeIdStr = vehTypeId?.trim().toLowerCase() ?? '';
+    final combined = '$typeStr $typeIdStr'.trim();
+    final norm = combined.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+
+    if (combined.contains('10ft') ||
+        combined.contains('10 ft') ||
+        combined.contains('10 feet') ||
+        combined.contains('10feet') ||
+        combined.contains('10 ft vehicle') ||
+        combined.contains('10ft vehicle') ||
+        combined.contains('pickup 10') ||
+        combined.contains('10pickup') ||
+        combined.contains('2000') ||
+        combined.contains('2 ton') ||
+        combined.contains('2ton') ||
+        combined.contains('2 tons') ||
+        combined.contains('2tons') ||
+        norm == '7' ||
+        norm == '10ft' ||
+        norm == '10feet' ||
+        norm == '10ftvehicle' ||
+        norm == '10feet2tons' ||
+        norm == '2000kgs' ||
+        norm == '2000kg') {
+      return true;
+    }
+
+    // Check catalog IDs/Capacities for 10ft (2000 Kgs / 2 Tons)
+    for (final vt in _vehicleTypes) {
+      if (vt.id.trim() == vehTypeId?.trim() ||
+          vt.id.trim() == vehType?.trim() ||
+          vt.name.trim().toLowerCase() == typeStr) {
+        final vtNorm = vt.name.toLowerCase();
+        final vtCap = vt.capacity.toLowerCase();
+        if (vt.id.trim() == '7' ||
+            vtNorm.contains('10') ||
+            vtCap.contains('2000') ||
+            vt.capacityKg == 2000.0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   /// Check if the booking vehicle type matches the partner's vehicle type
   bool _isVehicleTypeMatching(BookingModel booking) {
@@ -150,6 +356,49 @@ class RideRequestViewModel extends ChangeNotifier {
       if (bookingMatchesVt && driverMatchesVt) {
         return true;
       }
+    }
+
+    // 4. Vehicle Tier Escalation / 30-Second Forwarding Fallback:
+    // • 7 Feet booking -> after 30s forwarded to 8 Feet driver
+    // • 8 Feet booking -> after 30s forwarded to 9 Feet driver
+    // • 9 Feet booking -> after 30s forwarded to 10 Feet driver
+    // (All without modifying the bookings table in database)
+    final isBooking7Ft = is7FeetVehicle(bookingVeh);
+    final isBooking8Ft = is8FeetVehicle(bookingVeh);
+    final isBooking9Ft = is9FeetVehicle(bookingVeh);
+
+    final isDriver8Ft = is8FeetVehicle(dType, dTypeId);
+    final isDriver9Ft = is9FeetVehicle(dType, dTypeId);
+    final isDriver10Ft = is10FeetVehicle(dType, dTypeId);
+
+    bool isForwardCandidate = false;
+    String forwardTier = '';
+
+    if (isBooking7Ft && isDriver8Ft) {
+      isForwardCandidate = true;
+      forwardTier = '7ft -> 8ft';
+    } else if (isBooking8Ft && isDriver9Ft) {
+      isForwardCandidate = true;
+      forwardTier = '8ft -> 9ft';
+    } else if (isBooking9Ft && isDriver10Ft) {
+      isForwardCandidate = true;
+      forwardTier = '9ft -> 10ft';
+    }
+
+    if (isForwardCandidate) {
+      final createdAt = booking.createdAt;
+      if (createdAt != null) {
+        final elapsedSeconds = DateTime.now().difference(createdAt).inSeconds;
+        if (elapsedSeconds < _forward8ftTo9ftDelaySeconds && booking.farDriver != true) {
+          debugPrint(
+              '⏳ $forwardTier Delay: Booking #${booking.id} was created ${elapsedSeconds}s ago. Waiting until ${_forward8ftTo9ftDelaySeconds}s before forwarding to next tier.');
+          return false;
+        }
+      }
+
+      debugPrint(
+          '⏩ $forwardTier Forwarding (30s elapsed): Booking #${booking.id} (Vehicle: $bookingVeh) forwarded to driver ($dType / $dTypeId)');
+      return true;
     }
 
     return false;
@@ -548,13 +797,13 @@ class RideRequestViewModel extends ChangeNotifier {
         serviceName == 'bidding_outstation' ||
         serviceName == 'biddingoutstation';
 
-    // 1. Local Adda distance check: ONLY alert driver within 20.0 km
+    // 1. Local Adda distance check: ONLY alert driver within localAddaDistanceKm
     if (isLocalAdda) {
       if (driverLat != 0.0 &&
           driverLng != 0.0 &&
           booking.pickupLat != 0.0 &&
           booking.pickupLng != 0.0) {
-        if (dist > 20.0) {
+        if (dist > AppConstants.localAddaDistanceKm) {
           return false;
         }
       }
@@ -564,13 +813,13 @@ class RideRequestViewModel extends ChangeNotifier {
     // 2. Outstation booking checks:
     // Requirements:
     // - driver outstation_booking must be true
-    // - driver within 40.0 km from pickup location
+    // - driver within outstationDistanceKm from pickup location
     if (isOutstation) {
       if (!isOutstationBookingEnabled) {
         return false;
       }
 
-      const outstationDistanceThresholdKm = 40.0;
+      final outstationDistanceThresholdKm = AppConstants.outstationDistanceKm;
       if (driverLat != 0.0 &&
           driverLng != 0.0 &&
           booking.pickupLat != 0.0 &&
@@ -583,10 +832,12 @@ class RideRequestViewModel extends ChangeNotifier {
     }
 
     // 3. Far Driver distance check (for other standard services):
-    // - if far_driver is null or false: within 3.0 km (like local adda)
-    // - if far_driver is true: distance increases to 10.0 km
+    // - if far_driver is null or false: within initialStandardDistanceKm (default 3.0 km)
+    // - if far_driver is true: distance increases to farDriverDistanceKm (default 10.0 km)
     final isFarDriver = booking.farDriver == true;
-    final distanceThresholdKm = isFarDriver ? 10.0 : 3.0;
+    final distanceThresholdKm = isFarDriver
+        ? AppConstants.farDriverDistanceKm
+        : AppConstants.initialStandardDistanceKm;
 
     if (driverLat != 0.0 &&
         driverLng != 0.0 &&

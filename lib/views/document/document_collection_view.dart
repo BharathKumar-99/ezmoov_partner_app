@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -31,7 +32,7 @@ class DocumentCollectionView extends StatelessWidget {
         vehicleType.contains('rickshaw') ||
         vehicleType.contains('auto') ||
         vehicleCategory == '3W';
-    final totalDocs = isThreeWheeler ? 9 : 13;
+    final totalDocs = isThreeWheeler ? 8 : 12;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -40,7 +41,16 @@ class DocumentCollectionView extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/vehicle-details', extra: {'driverId': driverId});
+            }
+          },
+        ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 12),
@@ -116,27 +126,17 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.dlBack, source),
                   ),
 
-                  // 5. Vehicle RC (Front)
+                  // 5. Vehicle RC
                   DocumentUploadCard(
-                    title: l10n.vehicleRcFront,
-                    buttonText: l10n.uploadVehicleRcFront,
+                    title: l10n.vehicleRc,
+                    buttonText: l10n.uploadVehicleRc,
                     iconData: Icons.directions_car_rounded,
                     imagePath: vm.vehicleRcPath,
                     onImageSelected: (source) =>
                         vm.pickDocument(DocumentType.vehicleRc, source),
                   ),
 
-                  // 6. Vehicle RC (Back)
-                  DocumentUploadCard(
-                    title: l10n.vehicleRcBack,
-                    buttonText: l10n.uploadVehicleRcBack,
-                    iconData: Icons.directions_car_outlined,
-                    imagePath: vm.rcBackPath,
-                    onImageSelected: (source) =>
-                        vm.pickDocument(DocumentType.rcBack, source),
-                  ),
-
-                  // 7. PAN Card
+                  // 6. PAN Card
                   DocumentUploadCard(
                     title: l10n.panCard,
                     buttonText: l10n.uploadPanCard,
@@ -146,7 +146,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.panCard, source),
                   ),
 
-                  // 8. Vehicle Insurance
+                  // 7. Vehicle Insurance
                   DocumentUploadCard(
                     title: l10n.vehicleInsurance,
                     buttonText: l10n.uploadVehicleInsurance,
@@ -156,7 +156,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.insurance, source),
                   ),
 
-                  // 9. PUC Certificate
+                  // 8. PUC Certificate
                   DocumentUploadCard(
                     title: l10n.pucCertificate,
                     buttonText: l10n.uploadPucCertificate,
@@ -166,7 +166,7 @@ class DocumentCollectionView extends StatelessWidget {
                         vm.pickDocument(DocumentType.puc, source),
                   ),
 
-                  // 10. Vehicle Permit
+                  // 9. Vehicle Permit
                   if (!isThreeWheeler)
                     DocumentUploadCard(
                       title: l10n.vehiclePermit,
@@ -177,7 +177,7 @@ class DocumentCollectionView extends StatelessWidget {
                           vm.pickDocument(DocumentType.permit, source),
                     ),
 
-                  // 11. Fitness Certificate
+                  // 10. Fitness Certificate
                   if (!isThreeWheeler)
                     DocumentUploadCard(
                       title: l10n.fitnessCertificate,
@@ -188,7 +188,7 @@ class DocumentCollectionView extends StatelessWidget {
                           vm.pickDocument(DocumentType.fitness, source),
                     ),
 
-                  // 12. Police Clearance Certificate
+                  // 11. Police Clearance Certificate
                   if (!isThreeWheeler)
                     DocumentUploadCard(
                       title: l10n.policeClearanceCertificate,
@@ -199,7 +199,7 @@ class DocumentCollectionView extends StatelessWidget {
                           vm.pickDocument(DocumentType.policeClearance, source),
                     ),
 
-                  // 13. Selfie with Vehicle
+                  // 12. Selfie with Vehicle
                   if (!isThreeWheeler)
                     DocumentUploadCard(
                       title: l10n.selfieWithVehicle,

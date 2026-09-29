@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/services/in_app_update_service.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/gradient_button.dart';
 import '../../widgets/language_selector_button.dart';
 import '../../l10n/generated/app_localizations.dart';
 
-class AppUpdateView extends StatelessWidget {
+class AppUpdateView extends StatefulWidget {
   final bool isForced;
 
   const AppUpdateView({
@@ -17,36 +17,32 @@ class AppUpdateView extends StatelessWidget {
     this.isForced = true,
   });
 
-  Future<void> _openStoreUrl(BuildContext context, String url) async {
-    final targetUrl = url.isNotEmpty
-        ? url
-        : 'https://play.google.com/store/apps/details?id=com.ezmoov.partner';
+  @override
+  State<AppUpdateView> createState() => _AppUpdateViewState();
+}
 
-    try {
-      final uri = Uri.parse(targetUrl);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                  'Could not open store link. Please search for EZMoov Partner in Google Play.'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Error launching update URL: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error opening link: $e'),
-            backgroundColor: AppColors.error,
-          ),
+class _AppUpdateViewState extends State<AppUpdateView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        InAppUpdateService.instance.checkForUpdateAndPerform(
+          forceImmediate: true,
+          context: context,
         );
       }
+    });
+  }
+
+  Future<void> _handleUpdateAction(String url) async {
+    final success = await InAppUpdateService.instance.checkForUpdateAndPerform(
+      forceImmediate: true,
+      context: mounted ? context : null,
+    );
+
+    if (!success && mounted) {
+      await InAppUpdateService.instance.openPlayStore(context, url);
     }
   }
 
@@ -57,7 +53,7 @@ class AppUpdateView extends StatelessWidget {
     return Consumer<ProfileViewModel>(
       builder: (context, vm, child) {
         final config = vm.appConfig;
-        final isMandatory = config.forceUpdate || isForced;
+        final isMandatory = config.forceUpdate || widget.isForced;
         final title = config.updateTitle.isNotEmpty &&
                 config.updateTitle != 'Update Available'
             ? config.updateTitle
@@ -299,7 +295,7 @@ class AppUpdateView extends StatelessWidget {
                         text: l10n.updateNow,
                         icon: Icons.system_update_alt_rounded,
                         onPressed: () =>
-                            _openStoreUrl(context, config.updateUrl),
+                            _handleUpdateAction(config.updateUrl),
                       ),
                     ),
 

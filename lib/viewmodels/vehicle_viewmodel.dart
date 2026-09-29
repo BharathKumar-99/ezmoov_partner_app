@@ -10,7 +10,6 @@ import 'profile_viewmodel.dart';
 class VehicleViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
 
-  final TextEditingController vehicleNumberController = TextEditingController();
   final TextEditingController rcNumberController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController ownerNameController = TextEditingController();
@@ -39,10 +38,10 @@ class VehicleViewModel extends ChangeNotifier {
 
   final List<String> cities = ['Hyderabad'];
   final List<String> bodyDetailOptions = [
-    '7 feet (750 Kg)',
-    '8 feet (1.2 Ton)',
-    '9 feet (1.7 Ton)',
-    '10 feet (2 Tons)',
+    '4 Wheeler (750 Kgs / 7ft)',
+    '8 Ft Vehicle (1200 Kgs / 8ft)',
+    '9 Ft Vehicle (1700 Kgs / 9ft)',
+    '10 Ft Vehicle (2000 Kgs / 10ft)',
   ];
   final List<String> bodyTypes = ['Open', 'Closed'];
   final List<String> fuelTypes = ['Petrol', 'CNG', 'EV', 'Diesel'];
@@ -122,16 +121,21 @@ class VehicleViewModel extends ChangeNotifier {
             _vehicleTypes.isNotEmpty ? _vehicleTypes.first : null;
       }
     } else if (_selectedCategory == 'Truck') {
-      String targetId = '5'; // default 8ft
-      if (_selectedBodyDetail.contains('Tata Ace') ||
-          _selectedBodyDetail.contains('750')) {
+      String targetId = '5'; // default 8 Ft Vehicle
+      final detail = _selectedBodyDetail.toLowerCase();
+      if (detail.contains('4 wheeler') ||
+          detail.contains('750') ||
+          detail.contains('7 feet') ||
+          detail.contains('7ft') ||
+          detail.contains('tata ace') ||
+          detail.contains('ace')) {
         targetId = '4'; // 4 Wheeler (750 Kgs)
-      } else if (_selectedBodyDetail.contains('9')) {
-        targetId = '6'; // 9 Ft Vehicle
-      } else if (_selectedBodyDetail.contains('10')) {
-        targetId = '7'; // 10 Ft Vehicle
+      } else if (detail.contains('9')) {
+        targetId = '6'; // 9 Ft Vehicle (1700 Kgs)
+      } else if (detail.contains('10') || detail.contains('2000') || detail.contains('2 ton')) {
+        targetId = '7'; // 10 Ft Vehicle (2000 Kgs)
       } else {
-        targetId = '5'; // 8 Ft Vehicle
+        targetId = '5'; // 8 Ft Vehicle (1200 Kgs)
       }
       try {
         _selectedVehicleType = _vehicleTypes.firstWhere(
@@ -171,7 +175,6 @@ class VehicleViewModel extends ChangeNotifier {
 
   Future<void> submitVehicleDetails(
       BuildContext context, String driverId) async {
-    final vehicleNumber = vehicleNumberController.text.trim();
     final rcNumber = rcNumberController.text.trim();
     final address = addressController.text.trim();
     final ownerName = ownerNameController.text.trim();
@@ -185,27 +188,9 @@ class VehicleViewModel extends ChangeNotifier {
       return;
     }
 
-    if (vehicleNumber.isEmpty) {
-      if (context.mounted) {
-        _showSnackBar(context, 'Please enter vehicle registration number');
-      }
-      return;
-    }
-
     if (ownerName.isEmpty) {
       if (context.mounted) {
         _showSnackBar(context, 'Please enter vehicle owner name');
-      }
-      return;
-    }
-
-    final is3W = _selectedCategory == '3W' ||
-        (_selectedVehicleType?.name.toLowerCase().contains('3w') ?? false) ||
-        (_selectedVehicleType?.name.toLowerCase().contains('3 wheeler') ?? false);
-
-    if (!is3W && rcNumber.isEmpty) {
-      if (context.mounted) {
-        _showSnackBar(context, 'Please enter TC / RC permit number');
       }
       return;
     }
@@ -229,7 +214,7 @@ class VehicleViewModel extends ChangeNotifier {
 
       final vehicle = VehicleModel(
         driverId: driverId,
-        vehicleNumber: vehicleNumber,
+        vehicleNumber: rcNumber,
         rcNumber: rcNumber,
         rcPicUrl: rcPicUrl,
         vehicleTypeId: _selectedVehicleType?.id,
@@ -276,7 +261,6 @@ class VehicleViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    vehicleNumberController.dispose();
     rcNumberController.dispose();
     addressController.dispose();
     ownerNameController.dispose();

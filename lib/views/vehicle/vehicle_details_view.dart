@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
@@ -190,7 +191,16 @@ class VehicleDetailsView extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(l10n.vehicleDetails),
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/signup');
+            }
+          },
+        ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 8),
@@ -235,30 +245,12 @@ class VehicleDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 18),
 
-                        // 2. Vehicle Registration Number
-                        CustomTextField(
-                          controller: vm.vehicleNumberController,
-                          label: l10n.vehicleRegistration,
-                          hint: 'TS10FD8547',
-                          prefixIcon: Icons.directions_car_filled_rounded,
-                        ),
-                        const SizedBox(height: 18),
-
-                        // 3. Vehicle Owner Name (Mandatory)
+                        // 2. Vehicle Owner Name (Mandatory)
                         CustomTextField(
                           controller: vm.ownerNameController,
                           label: l10n.vehicleOwnerName,
                           hint: l10n.vehicleOwnerHint,
                           prefixIcon: Icons.person_outline_rounded,
-                        ),
-                        const SizedBox(height: 18),
-
-                        // 4. TC / RC Permit Number
-                        CustomTextField(
-                          controller: vm.rcNumberController,
-                          label: l10n.tcRcPermitNumber,
-                          hint: 'TC9876543210',
-                          prefixIcon: Icons.badge_outlined,
                         ),
                         const SizedBox(height: 18),
 
@@ -294,7 +286,8 @@ class VehicleDetailsView extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         l10n.vehicleRcPhoto,
@@ -343,7 +336,8 @@ class VehicleDetailsView extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(

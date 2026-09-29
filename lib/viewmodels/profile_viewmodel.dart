@@ -450,21 +450,21 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   double _getDailyFeeForVehicleName(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('2') || lower.contains('two') || lower.contains('bike')) {
-      return 100.0;
-    } else if (lower.contains('mini 3w') || lower.contains('3 wheel') || lower.contains('3w') || lower.contains('rickshaw')) {
+    final lower = name.toLowerCase().trim();
+    if (lower == '1' || lower.contains('2 wheeler') || lower.contains('2w') || lower.contains('two') || lower.contains('bike')) {
+      return 30.0;
+    } else if (lower == '2' || lower.contains('mini 3w') || lower.contains('3 wheel') || lower.contains('3w') || lower.contains('rickshaw') || lower.contains('electric_rickshaw')) {
       return 175.0;
-    } else if (lower.contains('7ft') || lower.contains('7 feet') || lower.contains('tata ace') || lower.contains('ace')) {
+    } else if (lower == '4' || lower.contains('4 wheeler') || lower.contains('4w') || lower.contains('7ft') || lower.contains('7 feet') || lower.contains('tata ace') || lower.contains('ace') || lower.contains('750')) {
       return 200.0;
-    } else if (lower.contains('8ft') || lower.contains('8 feet') || lower.contains('pickup 8')) {
+    } else if (lower == '5' || lower.contains('8 ft') || lower.contains('8ft') || lower.contains('8 feet') || lower.contains('pickup 8') || lower.contains('1200')) {
       return 250.0;
-    } else if (lower.contains('9') || lower.contains('10') || lower.contains('9-10ft')) {
+    } else if (lower == '6' || lower == '7' || lower.contains('9') || lower.contains('10') || lower.contains('9-10ft') || lower.contains('1700') || lower.contains('2000')) {
       return 270.0;
     } else if (lower.contains('14') || lower.contains('16') || lower.contains('17') || lower.contains('container')) {
       return 300.0;
     }
-    return 100.0;
+    return 175.0;
   }
 
   /// Toggle online status in Supabase and handle 30s location timer after checking location permissions & wallet daily fee block

@@ -14,6 +14,7 @@ import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/background_service_manager.dart';
 import 'core/services/fcm_service.dart';
+import 'core/services/in_app_update_service.dart';
 import 'viewmodels/auth_viewmodel.dart';
 
 import 'viewmodels/vehicle_viewmodel.dart';
@@ -105,14 +106,21 @@ Future<void> main() async {
 
 /// Asynchronously initialize Firebase, notifications, background tasks and refresh profile & config from Supabase
 Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) async {
-  // 0. Fetch latest app config matching version dynamically
+  // 0. Auto-check for Play Store in-app updates
+  try {
+    unawaited(InAppUpdateService.instance.checkForUpdateAndPerform());
+  } catch (e) {
+    debugPrint('Background InAppUpdate check notice: $e');
+  }
+
+  // 1. Fetch latest app config matching version dynamically
   try {
     await profileViewModel.fetchAppConfig();
   } catch (e) {
     debugPrint('Background app config fetch notice: $e');
   }
 
-  // 1. Initialize Firebase & FCM
+  // 2. Initialize Firebase & FCM
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -122,7 +130,7 @@ Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) as
     debugPrint('Firebase initialization notice: $e');
   }
 
-  // 2. Initialize Notification and Background Services
+  // 3. Initialize Notification and Background Services
   try {
     await NotificationService.instance.initialize();
     await BackgroundServiceManager.instance.initialize();
@@ -130,7 +138,7 @@ Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) as
     debugPrint('Background services initialization notice: $e');
   }
 
-  // 3. Refresh driver profile from network in background
+  // 4. Refresh driver profile from network in background
   try {
     final currentAuthUser = Supabase.instance.client.auth.currentUser;
     final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
@@ -149,16 +157,43 @@ Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) as
   }
 }
 
-class EzMoovPartnerApp extends StatelessWidget {
+class EzMoovPartnerApp extends StatefulWidget {
   final ProfileViewModel profileViewModel;
 
   const EzMoovPartnerApp({super.key, required this.profileViewModel});
 
   @override
+  State<EzMoovPartnerApp> createState() => _EzMoovPartnerAppState();
+}
+
+class _EzMoovPartnerAppState extends State<EzMoovPartnerApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      InAppUpdateService.instance.checkForUpdateAndPerform();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      InAppUpdateService.instance.checkForUpdateAndPerform();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: profileViewModel),
+        ChangeNotifierProvider.value(value: widget.profileViewModel),
         ChangeNotifierProvider(create: (_) => LocaleViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => VehicleViewModel()),
@@ -176,7 +211,7 @@ class EzMoovPartnerApp extends StatelessWidget {
             title: 'EZMoov Partner',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
-            routerConfig: AppRouter.createRouter(profileViewModel),
+            routerConfig: AppRouter.createRouter(widget.profileViewModel),
             locale: localeVM.locale,
             builder: (context, routerChild) {
               return MediaQuery(

@@ -8,9 +8,8 @@ import '../../../viewmodels/home_viewmodel.dart';
 import '../../../viewmodels/wallet_viewmodel.dart';
 import '../../../viewmodels/ride_request_viewmodel.dart';
 import '../../../viewmodels/performance_viewmodel.dart';
-import '../../../models/driver_model.dart';
-import '../widgets/registration_fee_dialog.dart';
 import '../widgets/demo_video_player.dart';
+import '../../../core/services/in_app_update_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class HomeTab extends StatefulWidget {
@@ -21,8 +20,6 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  bool _isRegistrationDialogShowing = false;
-
   @override
   void initState() {
     super.initState();
@@ -32,36 +29,26 @@ class _HomeTabState extends State<HomeTab> {
       if (profileVm.driver?.id != null && mounted) {
         context.read<HomeViewModel>().fetchEarnings(profileVm.driver!.id!);
         context.read<WalletViewModel>().fetchWalletData(profileVm.driver!.id!);
-        context.read<PerformanceViewModel>().fetchTodayLoginTime(profileVm.driver!.id!);
-        context.read<PerformanceViewModel>().fetchLoginDaysThisMonth(profileVm.driver!.id!);
-
-        // Check registration fee status on home load
-        _checkRegistrationFeeStatus(profileVm.driver);
+        context
+            .read<PerformanceViewModel>()
+            .fetchTodayLoginTime(profileVm.driver!.id!);
+        context
+            .read<PerformanceViewModel>()
+            .fetchLoginDaysThisMonth(profileVm.driver!.id!);
+        InAppUpdateService.instance.checkForUpdateAndPerform();
       }
     });
   }
 
-  void _checkRegistrationFeeStatus(DriverModel? driver) {
-    if (driver == null) return;
-    final profileVm = context.read<ProfileViewModel>();
-    final feeAmount = profileVm.appConfig.registrationFee;
-    if (feeAmount <= 0) return;
-
-    if (!driver.registrationFeePaid && !_isRegistrationDialogShowing && mounted) {
-      _isRegistrationDialogShowing = true;
-      showRegistrationFeeDialog(context).then((_) {
-        _isRegistrationDialogShowing = false;
-      });
-    }
-  }
-
-  void _showPassRequiredDialog(BuildContext context, String driverId, double fee) {
+  void _showPassRequiredDialog(
+      BuildContext context, String driverId, double fee) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogCtx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
               Container(
@@ -70,37 +57,44 @@ class _HomeTabState extends State<HomeTab> {
                   color: Colors.amber.shade100,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.warning_amber_rounded, color: Colors.amber.shade900, size: 24),
+                child: Icon(Icons.warning_amber_rounded,
+                    color: Colors.amber.shade900, size: 24),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   l10n.dailyPassRequiredTitle,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
           content: Text(
             l10n.dailyPassRequiredDesc(fee.toStringAsFixed(0)),
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textMuted)),
+              child: Text(l10n.cancel,
+                  style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pop(dialogCtx);
                 if (driverId.isNotEmpty) {
-                  context.read<WalletViewModel>().payDailyFee(driverId: driverId, context: context);
+                  context
+                      .read<WalletViewModel>()
+                      .payDailyFee(driverId: driverId, context: context);
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF09A234),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
               icon: const Icon(Icons.flash_on_rounded, size: 16),
               label: Text(l10n.payDailyFee(fee.toStringAsFixed(0))),
@@ -111,13 +105,15 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  void _showOutstationPassRequiredDialog(BuildContext context, String driverId, double fee) {
+  void _showOutstationPassRequiredDialog(
+      BuildContext context, String driverId, double fee) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogCtx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
               Container(
@@ -126,44 +122,52 @@ class _HomeTabState extends State<HomeTab> {
                   color: Color(0xFFEDE9FE),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.alt_route_rounded, color: Color(0xFF7C3AED), size: 24),
+                child: const Icon(Icons.alt_route_rounded,
+                    color: Color(0xFF7C3AED), size: 24),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   l10n.outstationPassRequired,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
           content: Text(
             l10n.outstationPassRequiredDesc,
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textMuted)),
+              child: Text(l10n.cancel,
+                  style: const TextStyle(color: AppColors.textMuted)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(dialogCtx);
                 context.push('/wallet?driverId=$driverId');
               },
-              child: Text(l10n.viewWallet, style: const TextStyle(color: Color(0xFF7C3AED), fontWeight: FontWeight.bold)),
+              child: Text(l10n.viewWallet,
+                  style: const TextStyle(
+                      color: Color(0xFF7C3AED), fontWeight: FontWeight.bold)),
             ),
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pop(dialogCtx);
                 if (driverId.isNotEmpty) {
-                  context.read<WalletViewModel>().payOutstationMonthlyFee(driverId: driverId, context: context);
+                  context.read<WalletViewModel>().payOutstationMonthlyFee(
+                      driverId: driverId, context: context);
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
               icon: const Icon(Icons.flash_on_rounded, size: 16),
               label: Text(l10n.payMonthlyFeeWallet(fee.toStringAsFixed(0))),
@@ -183,17 +187,12 @@ class _HomeTabState extends State<HomeTab> {
         final driver = vm.driver;
         final allTrips = vm.trips;
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && driver != null && !driver.registrationFeePaid) {
-            _checkRegistrationFeeStatus(driver);
-          }
-        });
-
         final now = DateTime.now();
         final todayStart = DateTime(now.year, now.month, now.day);
 
         // Filter completed trips
-        final completedTrips = allTrips.where((t) => t.status == 'completed').toList();
+        final completedTrips =
+            allTrips.where((t) => t.status == 'completed').toList();
 
         // Completed trips today
         final todayCompletedTrips = completedTrips.where((t) {
@@ -213,16 +212,19 @@ class _HomeTabState extends State<HomeTab> {
                 (sum, booking) => sum + booking.fare,
               );
 
-
         // Driver Rating: driver.rating or average from ratings list
         double ratingValue = driver?.rating ?? 5.0;
-        if ((driver?.rating == null || driver!.rating == 0.0) && vm.ratings.isNotEmpty) {
-          final sum = vm.ratings.fold<double>(0.0, (prev, r) => prev + r.rating);
+        if ((driver?.rating == null || driver!.rating == 0.0) &&
+            vm.ratings.isNotEmpty) {
+          final sum =
+              vm.ratings.fold<double>(0.0, (prev, r) => prev + r.rating);
           ratingValue = sum / vm.ratings.length;
         }
 
         // Trips list to display in recent trips section (prefer today, fallback to overall completed)
-        final displayTrips = todayCompletedTrips.isNotEmpty ? todayCompletedTrips : completedTrips;
+        final displayTrips = todayCompletedTrips.isNotEmpty
+            ? todayCompletedTrips
+            : completedTrips;
 
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -242,14 +244,17 @@ class _HomeTabState extends State<HomeTab> {
                           '${l10n.welcomeBack} 👋',
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.textSecondary.withValues(alpha: 0.8),
+                            color:
+                                AppColors.textSecondary.withValues(alpha: 0.8),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          driver?.name.isNotEmpty == true ? driver!.name : l10n.partnerDriver,
+                          driver?.name.isNotEmpty == true
+                              ? driver!.name
+                              : l10n.partnerDriver,
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -265,10 +270,12 @@ class _HomeTabState extends State<HomeTab> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                    backgroundImage: (driver?.profilePicUrl != null && driver!.profilePicUrl!.isNotEmpty)
+                    backgroundImage: (driver?.profilePicUrl != null &&
+                            driver!.profilePicUrl!.isNotEmpty)
                         ? NetworkImage(driver.profilePicUrl!)
                         : null,
-                    child: (driver?.profilePicUrl == null || driver!.profilePicUrl!.isEmpty)
+                    child: (driver?.profilePicUrl == null ||
+                            driver!.profilePicUrl!.isEmpty)
                         ? const Icon(Icons.person, color: AppColors.primary)
                         : null,
                   ),
@@ -288,7 +295,8 @@ class _HomeTabState extends State<HomeTab> {
                       child: Stack(
                         children: [
                           const Center(
-                            child: DemoVideoPlayer(assetPath: 'assets/videos/demo_video.mp4'),
+                            child: DemoVideoPlayer(
+                                assetPath: 'assets/videos/demo_video.mp4'),
                           ),
                           Positioned(
                             top: MediaQuery.of(context).padding.top + 16,
@@ -299,7 +307,8 @@ class _HomeTabState extends State<HomeTab> {
                                 shape: BoxShape.circle,
                               ),
                               child: IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white, size: 28),
                                 onPressed: () => Navigator.pop(context),
                               ),
                             ),
@@ -311,11 +320,13 @@ class _HomeTabState extends State<HomeTab> {
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                    border:
+                        Border.all(color: AppColors.primary.withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
@@ -325,7 +336,8 @@ class _HomeTabState extends State<HomeTab> {
                           color: AppColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+                        child: const Icon(Icons.play_arrow_rounded,
+                            color: Colors.white, size: 24),
                       ),
                       const SizedBox(width: 16),
                       const Expanded(
@@ -361,7 +373,8 @@ class _HomeTabState extends State<HomeTab> {
               // ONGOING ACTIVE TRIP RESUME BANNER CARD
               Builder(
                 builder: (context) {
-                  final activeTrip = context.watch<RideRequestViewModel>().activeDriverTrip;
+                  final activeTrip =
+                      context.watch<RideRequestViewModel>().activeDriverTrip;
                   if (activeTrip == null) return const SizedBox.shrink();
 
                   return Container(
@@ -459,17 +472,23 @@ class _HomeTabState extends State<HomeTab> {
                 builder: (context, walletVm, child) {
                   if (!walletVm.isBlocked) return const SizedBox.shrink();
 
-                  final isPassRequired = walletVm.blockReason == 'daily_pass_required';
-                  if (isPassRequired && vm.isFreeDriverLogin) return const SizedBox.shrink();
+                  final isPassRequired =
+                      walletVm.blockReason == 'daily_pass_required';
+                  if (isPassRequired && vm.isFreeDriverLogin)
+                    return const SizedBox.shrink();
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 20),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isPassRequired ? const Color(0xFFFFFBEB) : const Color(0xFFFEF2F2),
+                      color: isPassRequired
+                          ? const Color(0xFFFFFBEB)
+                          : const Color(0xFFFEF2F2),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isPassRequired ? Colors.amber.shade400 : Colors.red.shade300,
+                        color: isPassRequired
+                            ? Colors.amber.shade400
+                            : Colors.red.shade300,
                         width: 1.5,
                       ),
                     ),
@@ -479,8 +498,12 @@ class _HomeTabState extends State<HomeTab> {
                         Row(
                           children: [
                             Icon(
-                              isPassRequired ? Icons.flash_on_rounded : Icons.block_rounded,
-                              color: isPassRequired ? Colors.amber.shade900 : Colors.red.shade700,
+                              isPassRequired
+                                  ? Icons.flash_on_rounded
+                                  : Icons.block_rounded,
+                              color: isPassRequired
+                                  ? Colors.amber.shade900
+                                  : Colors.red.shade700,
                               size: 22,
                             ),
                             const SizedBox(width: 8),
@@ -492,7 +515,9 @@ class _HomeTabState extends State<HomeTab> {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: isPassRequired ? Colors.amber.shade900 : Colors.red.shade900,
+                                  color: isPassRequired
+                                      ? Colors.amber.shade900
+                                      : Colors.red.shade900,
                                 ),
                               ),
                             ),
@@ -501,11 +526,14 @@ class _HomeTabState extends State<HomeTab> {
                         const SizedBox(height: 6),
                         Text(
                           isPassRequired
-                              ? l10n.dailyPassRequiredDesc(walletVm.vehicleDailyFee.toStringAsFixed(0))
+                              ? l10n.dailyPassRequiredDesc(
+                                  walletVm.vehicleDailyFee.toStringAsFixed(0))
                               : l10n.ordersPausedDesc,
                           style: TextStyle(
                             fontSize: 12,
-                            color: isPassRequired ? Colors.amber.shade900 : Colors.red.shade800,
+                            color: isPassRequired
+                                ? Colors.amber.shade900
+                                : Colors.red.shade800,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -517,14 +545,19 @@ class _HomeTabState extends State<HomeTab> {
                                     ? null
                                     : () {
                                         if (driver?.id != null) {
-                                          walletVm.payDailyFee(driverId: driver!.id!, context: context);
+                                          walletVm.payDailyFee(
+                                              driverId: driver!.id!,
+                                              context: context);
                                         }
                                       })
                                 : () {
-                                    context.push('/wallet?driverId=${driver?.id ?? ''}');
+                                    context.push(
+                                        '/wallet?driverId=${driver?.id ?? ''}');
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isPassRequired ? const Color(0xFF09A234) : Colors.red.shade700,
+                              backgroundColor: isPassRequired
+                                  ? const Color(0xFF09A234)
+                                  : Colors.red.shade700,
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -537,17 +570,24 @@ class _HomeTabState extends State<HomeTab> {
                                     ? const SizedBox(
                                         width: 16,
                                         height: 16,
-                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                        child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2),
                                       )
-                                    : const Icon(Icons.flash_on_rounded, size: 18))
-                                : const Icon(Icons.info_outline_rounded, size: 18),
+                                    : const Icon(Icons.flash_on_rounded,
+                                        size: 18))
+                                : const Icon(Icons.info_outline_rounded,
+                                    size: 18),
                             label: Text(
                               isPassRequired
                                   ? (walletVm.isPayingFee
                                       ? l10n.activatingPass
-                                      : l10n.payDailyFee(walletVm.vehicleDailyFee.toStringAsFixed(0)))
+                                      : l10n.payDailyFee(walletVm
+                                          .vehicleDailyFee
+                                          .toStringAsFixed(0)))
                                   : l10n.viewWalletDetails,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ),
                         ),
@@ -561,7 +601,8 @@ class _HomeTabState extends State<HomeTab> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: vm.isOnline ? const Color(0xFFDCFCE7) : AppColors.surface,
+                  color:
+                      vm.isOnline ? const Color(0xFFDCFCE7) : AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: vm.isOnline ? AppColors.primary : AppColors.border,
@@ -588,10 +629,12 @@ class _HomeTabState extends State<HomeTab> {
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color: vm.isTogglingOnline
-                                      ? AppColors.primary.withValues(alpha: 0.15)
+                                      ? AppColors.primary
+                                          .withValues(alpha: 0.15)
                                       : (vm.isOnline
                                           ? AppColors.primary
-                                          : AppColors.textMuted.withValues(alpha: 0.2)),
+                                          : AppColors.textMuted
+                                              .withValues(alpha: 0.2)),
                                   shape: BoxShape.circle,
                                 ),
                                 child: vm.isTogglingOnline
@@ -627,9 +670,10 @@ class _HomeTabState extends State<HomeTab> {
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
-                                        color: vm.isTogglingOnline || vm.isOnline
-                                            ? AppColors.primaryDark
-                                            : AppColors.textPrimary,
+                                        color:
+                                            vm.isTogglingOnline || vm.isOnline
+                                                ? AppColors.primaryDark
+                                                : AppColors.textPrimary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -640,7 +684,8 @@ class _HomeTabState extends State<HomeTab> {
                                           ? l10n.updatingOnlineStatus
                                           : (vm.isOnline
                                               ? l10n.readyToReceiveRideRequests
-                                              : l10n.switchOnlineToStartEarning),
+                                              : l10n
+                                                  .switchOnlineToStartEarning),
                                       style: const TextStyle(
                                         fontSize: 12,
                                         color: AppColors.textSecondary,
@@ -673,7 +718,9 @@ class _HomeTabState extends State<HomeTab> {
                                 onChanged: (val) {
                                   final walletVm =
                                       context.read<WalletViewModel>();
-                                  if (val && !walletVm.isPassActive && !vm.isFreeDriverLogin) {
+                                  if (val &&
+                                      !walletVm.isPassActive &&
+                                      !vm.isFreeDriverLogin) {
                                     _showPassRequiredDialog(
                                         context,
                                         driver?.id ?? '',
@@ -691,7 +738,8 @@ class _HomeTabState extends State<HomeTab> {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 14, color: AppColors.primary),
+                          const Icon(Icons.location_on,
+                              size: 14, color: AppColors.primary),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -749,10 +797,12 @@ class _HomeTabState extends State<HomeTab> {
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color: vm.isTogglingOutstation
-                                      ? const Color(0xFFD97706).withValues(alpha: 0.15)
+                                      ? const Color(0xFFD97706)
+                                          .withValues(alpha: 0.15)
                                       : (vm.isOutstationBookingEnabled
                                           ? const Color(0xFFD97706)
-                                          : AppColors.textMuted.withValues(alpha: 0.2)),
+                                          : AppColors.textMuted
+                                              .withValues(alpha: 0.2)),
                                   shape: BoxShape.circle,
                                 ),
                                 child: vm.isTogglingOutstation
@@ -785,9 +835,10 @@ class _HomeTabState extends State<HomeTab> {
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
-                                              color: vm.isOutstationBookingEnabled
-                                                  ? const Color(0xFF92400E)
-                                                  : AppColors.textPrimary,
+                                              color:
+                                                  vm.isOutstationBookingEnabled
+                                                      ? const Color(0xFF92400E)
+                                                      : AppColors.textPrimary,
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -809,9 +860,10 @@ class _HomeTabState extends State<HomeTab> {
                                             style: TextStyle(
                                               fontSize: 9,
                                               fontWeight: FontWeight.w800,
-                                              color: vm.isOutstationBookingEnabled
-                                                  ? Colors.black87
-                                                  : AppColors.textSecondary,
+                                              color:
+                                                  vm.isOutstationBookingEnabled
+                                                      ? Colors.black87
+                                                      : AppColors.textSecondary,
                                               letterSpacing: 0.3,
                                             ),
                                           ),
@@ -909,7 +961,8 @@ class _HomeTabState extends State<HomeTab> {
 
               Consumer<PerformanceViewModel>(
                 builder: (context, perfVm, child) {
-                  final todayLoginHoursStr = perfVm.formattedTodayLoginHoursShort;
+                  final todayLoginHoursStr =
+                      perfVm.formattedTodayLoginHoursShort;
                   final now = DateTime.now();
 
                   // Compute week range: Monday to Sunday of current week
@@ -1017,7 +1070,8 @@ class _HomeTabState extends State<HomeTab> {
 
                           // ── Two stat boxes ──
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 6),
                             child: Row(
                               children: [
                                 // Login Hours box
@@ -1168,7 +1222,8 @@ class _HomeTabState extends State<HomeTab> {
                 builder: (context, performanceVm, child) {
                   final daysLogged = performanceVm.loginDaysThisMonth;
                   const daysNeeded = 24;
-                  final remaining = (daysNeeded - daysLogged).clamp(0, daysNeeded);
+                  final remaining =
+                      (daysNeeded - daysLogged).clamp(0, daysNeeded);
                   final progress = (daysLogged / daysNeeded).clamp(0.0, 1.0);
 
                   return InkWell(
@@ -1177,7 +1232,8 @@ class _HomeTabState extends State<HomeTab> {
                     },
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -1210,7 +1266,8 @@ class _HomeTabState extends State<HomeTab> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Expanded(
                                       child: Text(
@@ -1242,13 +1299,18 @@ class _HomeTabState extends State<HomeTab> {
                                   child: LinearProgressIndicator(
                                     value: progress,
                                     minHeight: 6,
-                                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                    backgroundColor: AppColors.primary
+                                        .withValues(alpha: 0.2),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                            AppColors.primary),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  remaining > 0 ? 'Log in for $remaining more days to unlock!' : 'Unlocked! Keep it up!',
+                                  remaining > 0
+                                      ? 'Log in for $remaining more days to unlock!'
+                                      : 'Unlocked! Keep it up!',
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
@@ -1273,7 +1335,9 @@ class _HomeTabState extends State<HomeTab> {
                 children: [
                   Expanded(
                     child: Text(
-                      todayCompletedTrips.isNotEmpty ? l10n.todaysRecentTrips : l10n.recentCompletedTrips,
+                      todayCompletedTrips.isNotEmpty
+                          ? l10n.todaysRecentTrips
+                          : l10n.recentCompletedTrips,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1285,7 +1349,8 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -1342,7 +1407,9 @@ class _HomeTabState extends State<HomeTab> {
                 )
               else
                 ...displayTrips.map((booking) {
-                  final shortId = booking.id.length > 8 ? booking.id.substring(0, 8).toUpperCase() : booking.id.toUpperCase();
+                  final shortId = booking.id.length > 8
+                      ? booking.id.substring(0, 8).toUpperCase()
+                      : booking.id.toUpperCase();
                   final formattedId = l10n.tripNumber(shortId);
                   final formattedTime = booking.createdAt != null
                       ? DateFormat('hh:mm a').format(booking.createdAt!)
@@ -1350,8 +1417,12 @@ class _HomeTabState extends State<HomeTab> {
 
                   return _TodayTripCard(
                     tripId: formattedId,
-                    pickup: booking.pickupAddress.isNotEmpty ? booking.pickupAddress : l10n.pickupLocation,
-                    drop: booking.dropAddress.isNotEmpty ? booking.dropAddress : l10n.dropoffLocation,
+                    pickup: booking.pickupAddress.isNotEmpty
+                        ? booking.pickupAddress
+                        : l10n.pickupLocation,
+                    drop: booking.dropAddress.isNotEmpty
+                        ? booking.dropAddress
+                        : l10n.dropoffLocation,
                     fare: '₹ ${booking.fare.toStringAsFixed(2)}',
                     time: formattedTime,
                     paymentType: l10n.completed,
@@ -1493,7 +1564,8 @@ class _TodayTripCard extends StatelessWidget {
                     if (hasStops) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF3C7),
                           borderRadius: BorderRadius.circular(4),
@@ -1531,7 +1603,10 @@ class _TodayTripCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   pickup,
-                  style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1551,7 +1626,10 @@ class _TodayTripCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   drop,
-                  style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1564,18 +1642,23 @@ class _TodayTripCard extends StatelessWidget {
             children: [
               Text(
                 time,
-                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                style:
+                    const TextStyle(fontSize: 11, color: AppColors.textMuted),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   paymentType,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryDark),
                 ),
               ),
             ],

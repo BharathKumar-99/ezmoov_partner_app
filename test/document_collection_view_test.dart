@@ -24,7 +24,7 @@ Widget createDocumentTestApp(Widget home) {
 
 void main() {
   group('DocumentCollectionView UI Render Tests', () {
-    testWidgets('renders all 13 document upload cards including Aadhaar Front/Back, DL Front/Back, RC Front/Back', (WidgetTester tester) async {
+    testWidgets('renders all 12 document upload cards including Aadhaar Front/Back, DL Front/Back, Vehicle RC', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1080, 4000);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -34,13 +34,12 @@ void main() {
 
       expect(find.text('Document Verification'), findsWidgets);
 
-      // Verify all 13 document titles are rendered
+      // Verify all 12 document titles are rendered
       expect(find.text('Aadhaar Card (Front)'), findsOneWidget);
       expect(find.text('Aadhaar Card (Back)'), findsOneWidget);
       expect(find.text('Driving License (Front)'), findsOneWidget);
       expect(find.text('Driving License (Back)'), findsOneWidget);
-      expect(find.text('Vehicle RC (Front)'), findsOneWidget);
-      expect(find.text('Vehicle RC (Back)'), findsOneWidget);
+      expect(find.text('Vehicle RC'), findsOneWidget);
       expect(find.text('PAN Card'), findsOneWidget);
       expect(find.text('Vehicle Insurance'), findsOneWidget);
       expect(find.text('PUC Certificate'), findsOneWidget);
@@ -49,11 +48,11 @@ void main() {
       expect(find.text('Police Clearance Certificate'), findsOneWidget);
       expect(find.text('Selfie with Vehicle'), findsOneWidget);
 
-      // Verify submit button shows 0/13 uploaded initially
-      expect(find.text('Submit Documents (0/13)'), findsOneWidget);
+      // Verify submit button shows 0/12 uploaded initially
+      expect(find.text('Submit Documents (0/12)'), findsOneWidget);
     });
 
-    testWidgets('renders 9 document upload cards for 3-wheeler vehicles', (WidgetTester tester) async {
+    testWidgets('renders 8 document upload cards for 3-wheeler vehicles', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1080, 4000);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -68,8 +67,7 @@ void main() {
       expect(find.text('Aadhaar Card (Back)'), findsOneWidget);
       expect(find.text('Driving License (Front)'), findsOneWidget);
       expect(find.text('Driving License (Back)'), findsOneWidget);
-      expect(find.text('Vehicle RC (Front)'), findsOneWidget);
-      expect(find.text('Vehicle RC (Back)'), findsOneWidget);
+      expect(find.text('Vehicle RC'), findsOneWidget);
       expect(find.text('PAN Card'), findsOneWidget);
       expect(find.text('Vehicle Insurance'), findsOneWidget);
       expect(find.text('PUC Certificate'), findsOneWidget);
@@ -80,8 +78,8 @@ void main() {
       expect(find.text('Police Clearance Certificate'), findsNothing);
       expect(find.text('Selfie with Vehicle'), findsNothing);
 
-      // Verify submit button shows 0/9 uploaded initially
-      expect(find.text('Submit Documents (0/9)'), findsOneWidget);
+      // Verify submit button shows 0/8 uploaded initially
+      expect(find.text('Submit Documents (0/8)'), findsOneWidget);
     });
   });
 }

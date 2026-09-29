@@ -16,8 +16,8 @@ class VehicleModel {
   VehicleModel({
     this.id,
     required this.driverId,
-    required this.vehicleNumber,
-    required this.rcNumber,
+    this.vehicleNumber = '',
+    this.rcNumber = '',
     required this.rcPicUrl,
     this.vehicleTypeId,
     this.vehicleTypeName,

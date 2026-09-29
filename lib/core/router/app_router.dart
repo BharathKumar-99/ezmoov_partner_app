@@ -83,19 +83,37 @@ class AppRouter {
 
         // 3. Vehicle Details Guard
         if (!driver.isVehicleAdded) {
-          if (location == '/vehicle-details') return null;
+          if (location == '/vehicle-details' ||
+              location == '/signup' ||
+              location == '/otp' ||
+              location == '/login') {
+            return null;
+          }
           return '/vehicle-details?driverId=$driverId';
         }
 
         // 4. Document Collection Guard
         if (!driver.isDocumentsUploaded) {
-          if (location == '/document-collection') return null;
+          if (location == '/document-collection' ||
+              location == '/vehicle-details' ||
+              location == '/signup' ||
+              location == '/otp' ||
+              location == '/login') {
+            return null;
+          }
           return '/document-collection?driverId=$driverId';
         }
 
         // 5. Bank Details Guard
         if (!driver.isBankDetailsAdded) {
-          if (location == '/bank-details') return null;
+          if (location == '/bank-details' ||
+              location == '/document-collection' ||
+              location == '/vehicle-details' ||
+              location == '/signup' ||
+              location == '/otp' ||
+              location == '/login') {
+            return null;
+          }
           return '/bank-details?driverId=$driverId';
         }
 

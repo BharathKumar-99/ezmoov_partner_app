@@ -12,7 +12,6 @@ enum DocumentType {
   drivingLicense,
   dlBack,
   vehicleRc,
-  rcBack,
   panCard,
   insurance,
   puc,
@@ -30,7 +29,6 @@ class DocumentViewModel extends ChangeNotifier {
   String? _drivingLicensePath;
   String? _dlBackPath;
   String? _vehicleRcPath;
-  String? _rcBackPath;
   String? _panCardPath;
   String? _insurancePath;
   String? _pucPath;
@@ -44,7 +42,6 @@ class DocumentViewModel extends ChangeNotifier {
   String? get drivingLicensePath => _drivingLicensePath;
   String? get dlBackPath => _dlBackPath;
   String? get vehicleRcPath => _vehicleRcPath;
-  String? get rcBackPath => _rcBackPath;
   String? get panCardPath => _panCardPath;
   String? get insurancePath => _insurancePath;
   String? get pucPath => _pucPath;
@@ -91,9 +88,6 @@ class DocumentViewModel extends ChangeNotifier {
           case DocumentType.vehicleRc:
             _vehicleRcPath = pickedFile.path;
             break;
-          case DocumentType.rcBack:
-            _rcBackPath = pickedFile.path;
-            break;
           case DocumentType.panCard:
             _panCardPath = pickedFile.path;
             break;
@@ -130,7 +124,6 @@ class DocumentViewModel extends ChangeNotifier {
     if (_drivingLicensePath != null) count++;
     if (_dlBackPath != null) count++;
     if (_vehicleRcPath != null) count++;
-    if (_rcBackPath != null) count++;
     if (_panCardPath != null) count++;
     if (_insurancePath != null) count++;
     if (_pucPath != null) count++;
@@ -141,7 +134,7 @@ class DocumentViewModel extends ChangeNotifier {
     return count;
   }
 
-  bool get areAllDocumentsUploaded => uploadedCount >= 13;
+  bool get areAllDocumentsUploaded => uploadedCount >= 12;
 
   Future<void> submitDocuments(BuildContext context, String driverId) async {
     if (uploadedCount < 4) {
@@ -199,15 +192,6 @@ class DocumentViewModel extends ChangeNotifier {
           bucket: 'documents',
           filePath: _vehicleRcPath!,
           fileName: 'rc_${driverId}_$timestamp.jpg',
-        );
-      }
-
-      String rcBackUrl = '';
-      if (_rcBackPath != null) {
-        rcBackUrl = await _supabaseService.uploadImage(
-          bucket: 'documents',
-          filePath: _rcBackPath!,
-          fileName: 'rc_back_${driverId}_$timestamp.jpg',
         );
       }
 
@@ -281,7 +265,6 @@ class DocumentViewModel extends ChangeNotifier {
         drivingLicenseUrl: drivingLicenseUrl,
         dlBackUrl: dlBackUrl,
         vehicleRcUrl: vehicleRcUrl,
-        rcBackUrl: rcBackUrl,
         panCardUrl: panCardUrl,
         insuranceUrl: insuranceUrl,
         pucUrl: pucUrl,

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
@@ -7,6 +8,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../viewmodels/bank_details_viewmodel.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/gradient_button.dart';
+import '../../widgets/language_selector_button.dart';
 
 class BankDetailsView extends StatelessWidget {
   final String driverId;
@@ -81,7 +83,24 @@ class BankDetailsView extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(l10n.bankAccount),
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/document-collection', extra: {'driverId': driverId});
+            }
+          },
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Center(
+              child: LanguageSelectorButton(isCompact: true),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Consumer<BankDetailsViewModel>(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/services/location_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../models/booking_model.dart';
@@ -135,10 +136,12 @@ class IncomingRideDialog extends StatelessWidget {
                     ),
                     child: Text(
                       isOutstation
-                          ? '${l10n.outstationBooking} • ${l10n.withinDistance("40 km")}'
+                          ? '${l10n.outstationBooking} • ${l10n.withinDistance("${AppConstants.outstationDistanceKm.toStringAsFixed(0)} km")}'
                           : activeBooking.farDriver == true
-                              ? l10n.within10km
-                              : l10n.within3km,
+                              ? l10n.withinDistance(
+                                  "${AppConstants.farDriverDistanceKm.toStringAsFixed(0)} km")
+                              : l10n.withinDistance(
+                                  "${AppConstants.initialStandardDistanceKm.toStringAsFixed(0)} km"),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
