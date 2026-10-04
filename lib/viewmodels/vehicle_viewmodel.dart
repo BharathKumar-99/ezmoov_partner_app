@@ -111,7 +111,21 @@ class VehicleViewModel extends ChangeNotifier {
   }
 
   void _syncSelectedVehicleType() {
-    if (_selectedCategory == '3W') {
+    if (_selectedCategory == '2W') {
+      try {
+        _selectedVehicleType = _vehicleTypes.firstWhere(
+          (v) =>
+              v.id == '1' ||
+              v.name.toLowerCase().contains('2 wheeler') ||
+              v.name.toLowerCase().contains('2w') ||
+              v.name.toLowerCase().contains('two wheeler') ||
+              v.name.toLowerCase().contains('bike'),
+        );
+      } catch (_) {
+        _selectedVehicleType =
+            _vehicleTypes.isNotEmpty ? _vehicleTypes.first : null;
+      }
+    } else if (_selectedCategory == '3W') {
       try {
         _selectedVehicleType = _vehicleTypes.firstWhere(
           (v) => v.id == '2' || v.name.toLowerCase().contains('3 wheeler'),
@@ -132,7 +146,9 @@ class VehicleViewModel extends ChangeNotifier {
         targetId = '4'; // 4 Wheeler (750 Kgs)
       } else if (detail.contains('9')) {
         targetId = '6'; // 9 Ft Vehicle (1700 Kgs)
-      } else if (detail.contains('10') || detail.contains('2000') || detail.contains('2 ton')) {
+      } else if (detail.contains('10') ||
+          detail.contains('2000') ||
+          detail.contains('2 ton')) {
         targetId = '7'; // 10 Ft Vehicle (2000 Kgs)
       } else {
         targetId = '5'; // 8 Ft Vehicle (1200 Kgs)
@@ -147,7 +163,6 @@ class VehicleViewModel extends ChangeNotifier {
       }
     }
   }
-
 
   void setLoading(bool value) {
     _isLoading = value;
@@ -220,7 +235,7 @@ class VehicleViewModel extends ChangeNotifier {
         vehicleTypeId: _selectedVehicleType?.id,
         vehicleTypeName: _selectedVehicleType?.name,
         ownerName: ownerName,
-        bodyType: _selectedBodyType,
+        bodyType: _selectedCategory == '2W' ? null : _selectedBodyType,
         fuelType: _selectedFuelType,
         cityOfOperation: _selectedCity,
       );
