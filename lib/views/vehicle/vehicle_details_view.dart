@@ -426,23 +426,35 @@ class VehicleDetailsView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Row(
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
                             children: [
-                              Expanded(
+                              SizedBox(
+                                width: 150,
                                 child: _buildCategoryCard(
-                                  title: l10n.truck,
-                                  icon: Icons.local_shipping_rounded,
+                                  title: '2W',
+                                  icon: Icons.motorcycle_rounded,
                                   isSelected: false,
-                                  onTap: () => vm.selectCategory('Truck'),
+                                  onTap: () => vm.selectCategory('2W'),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
+                              SizedBox(
+                                width: 150,
                                 child: _buildCategoryCard(
                                   title: l10n.threeWheeler,
                                   icon: Icons.electric_rickshaw_rounded,
                                   isSelected: false,
                                   onTap: () => vm.selectCategory('3W'),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 150,
+                                child: _buildCategoryCard(
+                                  title: l10n.truck,
+                                  icon: Icons.local_shipping_rounded,
+                                  isSelected: false,
+                                  onTap: () => vm.selectCategory('Truck'),
                                 ),
                               ),
                             ],
@@ -475,7 +487,9 @@ class VehicleDetailsView extends StatelessWidget {
                                     Icon(
                                       vm.selectedCategory == 'Truck'
                                           ? Icons.local_shipping_rounded
-                                          : Icons.electric_rickshaw_rounded,
+                                          : vm.selectedCategory == '3W'
+                                              ? Icons.electric_rickshaw_rounded
+                                              : Icons.motorcycle_rounded,
                                       color: AppColors.primary,
                                       size: 24,
                                     ),
@@ -483,7 +497,9 @@ class VehicleDetailsView extends StatelessWidget {
                                     Text(
                                       vm.selectedCategory == 'Truck'
                                           ? l10n.truck
-                                          : l10n.threeWheeler,
+                                          : vm.selectedCategory == '3W'
+                                              ? l10n.threeWheeler
+                                              : '2W',
                                       style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -551,38 +567,40 @@ class VehicleDetailsView extends StatelessWidget {
                             const SizedBox(height: 18),
                           ],
 
-                          // 9. Vehicle Body Type Selection (Open / Closed)
-                          Text(
-                            l10n.selectVehicleBodyType,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                          // 9. Vehicle Body Type Selection (Open / Closed) - not for 2W
+                          if (vm.selectedCategory != '2W') ...[
+                            Text(
+                              l10n.selectVehicleBodyType,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildBodyTypeCard(
-                                  title: l10n.openBody,
-                                  icon: FontAwesomeIcons.truckPickup,
-                                  isSelected: vm.selectedBodyType == 'Open',
-                                  onTap: () => vm.selectBodyType('Open'),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildBodyTypeCard(
+                                    title: l10n.openBody,
+                                    icon: FontAwesomeIcons.truckPickup,
+                                    isSelected: vm.selectedBodyType == 'Open',
+                                    onTap: () => vm.selectBodyType('Open'),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildBodyTypeCard(
-                                  title: l10n.closedBody,
-                                  icon: FontAwesomeIcons.truck,
-                                  isSelected: vm.selectedBodyType == 'Closed',
-                                  onTap: () => vm.selectBodyType('Closed'),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildBodyTypeCard(
+                                    title: l10n.closedBody,
+                                    icon: FontAwesomeIcons.truck,
+                                    isSelected: vm.selectedBodyType == 'Closed',
+                                    onTap: () => vm.selectBodyType('Closed'),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 18),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                          ],
 
                           // 10. Vehicle Fuel Type Selection Dropdown
                           Text(

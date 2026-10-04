@@ -25,6 +25,12 @@ class DocumentCollectionView extends StatelessWidget {
     final profileVm = context.read<ProfileViewModel>();
     final vehicleType = profileVm.vehicle?.vehicleType?.toLowerCase() ?? '';
     final vehicleTypeId = profileVm.vehicle?.vehicleTypeId ?? '';
+    final isTwoWheeler = vehicleTypeId == '1' ||
+        vehicleType.contains('2') ||
+        vehicleType.contains('two') ||
+        vehicleType.contains('bike') ||
+        vehicleType.contains('moped') ||
+        vehicleCategory == '2W';
     // vehicleTypeId '2' = '3 Wheeler' in DB (vehicle_type name not joined in query)
     final isThreeWheeler = vehicleTypeId == '2' ||
         vehicleType.contains('3') ||
@@ -32,7 +38,7 @@ class DocumentCollectionView extends StatelessWidget {
         vehicleType.contains('rickshaw') ||
         vehicleType.contains('auto') ||
         vehicleCategory == '3W';
-    final totalDocs = isThreeWheeler ? 8 : 12;
+    final totalDocs = isThreeWheeler || isTwoWheeler ? 8 : 12;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -167,7 +173,7 @@ class DocumentCollectionView extends StatelessWidget {
                   ),
 
                   // 9. Vehicle Permit
-                  if (!isThreeWheeler)
+                  if (!isThreeWheeler && !isTwoWheeler)
                     DocumentUploadCard(
                       title: l10n.vehiclePermit,
                       buttonText: l10n.uploadVehiclePermit,
@@ -178,7 +184,7 @@ class DocumentCollectionView extends StatelessWidget {
                     ),
 
                   // 10. Fitness Certificate
-                  if (!isThreeWheeler)
+                  if (!isThreeWheeler && !isTwoWheeler)
                     DocumentUploadCard(
                       title: l10n.fitnessCertificate,
                       buttonText: l10n.uploadFitnessCertificate,
@@ -189,7 +195,7 @@ class DocumentCollectionView extends StatelessWidget {
                     ),
 
                   // 11. Police Clearance Certificate
-                  if (!isThreeWheeler)
+                  if (!isThreeWheeler && !isTwoWheeler)
                     DocumentUploadCard(
                       title: l10n.policeClearanceCertificate,
                       buttonText: l10n.uploadPoliceClearance,
@@ -200,7 +206,7 @@ class DocumentCollectionView extends StatelessWidget {
                     ),
 
                   // 12. Selfie with Vehicle
-                  if (!isThreeWheeler)
+                  if (!isThreeWheeler && !isTwoWheeler)
                     DocumentUploadCard(
                       title: l10n.selfieWithVehicle,
                       buttonText: l10n.uploadSelfieWithVehicle,
