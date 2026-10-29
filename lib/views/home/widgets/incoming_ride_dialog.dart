@@ -78,7 +78,7 @@ class IncomingRideDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header & Radar Icon
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -158,7 +158,6 @@ class IncomingRideDialog extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Total Fare & Customer Info Display
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -245,7 +244,6 @@ class IncomingRideDialog extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Scrollable Content Section (Stops Badge + Full Route Timeline)
               Flexible(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -253,7 +251,7 @@ class IncomingRideDialog extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Multi-Stops Badge Indicator
+
                       if (activeBooking.hasStops) ...[
                         Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -285,7 +283,6 @@ class IncomingRideDialog extends StatelessWidget {
                         ),
                       ],
 
-                      // Route Container (Pickup, Intermediate Stops, Drop with Distance Pills)
                       Builder(
                         builder: (context) {
                           final driverPos =
@@ -319,11 +316,9 @@ class IncomingRideDialog extends StatelessWidget {
                                 )
                               : 0.0;
 
-                          // Compute customer trip distance [Pickup -> Stops -> Drop]
                           final dropDistKm =
                               vm.calculateTripDistance(activeBooking);
 
-                          // Trigger background fetch for Google Directions road distance if available
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (vm.getCachedRoadDistance(activeBooking.id) ==
                                 null) {
@@ -342,7 +337,7 @@ class IncomingRideDialog extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Pickup Location Tile with Driver Arrival Distance Pill
+
                                 RouteLocationTile(
                                   type: LocationTileType.pickup,
                                   address: activeBooking.pickupAddress,
@@ -352,7 +347,6 @@ class IncomingRideDialog extends StatelessWidget {
                                 const DashedLineConnector(
                                     height: 20, color: Color(0xFF10B981)),
 
-                                // Intermediate Stops Loop with Segment Distance
                                 if (activeBooking.hasStops)
                                   ...activeBooking.effectiveIntermediateStops
                                       .asMap()
@@ -398,7 +392,6 @@ class IncomingRideDialog extends StatelessWidget {
                                     );
                                   }),
 
-                                // Drop Location Tile with Total Trip Distance Pill
                                 RouteLocationTile(
                                   type: LocationTileType.drop,
                                   address: activeBooking.dropAddress,
@@ -414,7 +407,6 @@ class IncomingRideDialog extends StatelessWidget {
                 ),
               ),
 
-              // Outstation ₹100 Wallet Deduction Notice
               if (isOutstation)
                 Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -446,7 +438,6 @@ class IncomingRideDialog extends StatelessWidget {
 
               const SizedBox(height: 4),
 
-              // Action Buttons: Decline & Accept (pinned at bottom!)
               Row(
                 children: [
                   Expanded(

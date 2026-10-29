@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/booking_model.dart';
 import '../../../viewmodels/home_viewmodel.dart';
-import '../../../widgets/gradient_button.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class EarningsTab extends StatefulWidget {
@@ -25,176 +24,6 @@ class _EarningsTabState extends State<EarningsTab> {
         vm.fetchEarnings(vm.driver!.id!);
       }
     });
-  }
-
-  // ignore: unused_element
-  void _showPayoutModal(BuildContext context, HomeViewModel vm) {
-    final l10n = AppLocalizations.of(context)!;
-    final available = vm.availableBalance;
-    final bank = vm.bankDetails;
-    final driverId = vm.driver?.id ?? '';
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (modalContext) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.account_balance_wallet_rounded,
-                      color: AppColors.primaryDark,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.instantBankPayout,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.transferEarningsDirectly,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Balance Banner
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.availablePayoutBalance,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '₹ ${available.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Destination Bank Account Box
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7).withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFF59E0B)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.account_balance_rounded, color: Color(0xFFD97706), size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            bank?.bankName ?? l10n.connectedBankAccount,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            bank != null
-                                ? 'A/C: **** ${bank.accountNumber.length > 4 ? bank.accountNumber.substring(bank.accountNumber.length - 4) : bank.accountNumber} • IFSC: ${bank.ifscCode}'
-                                : l10n.primaryPayoutMethod,
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              GradientButton(
-                text: available > 0 ? l10n.confirmPayoutTransfer : l10n.noBalanceToWithdraw,
-                isLoading: vm.isProcessingPayout,
-                icon: Icons.flash_on_rounded,
-                onPressed: available > 0
-                    ? () async {
-                        final amountToWithdraw = available;
-                        final success = await vm.processInstantPayout(
-                          driverId: driverId,
-                          amount: amountToWithdraw,
-                          context: context,
-                        );
-
-                        if (context.mounted) {
-                          Navigator.of(modalContext).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                success
-                                    ? l10n.payoutTransferredSuccess(amountToWithdraw.toStringAsFixed(2))
-                                    : l10n.payoutFailed,
-                              ),
-                              backgroundColor: success ? const Color(0xFF09A234) : AppColors.error,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      }
-                    : null,
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -219,7 +48,7 @@ class _EarningsTabState extends State<EarningsTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. TIME PERIOD FILTER TABS
+
               Row(
                 children: ['today', 'week', 'all'].map((filterKey) {
                   final isSelected = selectedFilter == filterKey;
@@ -248,7 +77,6 @@ class _EarningsTabState extends State<EarningsTab> {
 
               const SizedBox(height: 16),
 
-              // 2. TOTAL EARNINGS HEADER CARD
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -310,7 +138,6 @@ class _EarningsTabState extends State<EarningsTab> {
 
               const SizedBox(height: 20),
 
-              // 3. LINKED BANK ACCOUNT & INSTANT PAYOUT CARD
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -426,7 +253,6 @@ class _EarningsTabState extends State<EarningsTab> {
 
               const SizedBox(height: 24),
 
-              // 4. RECENT TRIP PAYOUTS LIST
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

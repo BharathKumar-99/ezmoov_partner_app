@@ -7,7 +7,6 @@ import '../../../viewmodels/profile_viewmodel.dart';
 import '../../../widgets/gradient_button.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
-/// Shows an unclosable modal dialog requiring the driver to pay the one-time registration fee.
 Future<void> showRegistrationFeeDialog(BuildContext context) {
   return showDialog(
     context: context,
@@ -133,7 +132,7 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
     final l10n = AppLocalizations.of(context)!;
 
     return PopScope(
-      canPop: false, // Prevents Android back button or gestures from closing
+      canPop: false,
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         backgroundColor: AppColors.surface,
@@ -153,7 +152,7 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 1. Icon Header
+
                   Container(
                     width: 72,
                     height: 72,
@@ -182,7 +181,6 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
 
                   const SizedBox(height: 18),
 
-                  // 2. Title & Badge
                   Text(
                     l10n.registrationFeeRequired,
                     textAlign: TextAlign.center,
@@ -217,7 +215,6 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
 
                   const SizedBox(height: 14),
 
-                  // 3. Explanation text
                   Text(
                     l10n.registrationFeeExplanation,
                     textAlign: TextAlign.center,
@@ -230,7 +227,6 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
 
                   const SizedBox(height: 20),
 
-                  // 4. Partner Benefits Box
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -263,7 +259,6 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
 
                   const SizedBox(height: 24),
 
-                  // 5. Pay Registration Fee Action Button
                   SizedBox(
                     width: double.infinity,
                     child: GradientButton(
@@ -279,7 +274,6 @@ class _RegistrationFeeDialogState extends State<RegistrationFeeDialog> {
 
                   const SizedBox(height: 12),
 
-                  // 6. Secondary Refresh / Status Check Button
                   Row(
                     children: [
                       Expanded(

@@ -9,13 +9,11 @@ import '../models/driver_model.dart';
 import 'profile_viewmodel.dart';
 import 'wallet_viewmodel.dart';
 
-
 import '../models/vehicle_model.dart';
 import '../models/document_model.dart';
 import '../models/bank_details_model.dart';
 import '../models/booking_model.dart';
 import '../models/earning_model.dart';
-
 
 class HomeViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
@@ -48,14 +46,13 @@ class HomeViewModel extends ChangeNotifier {
   double get latitude => _latitude;
   double get longitude => _longitude;
 
-  // Earnings & Payout State
   List<BookingModel> _driverTrips = [];
   List<BookingModel> get driverTrips => _driverTrips;
 
   List<EarningModel> _driverEarnings = [];
   List<EarningModel> get driverEarnings => _driverEarnings;
 
-  String _earningsFilter = 'week'; // 'today', 'week', 'all'
+  String _earningsFilter = 'week';
   String get earningsFilter => _earningsFilter;
 
   double _totalWithdrawnAmount = 0.0;
@@ -152,7 +149,6 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  /// Get completed trips filtered by time window
   List<BookingModel> get filteredCompletedTrips {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
@@ -169,11 +165,10 @@ class HomeViewModel extends ChangeNotifier {
       } else if (_earningsFilter == 'week') {
         return createdAt.isAfter(weekStart);
       }
-      return true; // 'all'
+      return true;
     }).toList();
   }
 
-  /// Get driver earnings filtered by time window from public.earning
   List<EarningModel> get filteredEarnings {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
@@ -187,11 +182,10 @@ class HomeViewModel extends ChangeNotifier {
       } else if (_earningsFilter == 'week') {
         return createdAt.isAfter(weekStart);
       }
-      return true; // 'all'
+      return true;
     }).toList();
   }
 
-  /// Total earnings calculated by adding up driver_earning from public.earning table
   double get totalEarnings {
     if (_driverEarnings.isNotEmpty) {
       double sum = 0.0;
@@ -201,7 +195,6 @@ class HomeViewModel extends ChangeNotifier {
       return sum;
     }
 
-    // Fallback if public.earning table is empty
     double sum = 0.0;
     for (final trip in filteredCompletedTrips) {
       sum += trip.fare;
@@ -209,13 +202,10 @@ class HomeViewModel extends ChangeNotifier {
     return sum;
   }
 
-  /// Base trip fares portion (85%)
   double get tripFaresTotal => totalEarnings * 0.85;
 
-  /// Surge & Incentives portion (15%)
   double get bonusesTotal => totalEarnings * 0.15;
 
-  /// Available balance for withdrawal
   double get availableBalance {
     double netAllTime = 0.0;
     if (_driverEarnings.isNotEmpty) {
@@ -231,8 +221,6 @@ class HomeViewModel extends ChangeNotifier {
     return avail > 0 ? avail : 0.0;
   }
 
-
-  /// Process instant bank payout withdrawal
   Future<bool> processInstantPayout({
     required String driverId,
     required double amount,
@@ -270,7 +258,7 @@ class HomeViewModel extends ChangeNotifier {
 
     if (value) {
       final isFreeLogin = context.read<ProfileViewModel>().isFreeDriverLogin;
-      // Check if driver pass is active
+
       final dailyStatus = await _supabaseService.getDriverDailyStatus(_driver!.id!);
       final isPassActive = isFreeLogin || (dailyStatus?.isPassActive ?? false);
       final isRejectionBlock = dailyStatus?.blockReason == 'exceeded_rejections' || (dailyStatus?.rejectionsCount ?? 0) >= 2;
@@ -285,7 +273,7 @@ class HomeViewModel extends ChangeNotifier {
               ? 'You have rejected 2 orders today. Order allocation is paused for the remainder of today and will resume tomorrow.'
               : 'Your 24-hour daily pass is expired or unpaid. You must pay your daily fee to go online for the next 24 hours.';
 
-          showDialog(
+          await showDialog(
             context: context,
             builder: (dialogCtx) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -376,8 +364,6 @@ class HomeViewModel extends ChangeNotifier {
       await Provider.of<ProfileViewModel>(context, listen: false).clearProfileAndLogout(context);
     }
   }
-
-
 
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(

@@ -106,7 +106,7 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Header & Outstation Bidding Badge
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -164,7 +164,6 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
 
                 const SizedBox(height: 16),
 
-                // 2. Customer Info & Base Rate Display
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -242,7 +241,6 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
 
                 const SizedBox(height: 16),
 
-                // Multi-Stops Badge Indicator
                 if (activeBooking.hasStops) ...[
                   Container(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -273,7 +271,6 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                   ),
                 ],
 
-                // 3. Route Container (Pickup, Intermediate Stops, Drop with Distance Pills)
                 Builder(
                   builder: (context) {
                     final driverPos = LocationService.instance.currentPosition;
@@ -305,10 +302,8 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                           )
                         : 0.0;
 
-                    // Compute customer trip distance [Pickup -> Stops -> Drop]
                     final dropDistKm = vm.calculateTripDistance(activeBooking);
 
-                    // Trigger background fetch for Google Directions road distance if available
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (vm.getCachedRoadDistance(activeBooking.id) == null) {
                         vm.fetchBookingRoadDistance(activeBooking);
@@ -326,7 +321,7 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Pickup Location Tile with Distance Pill
+
                           RouteLocationTile(
                             type: LocationTileType.pickup,
                             address: activeBooking.pickupAddress,
@@ -336,7 +331,6 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                           const DashedLineConnector(
                               height: 20, color: Color(0xFF10B981)),
 
-                          // Intermediate Stops Loop
                           if (activeBooking.hasStops)
                             ...activeBooking.effectiveIntermediateStops
                                 .asMap()
@@ -379,7 +373,6 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
                               );
                             }),
 
-                          // Drop Location Tile with Distance Pill
                           RouteLocationTile(
                             type: LocationTileType.drop,
                             address: activeBooking.dropAddress,
@@ -393,7 +386,6 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
 
                 const SizedBox(height: 18),
 
-                // 4. Driver Bid Number Input Field
                 Text(
                   l10n.enterYourBidAmountCaps,
                   style: const TextStyle(
@@ -456,7 +448,6 @@ class _BiddingOutstationDialogState extends State<BiddingOutstationDialog> {
 
                 const SizedBox(height: 24),
 
-                // 5. Action Buttons: Decline & Submit Bid
                 Row(
                   children: [
                     Expanded(

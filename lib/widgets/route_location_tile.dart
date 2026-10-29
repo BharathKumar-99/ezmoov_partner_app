@@ -124,11 +124,11 @@ class RouteLocationTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Top Row: Distance Pill + Bullet + Location Area Header
+
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Distance Pill Badge
+
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
@@ -158,7 +158,7 @@ class RouteLocationTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            // Bullet separator
+
             const Text(
               '•',
               style: TextStyle(
@@ -168,7 +168,7 @@ class RouteLocationTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            // Location Header Title
+
             Expanded(
               child: Text(
                 areaHeader,
@@ -187,7 +187,6 @@ class RouteLocationTile extends StatelessWidget {
 
         const SizedBox(height: 6),
 
-        // Full address text line
         Padding(
           padding: const EdgeInsets.only(left: 4),
           child: Text(

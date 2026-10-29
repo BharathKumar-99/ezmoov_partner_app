@@ -62,7 +62,6 @@ class DriverModel {
       isVerified ||
       (isVehicleVerified && isDocumentsVerified && isBankDetailsVerified);
 
-  /// Extract latitude numeric value from currentLocation JSON map or object
   double? get latitude {
     if (currentLocation is Map) {
       final map = currentLocation as Map;
@@ -73,7 +72,6 @@ class DriverModel {
     return null;
   }
 
-  /// Extract longitude numeric value from currentLocation JSON map or object
   double? get longitude {
     if (currentLocation is Map) {
       final map = currentLocation as Map;

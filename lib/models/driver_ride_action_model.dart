@@ -4,7 +4,7 @@ class DriverRideActionModel {
   final int id;
   final String driverId;
   final String? bookingId;
-  final String action; // 'accepted', 'declined', 'denied', 'timeout', 'cancelled'
+  final String action;
   final DateTime actionTime;
   final String? pickupAddress;
   final String? dropAddress;
@@ -191,7 +191,6 @@ class DriverRideActionModel {
   }
 }
 
-/// Aggregated acceptance and decline statistics for a driver
 class DriverRideStatsModel {
   final String driverId;
   final int totalRequests;

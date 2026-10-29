@@ -3,19 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'notification_service.dart';
 
-
-
-
-
 class BackgroundServiceManager {
   BackgroundServiceManager._privateConstructor();
-  static final BackgroundServiceManager instance = BackgroundServiceManager._privateConstructor();
+  static final BackgroundServiceManager instance =
+      BackgroundServiceManager._privateConstructor();
 
   final FlutterBackgroundService _service = FlutterBackgroundService();
   bool _isRunning = false;
   bool get isRunning => _isRunning;
 
-  /// Initialize background service configuration
   Future<void> initialize() async {
     try {
       await NotificationService.instance.initialize();
@@ -27,12 +23,11 @@ class BackgroundServiceManager {
           isForegroundMode: true,
           notificationChannelId: 'ezmoov_driver_online_channel',
           initialNotificationTitle: 'EZMoov Partner Online',
-          initialNotificationContent: 'Active & listening for incoming ride requests...',
+          initialNotificationContent:
+              'Active & listening for incoming ride requests...',
           foregroundServiceNotificationId: 888,
           foregroundServiceTypes: [AndroidForegroundType.location],
         ),
-
-
         iosConfiguration: IosConfiguration(
           autoStart: false,
           onForeground: _onStart,
@@ -45,7 +40,6 @@ class BackgroundServiceManager {
     }
   }
 
-  /// Start background service when driver goes ONLINE
   Future<void> startBackgroundService() async {
     try {
       await initialize();
@@ -60,7 +54,6 @@ class BackgroundServiceManager {
     }
   }
 
-  /// Stop background service when driver goes OFFLINE
   Future<void> stopBackgroundService() async {
     try {
       final isServiceRunning = await _service.isRunning();
@@ -81,7 +74,8 @@ class BackgroundServiceManager {
     try {
       await NotificationService.instance.initialize();
     } catch (e) {
-      debugPrint('Notice initializing NotificationService in background isolate: $e');
+      debugPrint(
+          'Notice initializing NotificationService in background isolate: $e');
     }
 
     Timer? periodicTimer;
@@ -95,15 +89,14 @@ class BackgroundServiceManager {
     periodicTimer = Timer.periodic(const Duration(seconds: 15), (timer) async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
-          service.setForegroundNotificationInfo(
-            title: 'EZMoov Partner Online 🟢',
+          await service.setForegroundNotificationInfo(
+            title: 'EZMoov Partner Online',
             content: 'GPS Tracking Active • Listening for ride requests...',
           );
         }
       }
     });
   }
-
 
   @pragma('vm:entry-point')
   static bool _onIosBackground(ServiceInstance service) {

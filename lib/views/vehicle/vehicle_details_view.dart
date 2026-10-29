@@ -218,7 +218,7 @@ class VehicleDetailsView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Form Card Container
+
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -236,7 +236,7 @@ class VehicleDetailsView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1. Full Operational Address
+
                         CustomTextField(
                           controller: vm.addressController,
                           label: l10n.fullOperationalAddress,
@@ -245,7 +245,6 @@ class VehicleDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 18),
 
-                        // 2. Vehicle Owner Name (Mandatory)
                         CustomTextField(
                           controller: vm.ownerNameController,
                           label: l10n.vehicleOwnerName,
@@ -254,7 +253,6 @@ class VehicleDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 18),
 
-                        // 5. Upload RC Image Container Card
                         Text(
                           l10n.uploadRcPicture,
                           style: const TextStyle(
@@ -354,7 +352,6 @@ class VehicleDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 18),
 
-                        // 6. Select the City of Operation (Only Hyderabad)
                         Text(
                           l10n.selectCityOfOperation,
                           style: const TextStyle(
@@ -415,7 +412,6 @@ class VehicleDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 18),
 
-                        // 7. Vehicle Category Selection
                         if (vm.selectedCategory == null) ...[
                           Text(
                             l10n.selectVehicleType,
@@ -520,11 +516,9 @@ class VehicleDetailsView extends StatelessWidget {
                           ),
                         ],
 
-                        // Additional fields when vehicle category is selected
                         if (vm.selectedCategory != null) ...[
                           const SizedBox(height: 18),
 
-                          // 8. Vehicle Body Details (For Truck)
                           if (vm.selectedCategory == 'Truck') ...[
                             Text(
                               l10n.selectVehicleBodyDetails,
@@ -567,7 +561,6 @@ class VehicleDetailsView extends StatelessWidget {
                             const SizedBox(height: 18),
                           ],
 
-                          // 9. Vehicle Body Type Selection (Open / Closed) - not for 2W
                           if (vm.selectedCategory != '2W') ...[
                             Text(
                               l10n.selectVehicleBodyType,
@@ -602,7 +595,6 @@ class VehicleDetailsView extends StatelessWidget {
                             const SizedBox(height: 18),
                           ],
 
-                          // 10. Vehicle Fuel Type Selection Dropdown
                           Text(
                             l10n.selectVehicleFuelType,
                             style: const TextStyle(
@@ -670,7 +662,6 @@ class VehicleDetailsView extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // Gradient Submit Button
                   GradientButton(
                     text: l10n.saveAndContinue,
                     isLoading: vm.isLoading,

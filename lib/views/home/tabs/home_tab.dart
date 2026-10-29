@@ -105,79 +105,6 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  void _showOutstationPassRequiredDialog(
-      BuildContext context, String driverId, double fee) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (dialogCtx) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEDE9FE),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.alt_route_rounded,
-                    color: Color(0xFF7C3AED), size: 24),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  l10n.outstationPassRequired,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            l10n.outstationPassRequiredDesc,
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogCtx),
-              child: Text(l10n.cancel,
-                  style: const TextStyle(color: AppColors.textMuted)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogCtx);
-                context.push('/wallet?driverId=$driverId');
-              },
-              child: Text(l10n.viewWallet,
-                  style: const TextStyle(
-                      color: Color(0xFF7C3AED), fontWeight: FontWeight.bold)),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(dialogCtx);
-                if (driverId.isNotEmpty) {
-                  context.read<WalletViewModel>().payOutstationMonthlyFee(
-                      driverId: driverId, context: context);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-              ),
-              icon: const Icon(Icons.flash_on_rounded, size: 16),
-              label: Text(l10n.payMonthlyFeeWallet(fee.toStringAsFixed(0))),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -190,11 +117,9 @@ class _HomeTabState extends State<HomeTab> {
         final now = DateTime.now();
         final todayStart = DateTime(now.year, now.month, now.day);
 
-        // Filter completed trips
         final completedTrips =
             allTrips.where((t) => t.status == 'completed').toList();
 
-        // Completed trips today
         final todayCompletedTrips = completedTrips.where((t) {
           final createdAt = t.createdAt ?? now;
           return createdAt.isAfter(todayStart);
@@ -204,7 +129,6 @@ class _HomeTabState extends State<HomeTab> {
 
         final homeVm = context.watch<HomeViewModel>();
 
-        // Total earnings sum from public.earning (fallback to completed trips)
         final totalEarningsSum = homeVm.driverEarnings.isNotEmpty
             ? homeVm.totalEarnings
             : completedTrips.fold<double>(
@@ -212,7 +136,6 @@ class _HomeTabState extends State<HomeTab> {
                 (sum, booking) => sum + booking.fare,
               );
 
-        // Driver Rating: driver.rating or average from ratings list
         double ratingValue = driver?.rating ?? 5.0;
         if ((driver?.rating == null || driver!.rating == 0.0) &&
             vm.ratings.isNotEmpty) {
@@ -221,7 +144,6 @@ class _HomeTabState extends State<HomeTab> {
           ratingValue = sum / vm.ratings.length;
         }
 
-        // Trips list to display in recent trips section (prefer today, fallback to overall completed)
         final displayTrips = todayCompletedTrips.isNotEmpty
             ? todayCompletedTrips
             : completedTrips;
@@ -232,7 +154,7 @@ class _HomeTabState extends State<HomeTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. WELCOME TEXT ON TOP
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -284,7 +206,6 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 24),
 
-              // DEMO VIDEO BANNER
               InkWell(
                 onTap: () {
                   showDialog(
@@ -303,7 +224,7 @@ class _HomeTabState extends State<HomeTab> {
                             right: 16,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withValues(alpha: 0.5),
                                 shape: BoxShape.circle,
                               ),
                               child: IconButton(
@@ -323,10 +244,10 @@ class _HomeTabState extends State<HomeTab> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border:
-                        Border.all(color: AppColors.primary.withOpacity(0.3)),
+                    border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
@@ -370,7 +291,6 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 24),
 
-              // ONGOING ACTIVE TRIP RESUME BANNER CARD
               Builder(
                 builder: (context) {
                   final activeTrip =
@@ -474,8 +394,9 @@ class _HomeTabState extends State<HomeTab> {
 
                   final isPassRequired =
                       walletVm.blockReason == 'daily_pass_required';
-                  if (isPassRequired && vm.isFreeDriverLogin)
+                  if (isPassRequired && vm.isFreeDriverLogin) {
                     return const SizedBox.shrink();
+                  }
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 20),
@@ -597,7 +518,6 @@ class _HomeTabState extends State<HomeTab> {
                 },
               ),
 
-              // 2. GO ONLINE / OFFLINE SWITCH WIDGET (FULLY RESPONSIVE FOR TELUGU & ALL LANGUAGES)
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -762,7 +682,6 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 16),
 
-              // 2B. OUTSTATION BOOKINGS SWITCH WIDGET (WITH MIN ₹100 WALLET CHECK VIA RPC)
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -919,7 +838,6 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 24),
 
-              // 3. STATS ROW (TODAY TRIPS, TOTAL EARNINGS, RATINGS)
               Row(
                 children: [
                   _HomeStatCard(
@@ -947,7 +865,6 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 24),
 
-              // 4. PERFORMANCE SECTION
               Text(
                 l10n.performance,
                 style: const TextStyle(
@@ -965,8 +882,7 @@ class _HomeTabState extends State<HomeTab> {
                       perfVm.formattedTodayLoginHoursShort;
                   final now = DateTime.now();
 
-                  // Compute week range: Monday to Sunday of current week
-                  final weekday = now.weekday; // 1=Mon, 7=Sun
+                  final weekday = now.weekday;
                   final weekStart = now.subtract(Duration(days: weekday - 1));
                   final weekEnd = weekStart.add(const Duration(days: 6));
                   final dateFormat = DateFormat('d MMM');
@@ -993,7 +909,7 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                       child: Column(
                         children: [
-                          // ── Green gradient header ──
+
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
@@ -1068,13 +984,12 @@ class _HomeTabState extends State<HomeTab> {
                             ),
                           ),
 
-                          // ── Two stat boxes ──
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 6),
                             child: Row(
                               children: [
-                                // Login Hours box
+
                                 Expanded(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
@@ -1153,7 +1068,7 @@ class _HomeTabState extends State<HomeTab> {
                                   ),
                                 ),
                                 const SizedBox(width: 10),
-                                // Completion Score box
+
                                 Expanded(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
@@ -1217,7 +1132,6 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 16),
 
-              // ── Insurance Progress Tracker ──
               Consumer<PerformanceViewModel>(
                 builder: (context, performanceVm, child) {
                   final daysLogged = performanceVm.loginDaysThisMonth;
@@ -1228,7 +1142,7 @@ class _HomeTabState extends State<HomeTab> {
 
                   return InkWell(
                     onTap: () {
-                      // TODO: Navigate to Benefits/Rewards page
+
                     },
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
@@ -1293,7 +1207,7 @@ class _HomeTabState extends State<HomeTab> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                // Progress bar
+
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(4),
                                   child: LinearProgressIndicator(
@@ -1329,7 +1243,6 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 24),
 
-              // 5. RECENT TRIPS SECTION
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

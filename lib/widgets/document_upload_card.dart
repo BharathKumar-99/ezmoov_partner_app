@@ -114,11 +114,11 @@ class DocumentUploadCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Top Row: Icon + Title/Subtitle + Required Badge
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Icon Box
+
               Container(
                 width: 44,
                 height: 44,
@@ -142,7 +142,6 @@ class DocumentUploadCard extends StatelessWidget {
               ),
               const SizedBox(width: 14),
 
-              // Title & Subtitle Column
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +169,6 @@ class DocumentUploadCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
 
-              // Required Badge
               if (isRequired)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -192,7 +190,6 @@ class DocumentUploadCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // Upload Button
           SizedBox(
             width: double.infinity,
             height: 44,

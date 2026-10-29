@@ -159,7 +159,7 @@ class _ReferralViewState extends State<ReferralView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Banner Card
+
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(22),
@@ -218,7 +218,6 @@ class _ReferralViewState extends State<ReferralView> {
 
                 const SizedBox(height: 24),
 
-                // 2. Referral Code Display Card
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -311,7 +310,6 @@ class _ReferralViewState extends State<ReferralView> {
 
                 const SizedBox(height: 20),
 
-                // 3. Optional "Have a Referral Code?" redeem tile
                 if (!hasRedeemed)
                   Container(
                     margin: const EdgeInsets.only(bottom: 20),
@@ -356,7 +354,6 @@ class _ReferralViewState extends State<ReferralView> {
                     ),
                   ),
 
-                // 5. Referred Partners List
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
 
-/// Reusable Waiting Time Widget displayed when driver arrives at location
 class WaitingTimeWidget extends StatefulWidget {
   final String type;
   final String rateText;
@@ -102,7 +101,6 @@ class _WaitingTimeWidgetState extends State<WaitingTimeWidget> {
     String minStr = mins.toString().padLeft(2, '0');
     String secStr = secs.toString().padLeft(2, '0');
 
-    // Calculate progress ratio based on graceMins
     double calcProgress =
         (displaySecs / ((widget.graceMins > 0 ? widget.graceMins : 90) * 60))
             .clamp(0.05, 1.0);
@@ -134,7 +132,7 @@ class _WaitingTimeWidgetState extends State<WaitingTimeWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Icon + Waiting Time Title
+
               Row(
                 children: [
                   Container(
@@ -179,7 +177,6 @@ class _WaitingTimeWidgetState extends State<WaitingTimeWidget> {
                 ],
               ),
 
-              // Timer Display (Big Green Numbers + MIN SEC Subtitles)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -226,7 +223,6 @@ class _WaitingTimeWidgetState extends State<WaitingTimeWidget> {
           ),
           const SizedBox(height: 14),
 
-          // Green Progress Bar Line
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
@@ -240,7 +236,6 @@ class _WaitingTimeWidgetState extends State<WaitingTimeWidget> {
           ),
           const SizedBox(height: 12),
 
-          // Subtext Rate Info
           Text(
             widget.rateText,
             style: const TextStyle(

@@ -139,22 +139,19 @@ class _PerformanceViewState extends State<PerformanceView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. TOP DATE SELECTOR COMPONENT
+
                   _buildDateSelector(context, vm, effectiveDriverId, l10n),
 
                   const SizedBox(height: 16),
 
-                  // 2. HERO TOTAL LOGIN HOURS CARD
                   _buildHeroTotalHoursCard(context, vm, isToday, l10n),
 
                   const SizedBox(height: 16),
 
-                  // 3. COMPLETION SCORE & RIDE ACTIONS STATS CARD
                   _buildCompletionScoreCard(context, vm, l10n),
 
                   const SizedBox(height: 24),
 
-                  // 4. SESSIONS BREAKDOWN HEADER
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -187,7 +184,6 @@ class _PerformanceViewState extends State<PerformanceView> {
 
                   const SizedBox(height: 12),
 
-                  // 5. SESSIONS LIST / EMPTY STATE
                   if (vm.isLoading)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40),
@@ -206,7 +202,6 @@ class _PerformanceViewState extends State<PerformanceView> {
                           context, session, index + 1, l10n);
                     }),
 
-                  // 6. RIDE REQUEST ACTIONS HISTORY FOR SELECTED DATE
                   _buildRideActionsSection(context, vm, l10n),
 
                   const SizedBox(height: 20),
@@ -219,7 +214,6 @@ class _PerformanceViewState extends State<PerformanceView> {
     );
   }
 
-  /// Top Interactive Date Selector Bar
   Widget _buildDateSelector(BuildContext context, PerformanceViewModel vm,
       String driverId, AppLocalizations l10n) {
     final selectedDate = vm.selectedDate;
@@ -249,7 +243,7 @@ class _PerformanceViewState extends State<PerformanceView> {
       ),
       child: Column(
         children: [
-          // Row with Previous / Next Day and Date Display
+
           Row(
             children: [
               IconButton(
@@ -322,7 +316,6 @@ class _PerformanceViewState extends State<PerformanceView> {
           const Divider(height: 1),
           const SizedBox(height: 10),
 
-          // Quick Filter Chips (Today, Yesterday, Calendar)
           Row(
             children: [
               Expanded(
@@ -404,7 +397,6 @@ class _PerformanceViewState extends State<PerformanceView> {
     );
   }
 
-  /// Hero Total Hours Card at the Bottom of Date Selector
   Widget _buildHeroTotalHoursCard(BuildContext context, PerformanceViewModel vm,
       bool isToday, AppLocalizations l10n) {
     final totalFormatted = vm.formattedTotalHoursForSelectedDate;
@@ -501,7 +493,6 @@ class _PerformanceViewState extends State<PerformanceView> {
 
           const SizedBox(height: 14),
 
-          // Big Display Hours
           Text(
             totalFormatted,
             style: const TextStyle(
@@ -516,7 +507,6 @@ class _PerformanceViewState extends State<PerformanceView> {
           const Divider(color: Colors.white12, height: 1),
           const SizedBox(height: 12),
 
-          // Metadata stats row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -543,7 +533,6 @@ class _PerformanceViewState extends State<PerformanceView> {
     );
   }
 
-  /// Completion Score Card for Date Selection
   Widget _buildCompletionScoreCard(
       BuildContext context, PerformanceViewModel vm, AppLocalizations l10n) {
     final score = vm.completionScoreForSelectedDate;
@@ -555,13 +544,13 @@ class _PerformanceViewState extends State<PerformanceView> {
     Color progressColor;
     String statusLabel;
     if (score >= 80) {
-      progressColor = const Color(0xFF10B981); // Emerald
+      progressColor = const Color(0xFF10B981);
       statusLabel = l10n.excellentAcceptance;
     } else if (score >= 50) {
-      progressColor = const Color(0xFFF59E0B); // Amber
+      progressColor = const Color(0xFFF59E0B);
       statusLabel = l10n.goodPerformance;
     } else {
-      progressColor = const Color(0xFFEF4444); // Red
+      progressColor = const Color(0xFFEF4444);
       statusLabel = l10n.highDeclineRate;
     }
 
@@ -755,7 +744,6 @@ class _PerformanceViewState extends State<PerformanceView> {
     );
   }
 
-  /// Individual Session Card
   Widget _buildSessionCard(BuildContext context, DriverLoginTimeModel session,
       int sessionNum, AppLocalizations l10n) {
     final isOngoing = session.isOngoing;
@@ -791,7 +779,7 @@ class _PerformanceViewState extends State<PerformanceView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Session # and Status Badge
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -848,7 +836,6 @@ class _PerformanceViewState extends State<PerformanceView> {
 
           const SizedBox(height: 12),
 
-          // Start / End Timestamps Row
           Row(
             children: [
               Expanded(
@@ -912,7 +899,6 @@ class _PerformanceViewState extends State<PerformanceView> {
           const Divider(height: 1),
           const SizedBox(height: 8),
 
-          // Duration summary footer
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -945,7 +931,6 @@ class _PerformanceViewState extends State<PerformanceView> {
     );
   }
 
-  /// Section displaying ride acceptance/decline actions on selected date
   Widget _buildRideActionsSection(
       BuildContext context, PerformanceViewModel vm, AppLocalizations l10n) {
     final actions = vm.rideActionsForSelectedDate;
@@ -1104,7 +1089,6 @@ class _PerformanceViewState extends State<PerformanceView> {
     );
   }
 
-  /// Empty state when no sessions found for the date
   Widget _buildEmptyState(AppLocalizations l10n) {
     return Container(
       width: double.infinity,

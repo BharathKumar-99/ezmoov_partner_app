@@ -52,14 +52,12 @@ class _AlertsTabState extends State<AlertsTab> {
       builder: (context, profileVm, child) {
         final driver = profileVm.driver;
 
-        // Auto-refetch if driver profile loaded after initState
         if (driver?.id != null && driver!.id!.isNotEmpty && driver.id != _loadedDriverId) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _loadNotifications();
           });
         }
 
-        // Auto-generate dynamic account alerts based on real driver state
         final List<Map<String, dynamic>> dynamicAlerts = [];
 
         if (driver != null) {
@@ -84,7 +82,6 @@ class _AlertsTabState extends State<AlertsTab> {
           }
         }
 
-        // Combine DB notifications with dynamic account status alerts
         final allNotifs = [..._dbNotifications, ...dynamicAlerts];
 
         return RefreshIndicator(

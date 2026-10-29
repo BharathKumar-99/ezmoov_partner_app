@@ -5,14 +5,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../../models/intermediate_stop_model.dart';
 
-/// Service to calculate and fetch real road distances along delivery routes
-/// with intermediate stops, with fallback to Haversine x 1.3 city road factor.
 class GoogleDirectionsService {
   static String get _apiKey {
     return dotenv.env['GOOGLE_MAPS_API_KEY'] ?? "";
   }
 
-  /// Calculates straight-line Haversine distance in km between two GPS coordinates
   static double calculateHaversineDistance(
     double lat1,
     double lon1,
@@ -22,18 +19,17 @@ class GoogleDirectionsService {
     if ((lat1 == 0.0 && lon1 == 0.0) || (lat2 == 0.0 && lon2 == 0.0)) {
       return 0.0;
     }
-    const double p = 0.017453292519943295; // Math.PI / 180
+    const double p = 0.017453292519943295;
     final double a = 0.5 -
         cos((lat2 - lat1) * p) / 2 +
         cos(lat1 * p) *
             cos(lat2 * p) *
             (1 - cos((lon2 - lon1) * p)) /
             2;
-    final double km = 12742 * asin(sqrt(a.clamp(0.0, 1.0))); // 2 * R, R = 6371 km
+    final double km = 12742 * asin(sqrt(a.clamp(0.0, 1.0)));
     return km;
   }
 
-  /// Calculates segment distance between two consecutive points with 1.3x city road factor
   static double calculateSegmentDistance(
     double lat1,
     double lon1,
@@ -49,8 +45,6 @@ class GoogleDirectionsService {
     return double.parse((straight * 1.3).toStringAsFixed(1));
   }
 
-  /// Calculates the total trip distance along the route [Pickup -> Stops -> Drop]
-  /// applying the 1.3x city road factor to each leg.
   static double calculateRouteDistance({
     required double startLat,
     required double startLng,
@@ -88,7 +82,6 @@ class GoogleDirectionsService {
     return double.parse((totalDist * 1.3).toStringAsFixed(1));
   }
 
-  /// Asynchronously fetches real road distance (sum of leg distances in km) from Google Directions API
   static Future<double> fetchRoadDistance({
     required double startLat,
     required double startLng,
@@ -157,7 +150,6 @@ class GoogleDirectionsService {
       }
     }
 
-    // Fallback: Haversine distance with 1.3x city road factor
     return calculateRouteDistance(
       startLat: startLat,
       startLng: startLng,

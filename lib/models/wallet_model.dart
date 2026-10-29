@@ -29,7 +29,6 @@ class DriverWalletModel {
 
   bool get isOutstationPassActive => isLocalAddaPassActive;
 
-
   static DateTime? _parseDateTimeToLocal(dynamic val) {
     if (val == null) return null;
     final str = val.toString().trim();
@@ -78,7 +77,7 @@ class WalletTransactionModel {
   final String id;
   final String driverId;
   final double amount;
-  final String type; // 'recharge', 'daily_deduction', 'earning_credit', 'commission_deduction', 'settlement'
+  final String type;
   final String description;
   final String? referenceId;
   final String paymentMethod;
@@ -135,7 +134,7 @@ class DriverDailyStatusModel {
   final DateTime? passExpiresAt;
   final int rejectionsCount;
   final bool isBlocked;
-  final String? blockReason; // 'insufficient_wallet_balance', 'exceeded_rejections'
+  final String? blockReason;
 
   DriverDailyStatusModel({
     this.id,

@@ -66,7 +66,6 @@ class LanguageSelectorButton extends StatelessWidget {
               const Divider(color: AppColors.divider),
               const SizedBox(height: 8),
 
-              // English Option
               _LanguageTile(
                 title: 'English',
                 subtitle: 'English',
@@ -79,7 +78,6 @@ class LanguageSelectorButton extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // Hindi Option
               _LanguageTile(
                 title: 'हिन्दी',
                 subtitle: 'Hindi',
@@ -92,7 +90,6 @@ class LanguageSelectorButton extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // Telugu Option
               _LanguageTile(
                 title: 'తెలుగు',
                 subtitle: 'Telugu',

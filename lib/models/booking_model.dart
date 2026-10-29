@@ -42,7 +42,6 @@ class BookingModel {
   final double waitFeePerMin;
   final double waitingCharges;
 
-  // Intermediate stops & updated fare breakdown fields
   final List<IntermediateStopModel> intermediateStops;
   final double stopsCharge;
   final double baseFare;
@@ -123,7 +122,6 @@ class BookingModel {
     return [];
   }
 
-  /// Dynamic fare getter computed from amount JSON
   double get fare => extractFare(toJson());
 
   static double? _toDouble(dynamic val) {
@@ -177,10 +175,8 @@ class BookingModel {
         final rawKey = k.toString().toLowerCase();
         final key = rawKey.replaceAll(RegExp(r'[\s_\-]'), '');
 
-        // Skip driver_charges when calculating base fare
         if (key == 'drivercharges') return;
 
-        // If v is a nested Map (e.g. fare_breakdown, price_details)
         if (v is Map) {
           final nested = extractFromMap(v);
           if (nested != null && nested > 0) {
@@ -192,7 +188,6 @@ class BookingModel {
         final dbl = _toDouble(v);
         if (dbl == null || dbl <= 0) return;
 
-        // 1. Total / Payable / Grand / Net / Final Price/Fare/Amount
         if (key.contains('totalprice') ||
             key.contains('totalfare') ||
             key.contains('totalamount') ||
@@ -208,29 +203,29 @@ class BookingModel {
             key == 'total') {
           totalVal ??= dbl;
         }
-        // 2. Trip / Estimated Fare
+
         else if (key.contains('tripfare') ||
             key.contains('estimated') ||
             key.contains('trip')) {
           tripVal ??= dbl;
         }
-        // 3. Discount / Promo Amount
+
         else if (key.contains('discount') || key.contains('promo')) {
           discountVal ??= dbl;
         }
-        // 4. Base Fare / Charge
+
         else if (key.contains('base')) {
           baseVal ??= dbl;
         }
-        // 5. Distance Charges / Fare
+
         else if (key.contains('distance')) {
           distanceVal ??= dbl;
         }
-        // 6. Taxes / GST
+
         else if (key.contains('tax') || key.contains('gst')) {
           gstVal ??= dbl;
         }
-        // 7. Generic Fare / Price / Amount / Cost
+
         else if (key == 'fare' ||
             key == 'amount' ||
             key == 'price' ||
@@ -243,7 +238,6 @@ class BookingModel {
       if (tripVal != null && tripVal! > 0) return tripVal!;
       if (fareVal != null && fareVal! > 0) return fareVal!;
 
-      // Sum components if no direct total key was present
       if (baseVal != null && baseVal! > 0) {
         double sum = baseVal!;
         if (distanceVal != null) sum += distanceVal!;
@@ -255,7 +249,6 @@ class BookingModel {
       return null;
     }
 
-    // Helper to extract driver_charges sum if present
     double extraDriverChargesSum = 0.0;
     dynamic driverChargesObj;
     if (json['amount'] is Map &&
@@ -284,7 +277,6 @@ class BookingModel {
 
     double baseFareCalculated = 0.0;
 
-    // 1. Try parsing amount field if present
     final rawAmount = json['amount'];
     if (rawAmount != null) {
       if (rawAmount is Map) {
@@ -309,7 +301,6 @@ class BookingModel {
       }
     }
 
-    // 2. Try top-level map fields
     if (baseFareCalculated == 0.0) {
       final topLevelFare = extractFromMap(json);
       if (topLevelFare != null && topLevelFare > 0) {
@@ -334,7 +325,6 @@ class BookingModel {
       } catch (_) {}
     }
 
-    // Parse intermediate_stops from top-level or amount JSON
     List<IntermediateStopModel> stopsList = [];
 
     dynamic decodeJson(dynamic input) {
@@ -398,7 +388,6 @@ class BookingModel {
       }
     }
 
-    // Parse stops charge
     double parsedStopsCharge = 0.0;
     if (amountMap != null && amountMap['stops_charge'] != null) {
       parsedStopsCharge = _toDouble(amountMap['stops_charge']) ?? 0.0;
@@ -408,7 +397,6 @@ class BookingModel {
       parsedStopsCharge = stopsList.length * 25.0;
     }
 
-    // Parse base fare & distance charges
     double parsedBaseFare = 0.0;
     double parsedDistanceCharges = 0.0;
     if (amountMap != null) {
@@ -633,6 +621,5 @@ class BookingModel {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
-
 
 }

@@ -8,7 +8,6 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
 
-  /// Initialize local notification channels
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -62,9 +61,6 @@ class NotificationService {
     }
   }
 
-
-
-  /// Trigger heads-up notification for FCM message
   Future<void> showNotification({
     required String title,
     required String body,
@@ -108,7 +104,6 @@ class NotificationService {
     }
   }
 
-  /// Trigger high-priority heads-up notification for an incoming ride request
   Future<void> showIncomingRideNotification({
     required String bookingId,
     required String pickupAddress,
@@ -157,7 +152,6 @@ class NotificationService {
     }
   }
 
-  /// Cancel all active notifications
   Future<void> cancelAll() async {
     try {
       await _notificationsPlugin.cancelAll();

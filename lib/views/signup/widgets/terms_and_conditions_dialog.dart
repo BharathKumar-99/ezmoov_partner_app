@@ -3,8 +3,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../widgets/gradient_button.dart';
 
-/// Shows a dialog displaying the EZMoov Driver Partner Agreement & Platform Terms of Use
-/// and allows the driver partner to accept or decline.
 Future<bool?> showTermsAndConditionsDialog(
   BuildContext context, {
   int initialTabIndex = 0,
@@ -68,7 +66,7 @@ class _TermsAndConditionsDialogState extends State<TermsAndConditionsDialog>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. Fixed Header
+
             Container(
               padding: const EdgeInsets.fromLTRB(20, 18, 16, 12),
               decoration: const BoxDecoration(
@@ -140,7 +138,7 @@ class _TermsAndConditionsDialogState extends State<TermsAndConditionsDialog>
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Segmented Tab Selector
+
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.background,
@@ -182,7 +180,6 @@ class _TermsAndConditionsDialogState extends State<TermsAndConditionsDialog>
               ),
             ),
 
-            // 2. Tab Views with Full Legal Content
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -193,7 +190,6 @@ class _TermsAndConditionsDialogState extends State<TermsAndConditionsDialog>
               ),
             ),
 
-            // 3. Fixed Footer with Acceptance CTA
             Container(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
               decoration: const BoxDecoration(
@@ -234,16 +230,13 @@ class _TermsAndConditionsDialogState extends State<TermsAndConditionsDialog>
     );
   }
 
-  /// -------------------------------------------------------------
-  /// TAB 1: DRIVER PARTNER TECHNOLOGY ACCESS AGREEMENT
-  /// -------------------------------------------------------------
   Widget _buildDriverPartnerAgreementView(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Card
+
           _buildCorporateBox(
             title: 'DRIVER PARTNER TECHNOLOGY ACCESS AGREEMENT',
             effectiveDate: 'Effective Date: 22/08/2026',
@@ -251,7 +244,6 @@ class _TermsAndConditionsDialogState extends State<TermsAndConditionsDialog>
 
           const SizedBox(height: 14),
 
-          // Key Highlights
           _buildHighlightBadge(
             icon: Icons.handshake_rounded,
             color: const Color(0xFF059669),
@@ -417,16 +409,13 @@ class _TermsAndConditionsDialogState extends State<TermsAndConditionsDialog>
     );
   }
 
-  /// -------------------------------------------------------------
-  /// TAB 2: PLATFORM TERMS OF USE
-  /// -------------------------------------------------------------
   Widget _buildPlatformTermsOfUseView(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Card
+
           _buildCorporateBox(
             title: 'PLATFORM TERMS OF USE',
             effectiveDate: 'Version 3.0 · Effective: 22/08/2026',

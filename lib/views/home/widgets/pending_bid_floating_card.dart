@@ -18,7 +18,7 @@ class PendingBidFloatingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const statusBgColor = Color(0xFFF59E0B); // Amber / Gold color for pending bid
+    const statusBgColor = Color(0xFFF59E0B);
 
     return Material(
       color: Colors.transparent,
@@ -28,7 +28,7 @@ class PendingBidFloatingCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A), // Dark slate floating card
+            color: const Color(0xFF0F172A),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: statusBgColor.withValues(alpha: 0.8),
@@ -44,7 +44,7 @@ class PendingBidFloatingCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Gavel / Hourglass Icon container
+
               Container(
                 width: 44,
                 height: 44,
@@ -61,7 +61,6 @@ class PendingBidFloatingCard extends StatelessWidget {
               ),
               const SizedBox(width: 14),
 
-              // Bidding Status & Details
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -128,7 +127,6 @@ class PendingBidFloatingCard extends StatelessWidget {
 
               const SizedBox(width: 10),
 
-              // View Bid Button
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,

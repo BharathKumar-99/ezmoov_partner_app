@@ -66,7 +66,7 @@ class _AppUpdateViewState extends State<AppUpdateView> {
             config.version.isNotEmpty ? config.version : '1.0.0';
         final currentVersion = AppConstants.appVersion;
         return PopScope(
-          canPop: !isMandatory, // Prevent closing if forced update
+          canPop: !isMandatory,
           child: Scaffold(
             backgroundColor: AppColors.background,
             appBar: AppBar(
@@ -88,7 +88,6 @@ class _AppUpdateViewState extends State<AppUpdateView> {
                   children: [
                     const SizedBox(height: 12),
 
-                    // 1. Glowing Rocket / Update Icon
                     Container(
                       width: 100,
                       height: 100,
@@ -117,7 +116,6 @@ class _AppUpdateViewState extends State<AppUpdateView> {
 
                     const SizedBox(height: 24),
 
-                    // 2. Status Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 6),
@@ -164,7 +162,6 @@ class _AppUpdateViewState extends State<AppUpdateView> {
 
                     const SizedBox(height: 16),
 
-                    // 3. Version Comparison Chip
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
@@ -203,7 +200,6 @@ class _AppUpdateViewState extends State<AppUpdateView> {
 
                     const SizedBox(height: 18),
 
-                    // 4. Title & Description
                     Text(
                       title,
                       textAlign: TextAlign.center,
@@ -227,7 +223,6 @@ class _AppUpdateViewState extends State<AppUpdateView> {
 
                     const SizedBox(height: 28),
 
-                    // 5. "What's New" Highlights Card
                     Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
@@ -288,7 +283,6 @@ class _AppUpdateViewState extends State<AppUpdateView> {
 
                     const SizedBox(height: 32),
 
-                    // 6. Primary "UPDATE NOW" Button
                     SizedBox(
                       width: double.infinity,
                       child: GradientButton(
@@ -301,7 +295,6 @@ class _AppUpdateViewState extends State<AppUpdateView> {
 
                     const SizedBox(height: 14),
 
-                    // 7. Secondary / Skip Action
                     if (!isMandatory)
                       SizedBox(
                         width: double.infinity,

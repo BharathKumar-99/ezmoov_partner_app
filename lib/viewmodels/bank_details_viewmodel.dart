@@ -98,7 +98,7 @@ class BankDetailsViewModel extends ChangeNotifier {
 
       setLoading(false);
       if (context.mounted) {
-        // Refresh central ProfileViewModel
+
         await Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(driverId);
         if (context.mounted) {
           context.go('/verification-pending', extra: {'driverId': driverId});

@@ -55,7 +55,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
 
-  // 3-Minute (180s) Countdown Timer
   static const int _totalTimerSeconds = 180;
   int _remainingSeconds = _totalTimerSeconds;
   Timer? _countdownTimer;
@@ -69,7 +68,7 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
     _baseFare = widget.booking.fare > 0
         ? widget.booking.fare
         : BookingModel.extractFare(widget.booking.toJson());
-    if (_baseFare <= 0) _baseFare = 150.0; // Fallback estimate
+    if (_baseFare <= 0) _baseFare = 150.0;
 
     _selectedBidAmount = _baseFare;
     _bidController = TextEditingController(
@@ -90,7 +89,7 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
       } else {
         timer.cancel();
         if (mounted) {
-          // Timer expired: auto-decline and dismiss
+
           final vm = Provider.of<RideRequestViewModel>(context, listen: false);
           vm.declineRide(widget.booking.id);
           Navigator.of(context).pop();
@@ -120,9 +119,9 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
   }
 
   Color _getTimerColor(double progress) {
-    if (progress > 0.5) return const Color(0xFF09A234); // Green
-    if (progress > 0.2) return const Color(0xFFD97706); // Amber
-    return const Color(0xFFDC2626); // Red
+    if (progress > 0.5) return const Color(0xFF09A234);
+    if (progress > 0.2) return const Color(0xFFD97706);
+    return const Color(0xFFDC2626);
   }
 
   @override
@@ -165,7 +164,7 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Pull pill bar
+
                   Center(
                     child: Container(
                       width: 40,
@@ -178,7 +177,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
                     ),
                   ),
 
-                  // 1. Header with Badge & Live 3-Min Countdown Timer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -230,7 +228,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
                       ),
                       const SizedBox(width: 8),
 
-                      // Countdown Timer Badge with live progress indicator
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
@@ -274,7 +271,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
 
                   const SizedBox(height: 14),
 
-                  // 2. Customer Info & Suggested Base Rate
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
@@ -361,7 +357,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
 
                   const SizedBox(height: 12),
 
-                  // Multi-Stops Badge Indicator (if any)
                   if (activeBooking.hasStops) ...[
                     Container(
                       margin: const EdgeInsets.only(bottom: 10),
@@ -392,7 +387,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
                     ),
                   ],
 
-                  // 3. Route Container (Pickup -> Stops -> Drop with Live Distances)
                   Builder(
                     builder: (context) {
                       final driverPos = LocationService.instance.currentPosition;
@@ -426,7 +420,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
 
                       final dropDistKm = vm.calculateTripDistance(activeBooking);
 
-                      // Trigger background fetch for Google Directions road distance if available
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (vm.getCachedRoadDistance(activeBooking.id) == null) {
                           vm.fetchBookingRoadDistance(activeBooking);
@@ -505,7 +498,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
 
                   const SizedBox(height: 16),
 
-                  // 4. Quick Bid Selection Chips
                   const Text(
                     'QUICK QUOTE',
                     style: TextStyle(
@@ -565,7 +557,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
 
                   const SizedBox(height: 14),
 
-                  // 5. Driver Bid Amount Input Field
                   const Text(
                     'YOUR BID QUOTE (₹)',
                     style: TextStyle(
@@ -637,7 +628,6 @@ class _LocalAddaBiddingDialogState extends State<LocalAddaBiddingDialog>
 
                   const SizedBox(height: 20),
 
-                  // 6. Action Buttons: Decline & Submit Bid
                   Row(
                     children: [
                       Expanded(

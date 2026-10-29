@@ -76,7 +76,7 @@ class _DemoVideoPlayerState extends State<DemoVideoPlayer> {
                         _controller.value.isPlaying
                             ? Icons.pause_circle_filled
                             : Icons.play_circle_filled,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         size: 64,
                       ),
                       onPressed: () {

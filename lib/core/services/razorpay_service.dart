@@ -51,7 +51,7 @@ class RazorpayService {
 
     var options = {
       'key': keyId,
-      'amount': (amount * 100).toInt(), // amount in paise
+      'amount': (amount * 100).toInt(),
       'name': 'EZMoov',
       'description': descriptionText,
       'notes': {

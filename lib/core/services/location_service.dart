@@ -11,7 +11,6 @@ class LocationService {
   Position? _currentPosition;
   Position? get currentPosition => _currentPosition;
 
-  /// Check location permissions and request if needed
   Future<bool> checkPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -39,7 +38,6 @@ class LocationService {
     return true;
   }
 
-  /// Get current device position (with fallback)
   Future<Position?> getCurrentPosition() async {
     try {
       final hasPermission = await checkPermission();
@@ -58,7 +56,6 @@ class LocationService {
     }
   }
 
-  /// Start live continuous location streaming to Supabase for an online driver
   void startLocationTracking({
     required String driverId,
     Function(double lat, double lng)? onLocationChanged,
@@ -68,7 +65,6 @@ class LocationService {
     final hasPermission = await checkPermission();
     if (!hasPermission) return;
 
-    // Fetch initial position
     final initialPos = await getCurrentPosition();
     if (initialPos != null) {
       _currentPosition = initialPos;
@@ -82,7 +78,7 @@ class LocationService {
 
     const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 10, // Update location every 10 meters moved
+      distanceFilter: 10,
     );
 
     _positionStreamSubscription = Geolocator.getPositionStream(
@@ -110,7 +106,6 @@ class LocationService {
     debugPrint('📡 Live GPS Tracking started for driver: $driverId');
   }
 
-  /// Stop location tracking
   void stopLocationTracking() {
     _positionStreamSubscription?.cancel();
     _positionStreamSubscription = null;

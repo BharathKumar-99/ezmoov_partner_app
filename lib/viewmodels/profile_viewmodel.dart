@@ -26,7 +26,7 @@ class ProfileViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
 
   ProfileViewModel() {
-    // Dynamically fetch fresh configuration matching current app version on app startup
+
     if (_supabaseService.safeClient != null) {
       unawaited(fetchAppConfig());
     }
@@ -53,7 +53,6 @@ class ProfileViewModel extends ChangeNotifier {
   bool get isFreeDriverLocalAdda => _appConfig.isFreeDriverAdda;
   bool get isFreeDriverOutstation => _appConfig.isFreeDriverAdda;
 
-
   bool _isOnline = false;
   bool get isOnline => _isOnline;
 
@@ -68,7 +67,6 @@ class ProfileViewModel extends ChangeNotifier {
 
   Timer? _locationTimer;
 
-  // Driver GPS coordinates (default fallback: Bengaluru)
   double _latitude = 12.9716;
   double _longitude = 77.5946;
   double get latitude => _latitude;
@@ -79,12 +77,10 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Request device location permissions using Geolocator system dialog
   Future<bool> handleLocationPermission(BuildContext context) async {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Check if device GPS service is enabled
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (context.mounted) {
@@ -96,10 +92,9 @@ class ProfileViewModel extends ChangeNotifier {
       return false;
     }
 
-    // Check permission status
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      // Show explicit permission request
+
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         if (context.mounted) {
@@ -125,7 +120,6 @@ class ProfileViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Load complete driver profile, ratings & trip records from Supabase
   Future<DriverModel?> fetchProfile(
     String driverIdOrPhone, [
     BuildContext? context,
@@ -133,7 +127,7 @@ class ProfileViewModel extends ChangeNotifier {
     _errorMessage = null;
 
     try {
-      // Fetch latest app configuration matching highest app version before checking online/fee status
+
       await fetchAppConfig(context);
 
       DriverModel? loadedDriver;
@@ -149,7 +143,6 @@ class ProfileViewModel extends ChangeNotifier {
             .timeout(const Duration(seconds: 8))
             .catchError((_) => null);
 
-        // Fallback: If not found by ID, try looking up by authenticated user phone if available
         if (loadedDriver == null) {
           final authPhone = _supabaseService.safeClient?.auth.currentUser?.phone;
           if (authPhone != null && authPhone.isNotEmpty) {
@@ -165,15 +158,14 @@ class ProfileViewModel extends ChangeNotifier {
         _driver = loadedDriver;
         _isOnline = loadedDriver.isOnline;
         if (loadedDriver.id != null) {
-          saveSessionPhoneOrId(loadedDriver.id!);
-          FcmService.instance.saveUserFcmToken(loadedDriver.id!);
+          await saveSessionPhoneOrId(loadedDriver.id!);
+          unawaited(FcmService.instance.saveUserFcmToken(loadedDriver.id!));
         }
         if (loadedDriver.latitude != null && loadedDriver.longitude != null) {
           _latitude = loadedDriver.latitude!;
           _longitude = loadedDriver.longitude!;
         }
 
-        // Fetch linked tables concurrently in parallel
         final results = await Future.wait([
           _supabaseService
               .getVehicleByDriverId(loadedDriver.id!)
@@ -203,7 +195,6 @@ class ProfileViewModel extends ChangeNotifier {
         _ratings = (results[3] as List<RatingModel>?) ?? _ratings;
         _trips = (results[4] as List<BookingModel>?) ?? _trips;
 
-        // Persist to local disk cache for instant offline startup
         await saveToLocalCache();
 
         if (_isOnline && context != null && context.mounted) {
@@ -304,7 +295,6 @@ class ProfileViewModel extends ChangeNotifier {
   RealtimeChannel? _driverRealtimeChannel;
   String? _subscribedDriverId;
 
-  /// Subscribe to Realtime postgres changes on drivers table for instant online/offline status sync
   void subscribeToDriverRealtime(String driverId, [BuildContext? context]) {
     if (driverId.isEmpty || _subscribedDriverId == driverId) return;
 
@@ -387,7 +377,6 @@ class ProfileViewModel extends ChangeNotifier {
   bool get isTogglingOutstation => _isTogglingOutstation;
   bool get isOutstationBookingEnabled => _driver?.outstationBooking ?? false;
 
-  /// Toggle Outstation Booking status via Supabase RPC function toggle_driver_outstation_booking
   Future<bool> toggleOutstationBooking(BuildContext context) async {
     if (_driver == null || _driver!.id == null) return false;
     if (_isTogglingOutstation) return false;
@@ -441,7 +430,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Direct setter for driver profile (used during auth/onboarding)
   void updateDriverLocal(DriverModel driverModel) {
     _driver = driverModel;
     _isOnline = driverModel.isOnline;
@@ -467,7 +455,6 @@ class ProfileViewModel extends ChangeNotifier {
     return 175.0;
   }
 
-  /// Toggle online status in Supabase and handle 30s location timer after checking location permissions & wallet daily fee block
   Future<void> toggleOnlineStatus(bool value, BuildContext context) async {
     if (_driver == null || _driver!.id == null) return;
     if (_isTogglingOnline) return;
@@ -479,7 +466,7 @@ class ProfileViewModel extends ChangeNotifier {
 
     try {
       if (value) {
-        // Fast parallel fetch for daily status, wallet, and vehicle
+
         final results = await Future.wait([
           _supabaseService.getDriverDailyStatus(_driver!.id!),
           _supabaseService.getDriverWallet(_driver!.id!),
@@ -497,7 +484,6 @@ class ProfileViewModel extends ChangeNotifier {
         final isRejectionBlock = (dailyStatus?.rejectionsCount ?? 0) >= 2 || dailyStatus?.blockReason == 'exceeded_rejections';
         bool isPassActive = isFreeDriverLogin || (dailyStatus?.isPassActive ?? false);
 
-        // Auto-activate 24-hour pass if wallet has sufficient balance and pass is not active (when not free login)
         if (!isFreeDriverLogin && !isPassActive && !isRejectionBlock && walletBalance >= vehicleDailyFee && context.mounted) {
           final paid = await context.read<WalletViewModel>().payDailyFee(driverId: _driver!.id!, context: context);
           if (paid) {
@@ -515,7 +501,7 @@ class ProfileViewModel extends ChangeNotifier {
                 ? 'You have rejected 2 orders today. Order allocation is paused for the remainder of today and will resume tomorrow.'
                 : 'Your 24-hour daily pass is expired or unpaid. You must pay your daily fee (₹${vehicleDailyFee.toStringAsFixed(0)}) to go online for the next 24 hours.';
 
-            showDialog(
+            await showDialog(
               context: context,
               builder: (dialogCtx) => AlertDialog(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -557,7 +543,6 @@ class ProfileViewModel extends ChangeNotifier {
           return;
         }
 
-        // Prompt for location permission before going online
         if (!context.mounted) return;
         final hasPermission = await handleLocationPermission(context);
         if (!hasPermission) {
@@ -570,7 +555,7 @@ class ProfileViewModel extends ChangeNotifier {
       await _supabaseService.updateOnlineStatus(_driver!.id!, value);
 
       if (value) {
-        // Fetch initial GPS position
+
         try {
           final position = await Geolocator.getCurrentPosition(
             locationSettings: const LocationSettings(
@@ -644,7 +629,6 @@ class ProfileViewModel extends ChangeNotifier {
   bool _isTripActive = false;
   bool get isTripActive => _isTripActive;
 
-  /// Set whether driver is in an active trip flow and update location timer interval
   void setTripActive(bool active, [BuildContext? context]) {
     _isTripActive = active;
     _stopLocationTimer();
@@ -653,8 +637,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Start Periodic Location Timer when Driver is Online
-  /// Uses 5-second interval during active booking flow, and 30-second interval when idle.
   void startLocationTimer({BuildContext? context}) async {
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
@@ -707,7 +689,6 @@ class ProfileViewModel extends ChangeNotifier {
     startLocationTimer();
   }
 
-  /// Stop location timer
   void _stopLocationTimer() {
     if (_locationTimer != null && _locationTimer!.isActive) {
       _locationTimer!.cancel();
@@ -716,7 +697,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Clear profile data, remove stored session, sign out Supabase auth & cancel location timer on logout
   Future<void> clearProfileAndLogout(BuildContext context) async {
     _stopLocationTimer();
     if (context.mounted) {
@@ -733,10 +713,8 @@ class ProfileViewModel extends ChangeNotifier {
     _trips = [];
     _isOnline = false;
 
-    // Clear persisted SharedPreferences session
     await clearSession();
 
-    // Sign out from Supabase Auth
     try {
       await _supabaseService.client.auth.signOut();
     } catch (e) {
@@ -750,7 +728,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Restore session from local storage for instant offline & fast launch
   Future<void> restoreFromLocalCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -797,7 +774,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Save session state (persists driver and linked data into SharedPreferences for instant launch)
   Future<void> saveToLocalCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -863,7 +839,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Pay driver registration fee and update local driver state
   Future<bool> payRegistrationFee(BuildContext context) async {
     if (_driver?.id == null) return false;
     _isPayingRegistrationFee = true;
@@ -918,20 +893,17 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Re-fetch profile to check if registration fee has been paid externally/by admin
   Future<void> refreshRegistrationStatus(BuildContext context) async {
     if (_driver?.id == null) return;
     await fetchProfile(_driver!.id!, context);
   }
 
-  /// Sets app configuration directly (e.g. for testing or override)
   void setAppConfig(PartnerAppConfigModel config) {
     _appConfig = config;
     _supabaseService.setCachedPartnerAppConfig(config);
     notifyListeners();
   }
 
-  /// Fetches partner app configuration dynamically matching the current app version
   Future<PartnerAppConfigModel> fetchAppConfig([
     BuildContext? context,
     String? appVersion,

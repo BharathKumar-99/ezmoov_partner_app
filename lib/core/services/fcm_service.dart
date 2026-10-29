@@ -21,10 +21,9 @@ class FcmService {
 
   Future<void> initialize() async {
     try {
-      // Set background messaging handler
+
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-      // Request notification permissions
       NotificationSettings settings = await _fcm.requestPermission(
         alert: true,
         announcement: false,
@@ -37,18 +36,15 @@ class FcmService {
 
       debugPrint('User notification permission status: ${settings.authorizationStatus}');
 
-      // Enable foreground notification presentation options
       await _fcm.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,
       );
 
-      // Get initial token
       _fcmToken = await _fcm.getToken();
       debugPrint('Initial FCM Token: $_fcmToken');
 
-      // Listen for token updates
       _fcm.onTokenRefresh.listen((newToken) async {
         _fcmToken = newToken;
         debugPrint('FCM Token refreshed: $newToken');
@@ -57,7 +53,6 @@ class FcmService {
         }
       });
 
-      // Listen for foreground messages & show heads-up banner
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('Foreground FCM message received: ${message.notification?.title}');
         final notification = message.notification;
@@ -73,7 +68,6 @@ class FcmService {
         }
       });
 
-      // Listen for notification tap / app open
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         debugPrint('App opened from FCM notification: ${message.data}');
       });
@@ -82,7 +76,6 @@ class FcmService {
     }
   }
 
-  /// Save FCM token to Supabase for given user ID
   Future<void> saveUserFcmToken(String userId) async {
     _currentUserId = userId;
 

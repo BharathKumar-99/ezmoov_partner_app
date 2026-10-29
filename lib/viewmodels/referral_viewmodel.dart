@@ -30,7 +30,6 @@ class ReferralViewModel extends ChangeNotifier {
   int get totalInvited => _referrals.length;
   int get activeReferrals => _referrals.where((r) => r.isRewarded).length;
 
-  /// Fetch driver referral code and list of invited partners
   Future<void> fetchReferralData(String driverId, {DriverModel? currentDriver}) async {
     if (driverId.isEmpty) return;
 
@@ -53,7 +52,6 @@ class ReferralViewModel extends ChangeNotifier {
     }
   }
 
-  /// Apply/Redeem a referral code for the current driver
   Future<bool> redeemReferralCode({
     required String driverId,
     required String code,
@@ -99,7 +97,6 @@ class ReferralViewModel extends ChangeNotifier {
     }
   }
 
-  /// Copy referral code to clipboard
   void copyReferralCode(BuildContext context) {
     if (_referralCode.isEmpty) return;
 
@@ -117,7 +114,6 @@ class ReferralViewModel extends ChangeNotifier {
     }
   }
 
-  /// Share referral message via WhatsApp or OS Intent
   Future<void> shareViaWhatsApp() async {
     if (_referralCode.isEmpty) return;
 

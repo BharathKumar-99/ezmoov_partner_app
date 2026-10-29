@@ -63,7 +63,6 @@ class ProfileTab extends StatelessWidget {
               const Divider(color: AppColors.divider),
               const SizedBox(height: 8),
 
-              // English Option
               _LanguageOptionTile(
                 title: 'English',
                 subtitle: 'English',
@@ -76,7 +75,6 @@ class ProfileTab extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // Hindi Option
               _LanguageOptionTile(
                 title: 'हिन्दी',
                 subtitle: 'Hindi',
@@ -89,7 +87,6 @@ class ProfileTab extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // Telugu Option
               _LanguageOptionTile(
                 title: 'తెలుగు',
                 subtitle: 'Telugu',

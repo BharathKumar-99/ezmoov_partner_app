@@ -9,12 +9,11 @@ class AudioService {
   AudioPlayer get player => _audioPlayer;
   bool _isPlaying = false;
 
-  /// Play incoming ride request alert sound
   Future<void> playRideRequestAlert() async {
     if (_isPlaying) return;
     try {
       _isPlaying = true;
-      // Set source to a public alert sound or asset
+
       await _audioPlayer.setSource(
         UrlSource('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'),
       );
@@ -27,7 +26,6 @@ class AudioService {
     }
   }
 
-  /// Stop playing alert sound
   Future<void> stopAlert() async {
     try {
       if (_isPlaying) {
@@ -41,14 +39,13 @@ class AudioService {
     }
   }
 
-  /// Play one-shot sound when ride is picked up / trip starts
   Future<void> playPickupStartAlert() async {
     try {
       final player = AudioPlayer();
       await player.setSource(
         UrlSource('https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3'),
       );
-      await player.setReleaseMode(ReleaseMode.release); // plays once, auto-releases
+      await player.setReleaseMode(ReleaseMode.release);
       await player.resume();
       debugPrint('🔔 Pickup Start Sound played.');
     } catch (e) {
@@ -56,14 +53,13 @@ class AudioService {
     }
   }
 
-  /// Play one-shot sound when cargo is dropped off / POD submitted
   Future<void> playDropCompleteAlert() async {
     try {
       final player = AudioPlayer();
       await player.setSource(
         UrlSource('https://assets.mixkit.co/active_storage/sfx/2865/2865-preview.mp3'),
       );
-      await player.setReleaseMode(ReleaseMode.release); // plays once, auto-releases
+      await player.setReleaseMode(ReleaseMode.release);
       await player.resume();
       debugPrint('🔔 Drop Complete Sound played.');
     } catch (e) {

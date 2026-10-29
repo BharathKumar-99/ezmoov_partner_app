@@ -93,7 +93,7 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Animated Icon Badge
+
             ScaleTransition(
               scale: _scaleAnim,
               child: AnimatedBuilder(
@@ -138,7 +138,6 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
 
             const SizedBox(height: 20),
 
-            // Title
             Text(
               isSuccess ? l10n.paymentSuccessful : l10n.paymentFailed,
               textAlign: TextAlign.center,
@@ -151,7 +150,6 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
 
             const SizedBox(height: 10),
 
-            // Amount pill if success
             if (isSuccess && widget.amount > 0) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -172,7 +170,6 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
               const SizedBox(height: 14),
             ],
 
-            // Message Card
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -214,7 +211,6 @@ class _RechargeResultDialogState extends State<RechargeResultDialog>
 
             const SizedBox(height: 24),
 
-            // Action Button
             SizedBox(
               width: double.infinity,
               height: 48,

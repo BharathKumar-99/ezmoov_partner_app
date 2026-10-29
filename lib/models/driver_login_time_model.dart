@@ -23,7 +23,6 @@ class DriverLoginTimeModel {
 
   bool get isOngoing => endTime == null;
 
-  /// Calculate duration dynamically (if ongoing, from startTime to now)
   Duration get calculatedDuration {
     if (endTime != null) {
       final diff = endTime!.difference(startTime);
@@ -34,7 +33,6 @@ class DriverLoginTimeModel {
     return diff.isNegative ? Duration.zero : diff;
   }
 
-  /// Formatted duration string, e.g. "2h 30m" or "45m" or "1m"
   String get formattedDuration {
     final dur = calculatedDuration;
     final hours = dur.inHours;
@@ -49,7 +47,6 @@ class DriverLoginTimeModel {
     }
   }
 
-  /// Detailed formatted duration string, e.g. "2 hrs 30 mins"
   String get formattedDurationDetailed {
     if (totalTime != null && totalTime!.isNotEmpty && totalTime != 'Ongoing') {
       return totalTime!;
@@ -67,7 +64,6 @@ class DriverLoginTimeModel {
     }
   }
 
-  /// Formatted time range, e.g. "09:30 AM - 01:15 PM" or "09:30 AM - Present"
   String get formattedTimeRange {
     final startStr = DateFormat('hh:mm a').format(startTime.toLocal());
     if (endTime != null) {

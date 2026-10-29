@@ -1,4 +1,4 @@
-/// Model representing the dynamic partner app configuration from `public.partner_app_config` table
+
 class PartnerAppConfigModel {
   final int id;
   final String version;
@@ -36,17 +36,12 @@ class PartnerAppConfigModel {
     this.updatedAt,
   }) : isFreeDriverAdda = isFreeDriverAdda || isFreeDriverOutstation || isFreeDriverLocalAdda;
 
-
-  /// Alias for the user-specified column spelling `is_maintanace`
   bool get isMaintanace => isMaintenance;
 
-  /// Alias for the user-specified column spelling `regestration_fee`
   double get regestrationFee => registrationFee;
 
-  /// Alias for the user-specified column name `update`
   bool get update => forceUpdate;
 
-  /// Aliases for free driver local adda
   bool get isFreeDriverLocalAdda => isFreeDriverAdda;
   bool get isFreeDriverOutstation => isFreeDriverAdda;
 
@@ -55,7 +50,7 @@ class PartnerAppConfigModel {
   }
 
   factory PartnerAppConfigModel.fromJson(Map<String, dynamic> json) {
-    // 1. Maintenance flag handling (support 'is_maintanace', 'is_maintenance', 'isMaintenance')
+
     bool maintenance = false;
     if (json.containsKey('is_maintanace') && json['is_maintanace'] != null) {
       maintenance = json['is_maintanace'] == true || json['is_maintanace'].toString() == 'true';
@@ -65,7 +60,6 @@ class PartnerAppConfigModel {
       maintenance = json['isMaintenance'] == true || json['isMaintenance'].toString() == 'true';
     }
 
-    // 2. Update flag handling (support 'update', 'force_update', 'forceUpdate', 'is_update')
     bool updateFlag = false;
     if (json.containsKey('update') && json['update'] != null) {
       updateFlag = json['update'] == true || json['update'].toString() == 'true';
@@ -75,7 +69,6 @@ class PartnerAppConfigModel {
       updateFlag = json['forceUpdate'] == true || json['forceUpdate'].toString() == 'true';
     }
 
-    // 3. Registration fee parsing (support 'regestration_fee', 'registration_fee', 'registrationFee')
     double fee = 499.00;
     if (json.containsKey('regestration_fee') && json['regestration_fee'] != null) {
       fee = double.tryParse(json['regestration_fee'].toString()) ?? 499.00;
@@ -85,7 +78,6 @@ class PartnerAppConfigModel {
       fee = double.tryParse(json['registrationFee'].toString()) ?? 499.00;
     }
 
-    // 4. Free driver login flag (support 'is_free_driver_login', 'isFreeDriverLogin')
     bool freeLogin = false;
     if (json.containsKey('is_free_driver_login') && json['is_free_driver_login'] != null) {
       freeLogin = json['is_free_driver_login'] == true || json['is_free_driver_login'].toString() == 'true';
@@ -93,7 +85,6 @@ class PartnerAppConfigModel {
       freeLogin = json['isFreeDriverLogin'] == true || json['isFreeDriverLogin'].toString() == 'true';
     }
 
-    // 5. Free driver local adda flag (support 'is_free_driver_adda', 'is_free_driver_local_adda', 'is_free_driver_outstation', 'is_free_driver_outstanding', etc.)
     bool freeAdda = false;
     if (json.containsKey('is_free_driver_adda') && json['is_free_driver_adda'] != null) {
       freeAdda = json['is_free_driver_adda'] == true || json['is_free_driver_adda'].toString() == 'true';
@@ -207,4 +198,3 @@ class PartnerAppConfigModel {
     return 'PartnerAppConfigModel(id: $id, version: $version, isMaintenance: $isMaintenance, update: $forceUpdate, registrationFee: $registrationFee, isFreeDriverLogin: $isFreeDriverLogin, isFreeDriverAdda: $isFreeDriverAdda)';
   }
 }
-

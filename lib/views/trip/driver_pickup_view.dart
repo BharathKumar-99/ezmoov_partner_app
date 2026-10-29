@@ -140,7 +140,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
         _booking = booking;
         _isLoading = false;
       });
-      // Enable active trip location tracking (5-second interval + SnackBar)
+
       context.read<ProfileViewModel>().setTripActive(true, context);
     }
   }
@@ -549,8 +549,10 @@ class _DriverPickupViewState extends State<DriverPickupView> {
           context.read<RideRequestViewModel>().clearActiveDriverTrip();
           final driverId = _booking?.driverId;
           if (driverId != null && driverId.isNotEmpty) {
-            context.read<ProfileViewModel>().fetchProfile(driverId, context);
-            context.read<HomeViewModel>().loadDashboard(driverId);
+            await context.read<ProfileViewModel>().fetchProfile(driverId, context);
+            if (mounted) {
+              await context.read<HomeViewModel>().loadDashboard(driverId);
+            }
           }
           _showCustomerRatingModal();
         }
@@ -577,7 +579,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
     final isOnlinePayment =
         modeStr.contains('online') || modeStr.contains('razorpay');
 
-    // If online payment selected by customer and status is not yet amount_paid
     if (isOnlinePayment && _booking?.status != 'amount_paid') {
       final l10n = AppLocalizations.of(context)!;
       showDialog(
@@ -1033,7 +1034,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Image Preview Box
                   Container(
                     width: double.infinity,
                     height: 180,
@@ -1173,8 +1173,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                           'in_transit',
                           l10n.cargoPickupSavedTripStarted,
                         );
-                        // 🔔 Play pickup start sound when ride begins
-                        AudioService.instance.playPickupStartAlert();
+
+                        await AudioService.instance.playPickupStartAlert();
                       } catch (e) {
                         setModalState(() {
                           _isUploadingPickup = false;
@@ -1261,7 +1261,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Image Preview Box
                   Container(
                     width: double.infinity,
                     height: 180,
@@ -1392,8 +1391,8 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                       await _loadBookingDetails();
                       await _updateStatus('drop_complete',
                           l10n.cargoUnloadedPodSubmitted);
-                      // 🔔 Play drop complete sound when cargo is unloaded
-                      AudioService.instance.playDropCompleteAlert();
+
+                      await AudioService.instance.playDropCompleteAlert();
                     },
                   ),
                 ],
@@ -1603,7 +1602,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status Header Card
+
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -1713,7 +1712,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // SOS Emergency Banner Button
+
                   InkWell(
                     onTap: _showSosConfirmationModal,
                     borderRadius: BorderRadius.circular(14),
@@ -1797,8 +1796,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                   const SizedBox(height: 16),
 
                   if (_booking != null) _buildLiveWaitingTimerCard(_booking!),
-
-                  // Customer Contact Quick Actions Card (Call / SMS)
 
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -1884,7 +1881,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                   const SizedBox(height: 16),
 
-                  // Prominent Google Maps Navigation Card
                   InkWell(
                     onTap: () => _openGoogleMaps(
                       lat: navLat,
@@ -1984,7 +1980,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                   const SizedBox(height: 16),
 
-                  // Booking Details Card
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -2034,7 +2029,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                         const SizedBox(height: 16),
 
-                        // Route Timeline (Pickup, Intermediate Stops, Drop with Distance Pills)
                         Builder(
                           builder: (context) {
                             final rideVm = Provider.of<RideRequestViewModel>(
@@ -2069,7 +2063,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                   )
                                 : 0.0;
 
-                            // Total trip distance [Pickup -> Stops -> Drop]
                             final dropDistKm = _booking != null
                                 ? rideVm.calculateTripDistance(_booking!)
                                 : 0.0;
@@ -2117,7 +2110,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                 const DashedLineConnector(
                                     height: 18, color: Color(0xFF10B981)),
 
-                                // Intermediate Stops Loop with Per-Stop Status Buttons & Distance Pills
                                 if (_booking != null && _booking!.hasStops)
                                   ..._booking!.effectiveIntermediateStops
                                       .asMap()
@@ -2224,7 +2216,7 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                                                   ),
                                                 ],
                                               ),
-                                              // Per-Stop Action Button
+
                                               if (_booking!.status !=
                                                       'completed' &&
                                                   _booking!.status !=
@@ -2432,7 +2424,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
 
                   const SizedBox(height: 24),
 
-                  // Progressive Action Button (ARRIVED -> START TRIP -> INTERMEDIATE STOPS -> FINAL DROPOFF -> POD -> CASH -> COMPLETE)
                   Builder(
                     builder: (context) {
                       final effectiveStops =
@@ -2463,7 +2454,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         );
                       }
 
-                      // If trip has pending intermediate stops
                       if (hasPendingStops &&
                           (currentStatus == 'in_transit' ||
                               currentStatus.startsWith('stop_'))) {
@@ -2495,7 +2485,6 @@ class _DriverPickupViewState extends State<DriverPickupView> {
                         }
                       }
 
-                      // All intermediate stops completed (or no stops) & in transit -> Ready for Final Dropoff!
                       if (currentStatus == 'in_transit' ||
                           currentStatus.startsWith('stop_')) {
                         return GradientButton(

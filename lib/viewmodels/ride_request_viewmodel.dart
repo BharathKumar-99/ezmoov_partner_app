@@ -30,7 +30,6 @@ class RideRequestViewModel extends ChangeNotifier {
   BookingModel? _activeDriverTrip;
   BookingModel? get activeDriverTrip => _activeDriverTrip;
 
-  // Active Pending Bid State
   BookingModel? _activePendingBidBooking;
   BidModel? _activePendingBid;
   StreamSubscription<List<BidModel>>? _bidSubscription;
@@ -110,7 +109,6 @@ class RideRequestViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Checks whether a given vehicle type string/id corresponds to a 7 Feet / 4 Wheeler vehicle (Tata Ace / 750 Kg)
   bool is7FeetVehicle(String? vehType, [String? vehTypeId]) {
     final typeStr = vehType?.trim().toLowerCase() ?? '';
     final typeIdStr = vehTypeId?.trim().toLowerCase() ?? '';
@@ -139,7 +137,6 @@ class RideRequestViewModel extends ChangeNotifier {
       return true;
     }
 
-    // Check catalog IDs/Capacities for 4 Wheeler / 7ft (750 Kgs)
     for (final vt in _vehicleTypes) {
       if (vt.id.trim() == vehTypeId?.trim() ||
           vt.id.trim() == vehType?.trim() ||
@@ -159,7 +156,6 @@ class RideRequestViewModel extends ChangeNotifier {
     return false;
   }
 
-  /// Checks whether a given vehicle type string/id corresponds to an 8 Feet vehicle (1.2 Ton / 1200 Kg)
   bool is8FeetVehicle(String? vehType, [String? vehTypeId]) {
     final typeStr = vehType?.trim().toLowerCase() ?? '';
     final typeIdStr = vehTypeId?.trim().toLowerCase() ?? '';
@@ -188,7 +184,6 @@ class RideRequestViewModel extends ChangeNotifier {
       return true;
     }
 
-    // Check catalog IDs/Capacities for 8ft (1200 Kgs / 1.2 Ton)
     for (final vt in _vehicleTypes) {
       if (vt.id.trim() == vehTypeId?.trim() ||
           vt.id.trim() == vehType?.trim() ||
@@ -206,7 +201,6 @@ class RideRequestViewModel extends ChangeNotifier {
     return false;
   }
 
-  /// Checks whether a given vehicle type string/id corresponds to a 9 Feet vehicle (1.7 Ton / 1700 Kg)
   bool is9FeetVehicle(String? vehType, [String? vehTypeId]) {
     final typeStr = vehType?.trim().toLowerCase() ?? '';
     final typeIdStr = vehTypeId?.trim().toLowerCase() ?? '';
@@ -236,7 +230,6 @@ class RideRequestViewModel extends ChangeNotifier {
       return true;
     }
 
-    // Check catalog IDs/Capacities for 9ft (1700 Kgs / 1.7 Ton)
     for (final vt in _vehicleTypes) {
       if (vt.id.trim() == vehTypeId?.trim() ||
           vt.id.trim() == vehType?.trim() ||
@@ -254,7 +247,6 @@ class RideRequestViewModel extends ChangeNotifier {
     return false;
   }
 
-  /// Checks whether a given vehicle type string/id corresponds to a 10 Feet vehicle (2 Tons / 2000 Kg)
   bool is10FeetVehicle(String? vehType, [String? vehTypeId]) {
     final typeStr = vehType?.trim().toLowerCase() ?? '';
     final typeIdStr = vehTypeId?.trim().toLowerCase() ?? '';
@@ -284,7 +276,6 @@ class RideRequestViewModel extends ChangeNotifier {
       return true;
     }
 
-    // Check catalog IDs/Capacities for 10ft (2000 Kgs / 2 Tons)
     for (final vt in _vehicleTypes) {
       if (vt.id.trim() == vehTypeId?.trim() ||
           vt.id.trim() == vehType?.trim() ||
@@ -302,11 +293,9 @@ class RideRequestViewModel extends ChangeNotifier {
     return false;
   }
 
-  /// Check if the booking vehicle type matches the partner's vehicle type
   bool _isVehicleTypeMatching(BookingModel booking) {
     final bookingVeh = booking.vehicleTypeId?.trim();
 
-    // If the booking does not specify a vehicle type, allow it for all partners
     if (bookingVeh == null || bookingVeh.isEmpty) {
       return true;
     }
@@ -314,19 +303,16 @@ class RideRequestViewModel extends ChangeNotifier {
     final dType = _driverVehicleType?.trim() ?? '';
     final dTypeId = _driverVehicleTypeId?.trim() ?? '';
 
-    // If driver's vehicle type is not loaded yet, allow fallback
     if (dType.isEmpty && dTypeId.isEmpty) {
       return true;
     }
 
-    // 1. Direct match (case-insensitive)
     if (bookingVeh.toLowerCase() == dType.toLowerCase() ||
         (dTypeId.isNotEmpty &&
             bookingVeh.toLowerCase() == dTypeId.toLowerCase())) {
       return true;
     }
 
-    // 2. Normalized alphanumeric match (e.g., "3 Wheeler" vs "3wheeler" vs "3")
     final normB =
         bookingVeh.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
     final normD = dType.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
@@ -337,7 +323,6 @@ class RideRequestViewModel extends ChangeNotifier {
       return true;
     }
 
-    // 3. Match using dynamic VehicleTypeModel catalog from database
     if (_vehicleTypes.isEmpty) {
       _supabaseService.fetchVehicleTypes().then((types) {
         if (types.isNotEmpty) _vehicleTypes = types;
@@ -358,11 +343,6 @@ class RideRequestViewModel extends ChangeNotifier {
       }
     }
 
-    // 4. Vehicle Tier Escalation / 30-Second Forwarding Fallback:
-    // • 7 Feet booking -> after 30s forwarded to 8 Feet driver
-    // • 8 Feet booking -> after 30s forwarded to 9 Feet driver
-    // • 9 Feet booking -> after 30s forwarded to 10 Feet driver
-    // (All without modifying the bookings table in database)
     final isBooking7Ft = is7FeetVehicle(bookingVeh);
     final isBooking8Ft = is8FeetVehicle(bookingVeh);
     final isBooking9Ft = is9FeetVehicle(bookingVeh);
@@ -404,7 +384,6 @@ class RideRequestViewModel extends ChangeNotifier {
     return false;
   }
 
-  /// Explicitly decline a ride request so it is never shown again to this driver
   void declineRide(
     String bookingId, {
     String? driverId,
@@ -449,12 +428,10 @@ class RideRequestViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Haversine straight-line distance formula
   double calculateHaversineDistance(double lat1, double lon1, double lat2, double lon2) {
     return GoogleDirectionsService.calculateHaversineDistance(lat1, lon1, lat2, lon2);
   }
 
-  /// Calculates segment distance between two consecutive points with 1.3x city road factor
   double calculateSegmentDistance(
     double lat1,
     double lon1,
@@ -471,7 +448,6 @@ class RideRequestViewModel extends ChangeNotifier {
     );
   }
 
-  /// Calculates total delivery trip distance along [Pickup -> Stops -> Drop] with 1.3x city road factor
   double calculateRouteDistance({
     required double startLat,
     required double startLng,
@@ -494,7 +470,6 @@ class RideRequestViewModel extends ChangeNotifier {
     );
   }
 
-  /// Convenience method to calculate total route distance for a given BookingModel
   double calculateTripDistance(BookingModel booking) {
     if (_roadDistances.containsKey(booking.id)) {
       return _roadDistances[booking.id]!;
@@ -509,7 +484,6 @@ class RideRequestViewModel extends ChangeNotifier {
     );
   }
 
-  /// Asynchronously fetches real road distance (from Google Directions API if available)
   Future<double> fetchBookingRoadDistance(BookingModel booking) async {
     if (_roadDistances.containsKey(booking.id)) {
       return _roadDistances[booking.id]!;
@@ -526,7 +500,6 @@ class RideRequestViewModel extends ChangeNotifier {
     return dist;
   }
 
-  /// Distance in km between two GPS coordinates (with optional 1.3x road factor)
   double calculateDistance(
     double lat1,
     double lon1,
@@ -542,14 +515,12 @@ class RideRequestViewModel extends ChangeNotifier {
     return double.parse(km.toStringAsFixed(1));
   }
 
-  /// Clear active driver trip when booking is completed or cancelled
   void clearActiveDriverTrip() {
     _activeDriverTrip = null;
     _offlineTripService.clearActiveTrip();
     notifyListeners();
   }
 
-  /// Check if the driver currently has an active trip ('accepted', 'arrived', 'in_transit', 'drop_complete', 'amount_paid')
   Future<void> checkActiveDriverTrip(String driverId) async {
     if (driverId.isEmpty) return;
     try {
@@ -574,14 +545,12 @@ class RideRequestViewModel extends ChangeNotifier {
     }
   }
 
-  /// Check status of active pending bid in public.bids and public.bookings. Clear banner if no longer pending (accepted, rejected, closed, cancelled)
   Future<void> checkPendingBidStatus(
       String driverId, BuildContext context) async {
     if (_activePendingBidBooking == null || _activePendingBid == null) return;
     try {
       final bookingId = _activePendingBidBooking!.id;
 
-      // 1. Check bid status in public.bids
       final bidResponse = await _supabaseService.client
           .from('bids')
           .select()
@@ -599,7 +568,7 @@ class RideRequestViewModel extends ChangeNotifier {
           debugPrint('🎉 Bid accepted by customer!');
           final bidAmount =
               (bidResponse['driver_bid'] as num?)?.toDouble() ?? 0.0;
-          withdrawBid(); // Clear pending floating banner
+          withdrawBid();
           unawaited(_supabaseService.deductDriverWalletForBookingAcceptance(
             driverId: driverId,
             bookingId: bookingId,
@@ -615,7 +584,7 @@ class RideRequestViewModel extends ChangeNotifier {
           }
           return;
         } else if (bidStatus != 'pending') {
-          // 'rejected', 'closed', 'cancelled', etc.
+
           debugPrint(
               '🔒 Bid status updated to $bidStatus (no longer pending). Clearing banner...');
           withdrawBid();
@@ -630,7 +599,6 @@ class RideRequestViewModel extends ChangeNotifier {
         }
       }
 
-      // 2. Check booking status in public.bookings
       final currentBooking = await _supabaseService.getBookingById(bookingId);
       if (currentBooking == null || currentBooking.status != 'searching') {
         debugPrint(
@@ -651,7 +619,6 @@ class RideRequestViewModel extends ChangeNotifier {
     }
   }
 
-  /// Restore active trip on app launch if app was restarted during a trip
   Future<void> restoreActiveTripOnLaunch(
       String driverId, BuildContext context) async {
     if (driverId.isEmpty) return;
@@ -686,7 +653,6 @@ class RideRequestViewModel extends ChangeNotifier {
     }
   }
 
-  /// Start Realtime Broadcast Stream and 3s Polling Fallback for online driver
   void startBroadcastListening({
     required String driverId,
     required double driverLat,
@@ -711,10 +677,8 @@ class RideRequestViewModel extends ChangeNotifier {
     debugPrint(
         '📡 Starting Realtime Broadcast Stream & 3s Polling for driver $driverId at ($driverLat, $driverLng) [Vehicle: ${_driverVehicleType ?? _driverVehicleTypeId}]...');
 
-    // Initial check for active driver trip
     checkActiveDriverTrip(driverId);
 
-    // 1. Realtime Stream Subscription
     try {
       _subscription = _supabaseService.subscribeToBookingsStream().listen(
         (bookings) {
@@ -731,7 +695,6 @@ class RideRequestViewModel extends ChangeNotifier {
       debugPrint('⚠️ Error attaching stream: $e');
     }
 
-    // 2. 3-Second Polling Fallback Timer
     _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       try {
         await checkActiveDriverTrip(driverId);
@@ -746,15 +709,17 @@ class RideRequestViewModel extends ChangeNotifier {
           _processBookingsList(
               searchingBookings, driverId, driverLat, driverLng, context);
         } else if (_activeBroadcastBooking != null) {
-          // If active booking was cancelled or taken in DB
+
           if (_isModalOpen) {
             debugPrint(
                 '🔒 Ride no longer searching (cancelled or accepted). Auto-closing pop-up...');
-            _audioService.stopAlert();
-            Navigator.of(context, rootNavigator: true).pop();
-            _isModalOpen = false;
-            _showSnackBar(context,
-                'Ride request was cancelled or accepted by another driver.');
+            await _audioService.stopAlert();
+            if (context.mounted) {
+              Navigator.of(context, rootNavigator: true).pop();
+              _isModalOpen = false;
+              _showSnackBar(context,
+                  'Ride request was cancelled or accepted by another driver.');
+            }
           }
           _activeBroadcastBooking = null;
           notifyListeners();
@@ -765,15 +730,13 @@ class RideRequestViewModel extends ChangeNotifier {
     });
   }
 
-  /// Validates if an incoming booking meets vehicle match, distance & service criteria for a driver
   bool isBookingEligibleForDriver({
     required BookingModel booking,
     required double driverLat,
     required double driverLng,
     bool isOutstationBookingEnabled = false,
   }) {
-    // 1. VEHICLE TYPE MATCHING GUARD:
-    // Do NOT show alert dialog if booking's vehicle type does not match partner's vehicle type!
+
     if (!_isVehicleTypeMatching(booking)) {
       return false;
     }
@@ -797,7 +760,6 @@ class RideRequestViewModel extends ChangeNotifier {
         serviceName == 'bidding_outstation' ||
         serviceName == 'biddingoutstation';
 
-    // 1. Local Adda distance check: ONLY alert driver within localAddaDistanceKm
     if (isLocalAdda) {
       if (driverLat != 0.0 &&
           driverLng != 0.0 &&
@@ -810,10 +772,6 @@ class RideRequestViewModel extends ChangeNotifier {
       return true;
     }
 
-    // 2. Outstation booking checks:
-    // Requirements:
-    // - driver outstation_booking must be true
-    // - driver within outstationDistanceKm from pickup location
     if (isOutstation) {
       if (!isOutstationBookingEnabled) {
         return false;
@@ -831,9 +789,6 @@ class RideRequestViewModel extends ChangeNotifier {
       return true;
     }
 
-    // 3. Far Driver distance check (for other standard services):
-    // - if far_driver is null or false: within initialStandardDistanceKm (default 3.0 km)
-    // - if far_driver is true: distance increases to farDriverDistanceKm (default 10.0 km)
     final isFarDriver = booking.farDriver == true;
     final distanceThresholdKm = isFarDriver
         ? AppConstants.farDriverDistanceKm
@@ -851,7 +806,6 @@ class RideRequestViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Process incoming bookings and trigger dialog modal if matching
   void _processBookingsList(
     List<BookingModel> bookings,
     String driverId,
@@ -898,7 +852,6 @@ class RideRequestViewModel extends ChangeNotifier {
       }
     }
 
-    // Check if active broadcast booking was explicitly cancelled or accepted by another driver
     if (_activeBroadcastBooking != null) {
       BookingModel? currentActiveInStream;
       for (final b in bookings) {
@@ -934,17 +887,14 @@ class RideRequestViewModel extends ChangeNotifier {
       }
     }
 
-    // Trigger Pop-Up Dialog whenever matching searching booking is active and modal is not open
     if (matchingBooking != null) {
       _activeBroadcastBooking = matchingBooking;
       notifyListeners();
 
-      // Guard: Do NOT open another modal or trigger duplicate alerts if a modal is already open or this order is currently being shown
       if (_isModalOpen || _activeShowingBookingId == matchingBooking.id) {
         return;
       }
 
-      // Synchronously lock state to prevent race conditions from 3s polling & stream updates
       _isModalOpen = true;
       _activeShowingBookingId = matchingBooking.id;
 
@@ -963,7 +913,6 @@ class RideRequestViewModel extends ChangeNotifier {
             debugPrint(
                 '🎉 POP-UP TRIGGERED for booking #${currentBooking.id}!');
 
-            // Play audio alert ringtone
             _audioService.playRideRequestAlert();
 
             final double baseFare = currentBooking.fare;
@@ -973,7 +922,6 @@ class RideRequestViewModel extends ChangeNotifier {
                     ? currentBooking.farDriverIncentive!
                     : 0.0;
 
-            // Trigger system heads-up push notification
             NotificationService.instance.showIncomingRideNotification(
               bookingId: currentBooking.id,
               pickupAddress: currentBooking.pickupAddress,
@@ -1014,7 +962,6 @@ class RideRequestViewModel extends ChangeNotifier {
     }
   }
 
-  /// Submit driver bid record for local_adda / bidding services into public.bids table
   Future<bool> submitBid({
     required String bookingId,
     required String driverId,
@@ -1023,7 +970,7 @@ class RideRequestViewModel extends ChangeNotifier {
     required BuildContext context,
   }) async {
     try {
-      _audioService.stopAlert();
+      await _audioService.stopAlert();
       final createdBid = await _supabaseService.submitDriverBid(
         bookingId: bookingId,
         driverId: driverId,
@@ -1034,7 +981,6 @@ class RideRequestViewModel extends ChangeNotifier {
       if (createdBid != null) {
         _declinedBookingIds.add(bookingId);
 
-        // Store active pending bid state so floating banner shows up on Home screen
         if (_activeBroadcastBooking?.id == bookingId) {
           _activePendingBidBooking = _activeBroadcastBooking;
           _activeBroadcastBooking = null;
@@ -1045,7 +991,6 @@ class RideRequestViewModel extends ChangeNotifier {
         _activeShowingBookingId = null;
         notifyListeners();
 
-        // Start realtime listener on bids stream
         if (context.mounted) {
           _startBidRealtimeListener(bookingId, driverId, context);
         }
@@ -1072,7 +1017,6 @@ class RideRequestViewModel extends ChangeNotifier {
     }
   }
 
-  /// Subscribe to realtime updates for this driver's bid
   void _startBidRealtimeListener(
     String bookingId,
     String driverId,
@@ -1106,11 +1050,11 @@ class RideRequestViewModel extends ChangeNotifier {
     BuildContext context,
     BidModel bid,
   ) async {
-    _bidSubscription?.cancel();
+    await _bidSubscription?.cancel();
     _bidSubscription = null;
 
-    _audioService.stopAlert();
-    _audioService.playRideRequestAlert();
+    await _audioService.stopAlert();
+    await _audioService.playRideRequestAlert();
 
     withdrawBid();
 
@@ -1156,7 +1100,6 @@ class RideRequestViewModel extends ChangeNotifier {
     }
   }
 
-  /// Stop stream listener and polling timer
   void stopBroadcastListening() {
     _audioService.stopAlert();
     _bidSubscription?.cancel();
@@ -1171,7 +1114,6 @@ class RideRequestViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// ATOMIC RIDE ACCEPTANCE via Supabase RPC function accept_booking_request
   Future<void> acceptRide({
     required String bookingId,
     required String driverId,
@@ -1184,7 +1126,7 @@ class RideRequestViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _audioService.stopAlert();
+      await _audioService.stopAlert();
 
       final result = await _supabaseService.acceptBookingRequest(
         bookingId: bookingId,
@@ -1209,7 +1151,6 @@ class RideRequestViewModel extends ChangeNotifier {
             '';
         final isOutstation = serviceName.contains('outstation');
 
-        // If outstation ride, reduce ₹100 from driver's wallet upon acceptance
         if (isOutstation) {
           unawaited(_supabaseService.deductDriverWalletForBookingAcceptance(
             driverId: driverId,
@@ -1236,7 +1177,7 @@ class RideRequestViewModel extends ChangeNotifier {
           status: 'accepted',
           driverId: driverId,
         );
-        checkActiveDriverTrip(driverId);
+        await checkActiveDriverTrip(driverId);
 
         if (!context.mounted) return;
 

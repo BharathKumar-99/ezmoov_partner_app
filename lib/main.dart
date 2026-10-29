@@ -34,13 +34,12 @@ import 'viewmodels/performance_viewmodel.dart';
 Future<void> main() async {
   ScaledWidgetsFlutterBinding.ensureInitialized(
     scaleFactor: (deviceSize) {
-      // 375 is the standard mobile UI design reference width
+
       const double widthOfDesign = 375;
       return deviceSize.width / widthOfDesign;
     },
   );
 
-  // Initialize package metadata (dynamically loads app version, build number, package name)
   await AppConstants.initialize();
 
   try {
@@ -58,8 +57,8 @@ Future<void> main() async {
     try {
       await Supabase.initialize(
         url: supabaseUrl,
-        // ignore: deprecated_member_use
-        anonKey: supabasePublishableKey,
+
+        publishableKey: supabasePublishableKey,
       );
     } catch (e) {
       debugPrint('Supabase initialization notice: $e');
@@ -71,10 +70,8 @@ Future<void> main() async {
 
   final profileViewModel = ProfileViewModel();
 
-  // Restore cached driver profile from local disk storage immediately
   await profileViewModel.restoreFromLocalCache();
 
-  // Fetch fresh driver profile from Supabase if logged in
   try {
     final currentAuthUser = Supabase.instance.client.auth.currentUser;
     final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
@@ -94,33 +91,27 @@ Future<void> main() async {
     debugPrint('Startup profile fetch notice: $e');
   }
 
-  // Fetch dynamic app config matching version from Supabase on launch
   unawaited(profileViewModel.fetchAppConfig());
 
-  // Run app UI immediately
   runApp(EzMoovPartnerApp(profileViewModel: profileViewModel));
 
-  // Run non-critical background services & network profile sync asynchronously
   unawaited(_initializeBackgroundServices(profileViewModel));
 }
 
-/// Asynchronously initialize Firebase, notifications, background tasks and refresh profile & config from Supabase
 Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) async {
-  // 0. Auto-check for Play Store in-app updates
+
   try {
     unawaited(InAppUpdateService.instance.checkForUpdateAndPerform());
   } catch (e) {
     debugPrint('Background InAppUpdate check notice: $e');
   }
 
-  // 1. Fetch latest app config matching version dynamically
   try {
     await profileViewModel.fetchAppConfig();
   } catch (e) {
     debugPrint('Background app config fetch notice: $e');
   }
 
-  // 2. Initialize Firebase & FCM
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -130,7 +121,6 @@ Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) as
     debugPrint('Firebase initialization notice: $e');
   }
 
-  // 3. Initialize Notification and Background Services
   try {
     await NotificationService.instance.initialize();
     await BackgroundServiceManager.instance.initialize();
@@ -138,7 +128,6 @@ Future<void> _initializeBackgroundServices(ProfileViewModel profileViewModel) as
     debugPrint('Background services initialization notice: $e');
   }
 
-  // 4. Refresh driver profile from network in background
   try {
     final currentAuthUser = Supabase.instance.client.auth.currentUser;
     final savedSession = await profileViewModel.getSavedSessionPhoneOrId();
@@ -237,7 +226,6 @@ class _EzMoovPartnerAppState extends State<EzMoovPartnerApp> with WidgetsBinding
   }
 }
 
-// Overlay Window Entrypoint for Floating Home Screen Bubble Mode
 @pragma('vm:entry-point')
 void overlayMain() {
   WidgetsFlutterBinding.ensureInitialized();

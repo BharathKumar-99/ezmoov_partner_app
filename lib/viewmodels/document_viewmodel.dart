@@ -277,7 +277,6 @@ class DocumentViewModel extends ChangeNotifier {
 
       await _supabaseService.saveDocuments(docModel);
 
-      // If selfieWithVehicleUrl is present, also update drivers table selfie_with_vehicle_url
       if (selfieWithVehicleUrl.isNotEmpty) {
         await _supabaseService.client.from('drivers').update({
           'selfie_with_vehicle_url': selfieWithVehicleUrl,
@@ -286,7 +285,7 @@ class DocumentViewModel extends ChangeNotifier {
 
       setLoading(false);
       if (context.mounted) {
-        // Refresh central ProfileViewModel
+
         await Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(driverId);
         if (context.mounted) {
           context.go('/bank-details', extra: {'driverId': driverId});

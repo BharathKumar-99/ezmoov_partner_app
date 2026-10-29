@@ -173,7 +173,7 @@ class SupportView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(
-          0xFFF1F5F9), // Light grey soft background matching reference design
+          0xFFF1F5F9),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -181,7 +181,7 @@ class SupportView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Back Button
+
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
@@ -195,7 +195,6 @@ class SupportView extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Header Banner with Title & Illustration
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -225,17 +224,17 @@ class SupportView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Illustration Container matching screenshot artwork
+
                   Stack(
                     alignment: Alignment.bottomCenter,
                     children: [
-                      // Chat Bubble Graphic
+
                       Container(
                         width: 110,
                         height: 90,
                         decoration: BoxDecoration(
                           color:
-                              const Color(0xFFDBEAFE), // Light blue background
+                              const Color(0xFFDBEAFE),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Align(
@@ -266,7 +265,7 @@ class SupportView extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Character Avatar
+
                       Positioned(
                         right: 4,
                         bottom: 0,
@@ -281,7 +280,7 @@ class SupportView extends StatelessWidget {
                                 height: 52,
                                 decoration: BoxDecoration(
                                   color: const Color(
-                                      0xFF1D4ED8), // Royal blue uniform
+                                      0xFF1D4ED8),
                                   shape: BoxShape.circle,
                                   border:
                                       Border.all(color: Colors.white, width: 2),
@@ -332,7 +331,6 @@ class SupportView extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              // Option 1: Update my account details
               _SupportOptionTile(
                 icon: Icons.person_rounded,
                 title: l10n.updateAccountDetails,
@@ -361,7 +359,6 @@ class SupportView extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // Option 2: Know more about the pricing
               _SupportOptionTile(
                 icon: Icons.payments_rounded,
                 title: l10n.knowMorePricing,
@@ -390,7 +387,6 @@ class SupportView extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // Option 3: Learn more about my wallet
               _SupportOptionTile(
                 icon: Icons.account_balance_wallet_rounded,
                 title: l10n.learnMoreWallet,
@@ -419,7 +415,6 @@ class SupportView extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // Option 4: Learn about EZMoov services
               _SupportOptionTile(
                 icon: Icons.local_shipping_rounded,
                 title: l10n.learnEzmoovServices,
@@ -448,7 +443,6 @@ class SupportView extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // Option 5: Understand safety procedures
               _SupportOptionTile(
                 icon: Icons.shield_rounded,
                 title: l10n.understandSafety,
@@ -477,7 +471,6 @@ class SupportView extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // Bottom Hotline Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -551,7 +544,7 @@ class _SupportOptionTile extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF1F5F9), // Subtle light circle for icon
+                  color: Color(0xFFF1F5F9),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

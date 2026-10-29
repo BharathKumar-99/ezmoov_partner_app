@@ -30,7 +30,6 @@ class AppRouter {
         final location = state.uri.path;
         final config = profileViewModel.appConfig;
 
-        // 0. Maintenance Guard
         if (config.isMaintenance) {
           if (location != '/maintenance') {
             return '/maintenance';
@@ -40,7 +39,6 @@ class AppRouter {
           return '/home';
         }
 
-        // 0.1 Force Update Guard
         if (config.forceUpdate) {
           if (location != '/update') {
             return '/update';
@@ -53,7 +51,6 @@ class AppRouter {
         final authUser = SupabaseService.instance.client.auth.currentUser;
         final driver = profileViewModel.driver;
 
-        // 1. Not Logged In Guard (No Auth Session & No Driver Record)
         if (authUser == null && driver == null) {
           if (location == '/edit-profile' ||
               location == '/support' ||
@@ -69,7 +66,6 @@ class AppRouter {
           return '/login';
         }
 
-        // 2. Driver Record Missing in DB Guard
         if (driver == null) {
           if (location == '/signup' ||
               location == '/otp' ||
@@ -81,7 +77,6 @@ class AppRouter {
 
         final driverId = driver.id ?? authUser?.id ?? '';
 
-        // 3. Vehicle Details Guard
         if (!driver.isVehicleAdded) {
           if (location == '/vehicle-details' ||
               location == '/signup' ||
@@ -92,7 +87,6 @@ class AppRouter {
           return '/vehicle-details?driverId=$driverId';
         }
 
-        // 4. Document Collection Guard
         if (!driver.isDocumentsUploaded) {
           if (location == '/document-collection' ||
               location == '/vehicle-details' ||
@@ -104,7 +98,6 @@ class AppRouter {
           return '/document-collection?driverId=$driverId';
         }
 
-        // 5. Bank Details Guard
         if (!driver.isBankDetailsAdded) {
           if (location == '/bank-details' ||
               location == '/document-collection' ||
@@ -117,13 +110,11 @@ class AppRouter {
           return '/bank-details?driverId=$driverId';
         }
 
-        // 6. Admin Verification Guard
         if (!driver.isFullyVerified) {
           if (location == '/verification-pending') return null;
           return '/verification-pending?driverId=$driverId';
         }
 
-        // 7. Allow pickup navigation route, bidding status view, support view, wallet view & performance view when fully verified
         if (location.startsWith('/driver/pickup/') ||
             location.startsWith('/driver/bidding-status/') ||
             location == '/driver/performance' ||
@@ -132,7 +123,6 @@ class AppRouter {
           return null;
         }
 
-        // 8. Fully Verified: Redirect away from auth/onboarding screens to /home
         if (location == '/login' ||
             location == '/signup' ||
             location == '/otp' ||

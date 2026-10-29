@@ -112,7 +112,6 @@ class _OtpViewState extends State<OtpView> {
                   ),
                   const SizedBox(height: 40),
 
-                  // Pin Input Widget
                   Center(
                     child: Pinput(
                       length: 6,

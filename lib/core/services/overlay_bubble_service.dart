@@ -8,7 +8,6 @@ class OverlayBubbleService {
   bool _isBubbleActive = false;
   bool get isBubbleActive => _isBubbleActive;
 
-  /// Check and request System Alert Window (Draw Over Other Apps) permission
   Future<bool> checkPermission() async {
     try {
       final isGranted = await FlutterOverlayWindow.isPermissionGranted();
@@ -23,7 +22,6 @@ class OverlayBubbleService {
     }
   }
 
-  /// Show floating system bubble on home screen when driver is ONLINE
   Future<void> showFloatingBubble({
     String statusText = 'ONLINE',
   }) async {
@@ -54,8 +52,6 @@ class OverlayBubbleService {
     }
   }
 
-
-  /// Hide and close floating system bubble when driver goes OFFLINE
   Future<void> closeFloatingBubble() async {
     try {
       final isActive = await FlutterOverlayWindow.isActive();

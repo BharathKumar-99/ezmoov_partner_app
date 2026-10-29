@@ -74,7 +74,7 @@ class _MaintenanceViewState extends State<MaintenanceView> {
     final l10n = AppLocalizations.of(context)!;
 
     return PopScope(
-      canPop: false, // Prevents back navigation during active maintenance
+      canPop: false,
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
@@ -106,7 +106,6 @@ class _MaintenanceViewState extends State<MaintenanceView> {
                   children: [
                     const SizedBox(height: 12),
 
-                    // 1. Animated / Glowing Maintenance Badge
                     Container(
                       width: 100,
                       height: 100,
@@ -136,7 +135,6 @@ class _MaintenanceViewState extends State<MaintenanceView> {
 
                     const SizedBox(height: 24),
 
-                    // 2. Status Pill Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 6),
@@ -174,7 +172,6 @@ class _MaintenanceViewState extends State<MaintenanceView> {
 
                     const SizedBox(height: 18),
 
-                    // 3. Title & Description
                     Text(
                       title,
                       textAlign: TextAlign.center,
@@ -198,7 +195,6 @@ class _MaintenanceViewState extends State<MaintenanceView> {
 
                     const SizedBox(height: 28),
 
-                    // 4. Partner Data Safety Info Card
                     Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
@@ -252,7 +248,6 @@ class _MaintenanceViewState extends State<MaintenanceView> {
 
                     const SizedBox(height: 32),
 
-                    // 5. Refresh Status Primary Button
                     SizedBox(
                       width: double.infinity,
                       child: GradientButton(
@@ -265,7 +260,6 @@ class _MaintenanceViewState extends State<MaintenanceView> {
 
                     const SizedBox(height: 20),
 
-                    // 7. Footer App Version
                     Text(
                       'EZMoov Partner v${config.version}',
                       style: const TextStyle(

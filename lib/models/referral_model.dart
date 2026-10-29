@@ -3,12 +3,11 @@ class ReferralModel {
   final String referrerDriverId;
   final String referredDriverId;
   final String referralCode;
-  final String status; // 'pending', 'verified', 'completed', 'rewarded'
+  final String status;
   final double rewardAmount;
   final DateTime createdAt;
   final DateTime? completedAt;
 
-  // Joined driver info (if fetched via RPC or join query)
   final String? referredDriverName;
   final String? referredDriverPhone;
 

@@ -9,7 +9,6 @@ class OfflineTripService {
   OfflineTripService._privateConstructor();
   static final OfflineTripService instance = OfflineTripService._privateConstructor();
 
-  /// Save active trip state locally
   Future<void> saveActiveTrip({
     required String bookingId,
     required String status,
@@ -26,7 +25,6 @@ class OfflineTripService {
     }
   }
 
-  /// Get active trip details if saved
   Future<Map<String, String>?> getActiveTrip() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -47,7 +45,6 @@ class OfflineTripService {
     return null;
   }
 
-  /// Clear offline trip state when completed or cancelled
   Future<void> clearActiveTrip() async {
     try {
       final prefs = await SharedPreferences.getInstance();

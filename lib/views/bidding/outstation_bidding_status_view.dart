@@ -122,7 +122,7 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Status Header Banner
+
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
@@ -176,7 +176,6 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
 
                   const SizedBox(height: 20),
 
-                  // 2. Customer & Fare Summary Card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -277,7 +276,6 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
 
                   const SizedBox(height: 20),
 
-                  // 3. Route Details Card (Pickup, Stops & Drop)
                   Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
@@ -451,7 +449,6 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
 
                   const SizedBox(height: 24),
 
-                  // 4. Update / Re-Bid Input Card
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -564,7 +561,6 @@ class _OutstationBiddingStatusViewState extends State<OutstationBiddingStatusVie
 
                   const SizedBox(height: 20),
 
-                  // 5. Withdraw / Cancel Bid Action
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(

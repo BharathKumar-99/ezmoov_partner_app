@@ -94,7 +94,7 @@ class _SignupViewState extends State<SignupView> {
         _isTermsAccepted = true;
       });
       if (autoProceed) {
-        vm.handleSignup(context);
+        await vm.handleSignup(context);
       }
     }
   }
@@ -252,7 +252,6 @@ class _SignupViewState extends State<SignupView> {
                         ),
                         const SizedBox(height: 18),
 
-                        // Terms and Conditions Checkbox Row
                         InkWell(
                           onTap: () {
                             setState(() {

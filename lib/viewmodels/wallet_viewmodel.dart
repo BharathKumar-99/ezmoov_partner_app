@@ -105,12 +105,10 @@ class WalletViewModel extends ChangeNotifier {
 
   bool get isOutstationPassActive => isLocalAddaPassActive;
 
-
   bool get isPassActive =>
       _isFreeDriverLogin || (_dailyStatus?.isPassActive ?? false);
   DateTime? get passExpiresAt => _dailyStatus?.passExpiresAt;
 
-  /// Driver is blocked if explicitly blocked in daily status, or if 2 rejections reached, or if 24-hour daily pass is expired/unpaid (when free login is disabled)
   bool get isBlocked {
     if (_dailyStatus?.isBlocked == true) return true;
     if ((_dailyStatus?.rejectionsCount ?? 0) >= 2) return true;
@@ -118,7 +116,6 @@ class WalletViewModel extends ChangeNotifier {
     return false;
   }
 
-  /// Specific block reason: 'exceeded_rejections' or 'daily_pass_required' or 'insufficient_wallet_balance'
   String? get blockReason {
     if ((_dailyStatus?.rejectionsCount ?? 0) >= 2) {
       return 'exceeded_rejections';
@@ -135,7 +132,6 @@ class WalletViewModel extends ChangeNotifier {
   final List<RealtimeChannel> _realtimeChannels = [];
   String? _subscribedDriverId;
 
-  /// Subscribe to Realtime postgres changes using a dedicated channel for EACH table
   void subscribeToRealtimeWallet(String driverId) {
     if (driverId.isEmpty || _subscribedDriverId == driverId) return;
 
@@ -146,7 +142,6 @@ class WalletViewModel extends ChangeNotifier {
       debugPrint(
           '⚡ Subscribing to Supabase Realtime dedicated channels for Driver: $driverId');
 
-      // 1. Driver Wallets Channel
       final walletChan = _supabaseService.client
           .channel('public:wallet_updates:$driverId')
           .onPostgresChanges(
@@ -167,7 +162,6 @@ class WalletViewModel extends ChangeNotifier {
       walletChan.subscribe();
       _realtimeChannels.add(walletChan);
 
-      // 2. Wallet Transactions Channel
       final txChan = _supabaseService.client
           .channel('public:transactions_updates:$driverId')
           .onPostgresChanges(
@@ -187,7 +181,6 @@ class WalletViewModel extends ChangeNotifier {
       txChan.subscribe();
       _realtimeChannels.add(txChan);
 
-      // 3. Driver Daily Status Channel
       final dailyStatusChan = _supabaseService.client
           .channel('public:daily_status_updates:$driverId')
           .onPostgresChanges(
@@ -208,7 +201,6 @@ class WalletViewModel extends ChangeNotifier {
       dailyStatusChan.subscribe();
       _realtimeChannels.add(dailyStatusChan);
 
-      // 4. Driver Payouts Channel
       final payoutsChan = _supabaseService.client
           .channel('public:payouts_updates:$driverId')
           .onPostgresChanges(
@@ -241,7 +233,6 @@ class WalletViewModel extends ChangeNotifier {
     _subscribedDriverId = null;
   }
 
-  /// Fetch full wallet information, transactions, daily status, and vehicle fee using REAL DB records
   Future<void> fetchWalletData(String driverId,
       {bool showLoading = true}) async {
     if (driverId.isEmpty) return;
@@ -251,11 +242,10 @@ class WalletViewModel extends ChangeNotifier {
       notifyListeners();
     }
 
-    // Auto-subscribe to realtime updates for live UI refreshes
     subscribeToRealtimeWallet(driverId);
 
     try {
-      // 1. Fetch vehicle daily fee strictly from server vehicleTypes DB records
+
       final vehicle = await _supabaseService.getVehicleByDriverId(driverId);
       final vehicleTypes = await _supabaseService.fetchVehicleTypes();
 
@@ -294,16 +284,12 @@ class WalletViewModel extends ChangeNotifier {
         _vehicleDailyFee = 0.0;
       }
 
-      // 2. Fetch driver wallet balance
       _wallet = await _supabaseService.getDriverWallet(driverId);
 
-      // 3. Fetch transactions list
       _transactions = await _supabaseService.getWalletTransactions(driverId);
 
-      // 4. Fetch today's daily status
       _dailyStatus = await _supabaseService.getDriverDailyStatus(driverId);
 
-      // 5. Fetch completed trips & compute REAL total earnings
       final trips = await _supabaseService.getDriverTrips(driverId);
       final completedTrips =
           trips.where((t) => t.status == 'completed').toList();
@@ -312,13 +298,11 @@ class WalletViewModel extends ChangeNotifier {
         (sum, t) => sum + t.fare,
       );
 
-      // 6. Compute REAL total deductions from wallet_transactions (amount < 0)
       _totalDeductionsAllTime = _transactions.fold<double>(
         0.0,
         (sum, tx) => tx.amount < 0 ? sum + tx.amount.abs() : sum,
       );
 
-      // 7. Fetch driver payouts history for REAL settlements
       final payouts = await _supabaseService.getDriverPayouts(driverId);
       _payouts = payouts;
       _totalSettled = payouts.fold<double>(
@@ -351,7 +335,6 @@ class WalletViewModel extends ChangeNotifier {
   bool _isPayingFee = false;
   bool get isPayingFee => _isPayingFee;
 
-  /// Driver manually pays daily fee to purchase 24-hour pass
   Future<bool> payDailyFee({
     required String driverId,
     required BuildContext context,
@@ -407,7 +390,6 @@ class WalletViewModel extends ChangeNotifier {
   bool get isPayingLocalAddaFee => _isPayingLocalAddaFee;
   bool get isPayingOutstationFee => _isPayingLocalAddaFee;
 
-  /// Driver pays monthly fee (₹2,000) from wallet to activate 1-month Local Adda pass
   Future<bool> payLocalAddaMonthlyFee({
     required String driverId,
     required BuildContext context,
@@ -468,7 +450,6 @@ class WalletViewModel extends ChangeNotifier {
   }) =>
       payLocalAddaMonthlyFee(driverId: driverId, context: context);
 
-  /// Activate Local Adda monthly pass directly via Razorpay checkout
   Future<bool> activateLocalAddaPassDirect({
     required String driverId,
     required String paymentId,
@@ -529,11 +510,9 @@ class WalletViewModel extends ChangeNotifier {
         context: context,
       );
 
-
   bool _isWithdrawing = false;
   bool get isWithdrawing => _isWithdrawing;
 
-  /// Perform Wallet Withdrawal via RPC
   Future<bool> withdrawWallet({
     required String driverId,
     required double amount,
@@ -590,7 +569,6 @@ class WalletViewModel extends ChangeNotifier {
     }
   }
 
-  /// Perform Wallet Recharge via RPC
   Future<bool> rechargeWallet({
     required String driverId,
     required double amount,
@@ -612,7 +590,7 @@ class WalletViewModel extends ChangeNotifier {
       final feeDeducted = res['fee_deducted'] as bool? ?? false;
 
       if (success) {
-        // Refresh real wallet data immediately
+
         await fetchWalletData(driverId, showLoading: false);
 
         if (context.mounted) {
@@ -645,7 +623,6 @@ class WalletViewModel extends ChangeNotifier {
     }
   }
 
-  /// Record an order rejection by driver
   Future<void> recordOrderRejection(String driverId) async {
     if (driverId.isEmpty) return;
     try {

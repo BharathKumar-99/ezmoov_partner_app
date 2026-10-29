@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,12 +13,12 @@ class AuthViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService.instance;
 
   final TextEditingController loginPhoneController = TextEditingController();
-  
+
   final TextEditingController signupNameController = TextEditingController();
   final TextEditingController signupEmailController = TextEditingController();
   final TextEditingController signupPhoneController = TextEditingController();
   final TextEditingController signupReferralCodeController = TextEditingController();
-  
+
   String _otpCode = '';
   String get otpCode => _otpCode;
   set otpCode(String val) {
@@ -75,7 +76,6 @@ class AuthViewModel extends ChangeNotifier {
     return clean;
   }
 
-  /// LOGIN FLOW: Check driver existence, if exists go to OTP else show SnackBar
   Future<void> handleLogin(BuildContext context) async {
     final rawPhone = loginPhoneController.text.trim();
     if (rawPhone.isEmpty || rawPhone.length < 10) {
@@ -96,7 +96,7 @@ class AuthViewModel extends ChangeNotifier {
         _currentDriver = existingDriver;
         _isLoginFlow = true;
         setLoading(false);
-        context.push('/otp', extra: {'phone': formattedPhone});
+        unawaited(context.push('/otp', extra: {'phone': formattedPhone}));
       } else {
         setLoading(false);
         _showSnackBar(context, 'Driver not registered. Please Sign Up first.');
@@ -108,7 +108,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// SIGNUP FLOW: Check driver existence, if exists show SnackBar else go to OTP
   Future<void> handleSignup(BuildContext context) async {
     final name = signupNameController.text.trim();
     final email = signupEmailController.text.trim();
@@ -165,7 +164,7 @@ class AuthViewModel extends ChangeNotifier {
         _isLoginFlow = false;
         setLoading(false);
         if (context.mounted) {
-          context.push('/otp', extra: {'phone': formattedPhone});
+          unawaited(context.push('/otp', extra: {'phone': formattedPhone}));
         }
       }
     } catch (e) {
@@ -195,7 +194,6 @@ class AuthViewModel extends ChangeNotifier {
     setLoading(true);
     setError(null);
 
-    // 1. Verify Phone OTP via Supabase Auth
     try {
       await _supabaseService.verifyPhoneOtp(phone, _otpCode);
     } catch (e) {
@@ -206,7 +204,7 @@ class AuthViewModel extends ChangeNotifier {
       if (context.mounted) {
         _showSnackBar(context, 'Verification failed: $msg');
       }
-      return; // Do NOT move forward if OTP verification fails!
+      return;
     }
 
     if (!context.mounted) return;
@@ -223,12 +221,11 @@ class AuthViewModel extends ChangeNotifier {
         setLoading(false);
 
         if (driver.id != null) {
-          FcmService.instance.saveUserFcmToken(driver.id!);
+          unawaited(FcmService.instance.saveUserFcmToken(driver.id!));
         }
 
         if (!context.mounted) return;
 
-        // Sync with central ProfileViewModel
         if (driver.id != null) {
           await Provider.of<ProfileViewModel>(context, listen: false).fetchProfile(driver.id!);
         }
@@ -252,12 +249,10 @@ class AuthViewModel extends ChangeNotifier {
           _currentDriver = createdDriver;
           setLoading(false);
           if (createdDriver.id != null) {
-            FcmService.instance.saveUserFcmToken(createdDriver.id!);
+            unawaited(FcmService.instance.saveUserFcmToken(createdDriver.id!));
 
-            // Auto-generate referral code for new driver
             await _supabaseService.ensureDriverReferralCode(createdDriver);
 
-            // Redeem inviter's referral code if provided
             if (_signupDraftDriver!.referredByCode != null &&
                 _signupDraftDriver!.referredByCode!.isNotEmpty) {
               await _supabaseService.applyReferralCode(

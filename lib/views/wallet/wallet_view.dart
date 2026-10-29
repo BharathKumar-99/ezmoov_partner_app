@@ -119,9 +119,8 @@ class _WalletViewState extends State<WalletView> {
       }
     }
 
-    // Refresh wallet UI
     if (driverId.isNotEmpty && mounted) {
-      walletVm.fetchWalletData(driverId, showLoading: false);
+      await walletVm.fetchWalletData(driverId, showLoading: false);
     }
 
     if (mounted) {
@@ -207,10 +206,6 @@ class _WalletViewState extends State<WalletView> {
     );
   }
 
-  void _payOutstationFeeWithoutWallet(BuildContext context, String driverId) =>
-      _payLocalAddaFeeWithoutWallet(context, driverId);
-
-
   void _showAddMoneyBottomSheet(BuildContext context, String driverId, AppLocalizations l10n) {
     final walletVm = context.read<WalletViewModel>();
     final amountController = TextEditingController(text: '200');
@@ -266,7 +261,6 @@ class _WalletViewState extends State<WalletView> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Quick Select Amount Chips
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [100.0, 200.0, 500.0, 1000.0].map((amt) {
@@ -303,7 +297,6 @@ class _WalletViewState extends State<WalletView> {
 
                     const SizedBox(height: 16),
 
-                    // Amount Text Field
                     TextField(
                       controller: amountController,
                       keyboardType:
@@ -351,7 +344,6 @@ class _WalletViewState extends State<WalletView> {
 
                     const SizedBox(height: 24),
 
-                    // Submit Button
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -516,7 +508,6 @@ class _WalletViewState extends State<WalletView> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Available Balance Banner
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -550,7 +541,6 @@ class _WalletViewState extends State<WalletView> {
                     ),
                     const SizedBox(height: 16),
 
-                    // 1-2 Days Timeline Banner Notice
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -580,7 +570,6 @@ class _WalletViewState extends State<WalletView> {
                     ),
                     const SizedBox(height: 14),
 
-                    // Quick Chips
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -617,7 +606,6 @@ class _WalletViewState extends State<WalletView> {
                     ),
                     const SizedBox(height: 16),
 
-                    // TextField Amount
                     TextField(
                       controller: amountController,
                       keyboardType: TextInputType.number,
@@ -644,7 +632,6 @@ class _WalletViewState extends State<WalletView> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Action Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -737,14 +724,14 @@ class _WalletViewState extends State<WalletView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. GREEN TOP HEADER + AVAILABLE BALANCE MAIN CARD
+
                 Container(
                   color: const Color(0xFF09A234),
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Title
+
                       Text(
                         l10n.myWallet,
                         style: const TextStyle(
@@ -755,7 +742,6 @@ class _WalletViewState extends State<WalletView> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Main Balance Container Card
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
@@ -916,7 +902,6 @@ class _WalletViewState extends State<WalletView> {
 
                             const SizedBox(height: 20),
 
-                            // Sub-row: Pending Settlement & Next Settlement
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -973,7 +958,6 @@ class _WalletViewState extends State<WalletView> {
 
                 const SizedBox(height: 20),
 
-                // 2. STATS GRID (2x2 CARDS)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
@@ -1029,7 +1013,6 @@ class _WalletViewState extends State<WalletView> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Refer & Earn Banner Card
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
@@ -1116,7 +1099,6 @@ class _WalletViewState extends State<WalletView> {
 
                 const SizedBox(height: 20),
 
-                // 3. DAILY FEE & REJECTIONS TRACKER BANNER
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Container(
@@ -1134,7 +1116,7 @@ class _WalletViewState extends State<WalletView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Row 1: Vehicle Daily Fee & 24-Hour Pass Status
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -1219,7 +1201,6 @@ class _WalletViewState extends State<WalletView> {
                           ],
                         ),
 
-                        // Pay Daily Fee Action Buttons if Pass is Expired/Unpaid and NOT free login
                         if (!walletVm.isPassActive &&
                             !profileVm.isFreeDriverLogin &&
                             effectiveDriverId != null) ...[
@@ -1306,7 +1287,6 @@ class _WalletViewState extends State<WalletView> {
                           child: Divider(height: 1),
                         ),
 
-                        // Row 2: Rejections Count Progress (Limit 2 Rejections)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -1385,7 +1365,6 @@ class _WalletViewState extends State<WalletView> {
 
                 const SizedBox(height: 14),
 
-                // 3B. LOCAL ADDA MONTHLY FEE CARD (₹2,000 / month)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Container(
@@ -1491,7 +1470,6 @@ class _WalletViewState extends State<WalletView> {
                           ],
                         ),
 
-                        // Pay Monthly Local Adda Fee Action Buttons if Pass is Expired/Unpaid and NOT free
                         if (!walletVm.isLocalAddaPassActive &&
                             !profileVm.isFreeDriverAdda &&
                             effectiveDriverId != null) ...[
@@ -1576,7 +1554,6 @@ class _WalletViewState extends State<WalletView> {
                 ),
                 const SizedBox(height: 20),
 
-                // 4B. WITHDRAWAL REQUESTS & PAYOUT PROGRESS
                 if (walletVm.payouts.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1602,7 +1579,6 @@ class _WalletViewState extends State<WalletView> {
                   const SizedBox(height: 16),
                 ],
 
-                // 5. TRANSACTIONS SECTION
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -1623,7 +1599,6 @@ class _WalletViewState extends State<WalletView> {
 
                 const SizedBox(height: 12),
 
-                // Transactions List
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: walletVm.transactions.isEmpty
@@ -1858,7 +1833,6 @@ class _WalletViewState extends State<WalletView> {
     );
   }
 
-  /// Empty state placeholder when DB has no transaction history yet
   Widget _buildSampleTransactionsList(AppLocalizations l10n) {
     return Container(
       width: double.infinity,

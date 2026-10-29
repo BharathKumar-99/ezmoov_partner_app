@@ -83,7 +83,7 @@ class ActiveTripFloatingCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A), // Dark slate floating card
+            color: const Color(0xFF0F172A),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: statusBgColor.withValues(alpha: 0.6),
@@ -99,7 +99,7 @@ class ActiveTripFloatingCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Pulse/Navigation Icon container
+
               Container(
                 width: 44,
                 height: 44,
@@ -116,7 +116,6 @@ class ActiveTripFloatingCard extends StatelessWidget {
               ),
               const SizedBox(width: 14),
 
-              // Booking status & destination snippet
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -183,7 +182,6 @@ class ActiveTripFloatingCard extends StatelessWidget {
 
               const SizedBox(width: 10),
 
-              // Return to Navigation Pill Button
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,

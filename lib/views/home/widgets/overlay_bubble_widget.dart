@@ -15,7 +15,7 @@ class _OverlayBubbleWidgetState extends State<OverlayBubbleWidget> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () async {
-          // Open main app on tap
+
           await FlutterOverlayWindow.closeOverlay();
         },
         child: Container(

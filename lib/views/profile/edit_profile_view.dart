@@ -306,7 +306,6 @@ class _EditProfileViewState extends State<EditProfileView> {
             children: [
               const SizedBox(height: 10),
 
-              // Profile Avatar with Camera Edit Badge
               Center(
                 child: Stack(
                   alignment: Alignment.center,
@@ -396,7 +395,6 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               const SizedBox(height: 24),
 
-              // Partner ID Field (Editable)
               TextFormField(
                 controller: _uniqueIdController,
                 textCapitalization: TextCapitalization.characters,
@@ -422,7 +420,6 @@ class _EditProfileViewState extends State<EditProfileView> {
               ),
               const SizedBox(height: 16),
 
-              // Driver Name Field (Disabled / Display Only)
               TextFormField(
                 controller: _nameController,
                 readOnly: true,
@@ -445,7 +442,6 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               const SizedBox(height: 16),
 
-              // Phone Number Field (Disabled / Verified)
               TextFormField(
                 controller: _phoneController,
                 readOnly: true,
@@ -468,7 +464,6 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               const SizedBox(height: 16),
 
-              // Email Address Field (Editable)
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -504,7 +499,6 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               const SizedBox(height: 16),
 
-              // Operating / Home Address Field (Editable)
               TextFormField(
                 controller: _addressController,
                 maxLines: 3,
@@ -542,7 +536,6 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               const SizedBox(height: 32),
 
-              // Save Changes Button
               GradientButton(
                 text: l10n.saveChanges.toUpperCase(),
                 isLoading: _isSaving || _isUploadingImage,

@@ -135,7 +135,7 @@ class VehicleViewModel extends ChangeNotifier {
             _vehicleTypes.isNotEmpty ? _vehicleTypes.first : null;
       }
     } else if (_selectedCategory == 'Truck') {
-      String targetId = '5'; // default 8 Ft Vehicle
+      String targetId = '5';
       final detail = _selectedBodyDetail.toLowerCase();
       if (detail.contains('4 wheeler') ||
           detail.contains('750') ||
@@ -143,15 +143,15 @@ class VehicleViewModel extends ChangeNotifier {
           detail.contains('7ft') ||
           detail.contains('tata ace') ||
           detail.contains('ace')) {
-        targetId = '4'; // 4 Wheeler (750 Kgs)
+        targetId = '4';
       } else if (detail.contains('9')) {
-        targetId = '6'; // 9 Ft Vehicle (1700 Kgs)
+        targetId = '6';
       } else if (detail.contains('10') ||
           detail.contains('2000') ||
           detail.contains('2 ton')) {
-        targetId = '7'; // 10 Ft Vehicle (2000 Kgs)
+        targetId = '7';
       } else {
-        targetId = '5'; // 8 Ft Vehicle (1200 Kgs)
+        targetId = '5';
       }
       try {
         _selectedVehicleType = _vehicleTypes.firstWhere(
@@ -244,7 +244,7 @@ class VehicleViewModel extends ChangeNotifier {
 
       setLoading(false);
       if (context.mounted) {
-        // Refresh central ProfileViewModel
+
         await Provider.of<ProfileViewModel>(context, listen: false)
             .fetchProfile(driverId);
         if (context.mounted) {
